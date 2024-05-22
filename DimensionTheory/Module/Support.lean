@@ -10,7 +10,7 @@ open BigOperators
 universe u v
 variable (R : Type u) (M : Type v) [CommRing R] [AddCommGroup M] [Module R M]
 
-notation module " _p " primeIdeal:40 =>
+local notation module " _p " primeIdeal:40 =>
   LocalizedModule (Ideal.primeCompl primeIdeal.1) module
 
 /--
@@ -19,6 +19,7 @@ Support of an `R`-module
 def Module.Supp : Set (PrimeSpectrum R) :=
 { 𝔭 : PrimeSpectrum R | Nontrivial <| M _p 𝔭 }
 
+@[inherit_doc]
 notation "Supp(" R "," M ")" => Module.Supp R M
 
 namespace Module.Supp
