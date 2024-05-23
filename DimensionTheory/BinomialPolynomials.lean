@@ -208,7 +208,10 @@ the set of binomial polynomials `X choose k` is a basis for `F[X]`.
 -/
 noncomputable def basis : Basis ℕ F F[X] :=
   .mk (v := binomialPolynomial F)
-    sorry
+    (by
+      rw [linearIndependent_iff']
+      intro s g hg
+      sorry)
     (fun x _ ↦ eq_sum_range x ▸ Submodule.sum_mem _ fun k hk ↦ Submodule.smul_mem _ _ $
       Submodule.subset_span ⟨k, rfl⟩)
 
