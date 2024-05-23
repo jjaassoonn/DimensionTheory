@@ -3,6 +3,7 @@ import Mathlib.Data.Nat.Factorial.BigOperators
 import Mathlib.Algebra.Polynomial.Roots
 import Mathlib.Order.Interval.Set.Infinite
 import Mathlib.Logic.Function.Iterate
+import Mathlib.Algebra.Polynomial.Degree.Lemmas
 
 open Polynomial BigOperators
 open scoped Nat
@@ -52,10 +53,93 @@ lemma apply_mul (p q : F[X]) : Δ (p * q) = Δ p * (q.comp (X + 1)) + p * Δ q :
   simp only [eval_eq, eval_mul, eval_add, eval_comp, eval_X, eval_one, Set.mem_setOf_eq]
   ring
 
+lemma coeff_natDegree_sub_one (p : F[X]) :
+    (Δ p).coeff (p.natDegree - 1) = p.natDegree • p.leadingCoeff := by
+  if h : p.natDegree = 0
+  then
+    rw [natDegree_eq_zero] at h
+    obtain ⟨c, rfl⟩ := h
+    simp
+  else
+    simp only [stdDiff, AddMonoidHom.coe_mk, ZeroHom.coe_mk, coeff_sub]
+    rw [comp_eq_sum_left, coeff_sum]
+    simp_rw [coeff_C_mul, coeff_X_add_one_pow F]
+    rw [sum_def]
+    rw [Finset.sum_eq_add (p.natDegree - 1) p.natDegree (by omega)
+      (by
+        rintro i hi0 ⟨hi1, hi2⟩
+        replace hi0 := p.supp_subset_range_natDegree_succ hi0
+        simp only [Finset.mem_range] at hi0
+        have hi : i < p.natDegree - 1 := by omega
+        rw [Nat.choose_eq_zero_of_lt hi, Nat.cast_zero, mul_zero])
+      (by
+        intro h
+        simp only [mem_support_iff, ne_eq, Decidable.not_not] at h
+        rw [h, zero_mul])
+      (by
+        intro h
+        simp only [mem_support_iff, ne_eq, Decidable.not_not] at h
+        rw [h, zero_mul])]
+    simp only [Nat.choose_self, Nat.cast_one, mul_one, coeff_natDegree, add_sub_cancel_left,
+      nsmul_eq_mul]
+    rw [mul_comm _ p.leadingCoeff]
+    congr
+    rw [Nat.choose_symm, Nat.choose_one_right]
+    omega
+
+lemma coeff_natDegree (p : F[X]) : (Δ p).coeff p.natDegree = 0 := by
+  have deq1 : (X + 1 : F[X]).natDegree = 1 := by
+    rw [show (X + 1 : F[X]) = X + C 1 by simp, natDegree_X_add_C]
+  have ceq0 : (X + 1 : F[X]).leadingCoeff = 1 := show coeff _ _ = _ by
+    rw [deq1, coeff_add, coeff_X, if_pos rfl, coeff_one, if_neg (by norm_num), add_zero]
+
+  have ceq1 := coeff_comp_degree_mul_degree (p := p) (q := X + 1)
+    (by rw [deq1]; simp)
+  rw [deq1, mul_one, ceq0, one_pow, mul_one] at ceq1
+  simp [stdDiff, ceq1]
+
+
+lemma coeff_eq_zero_of_natDegree_le (p : F[X]) (n : ℕ) (hn : p.natDegree ≤ n) :
+    (Δ p).coeff n = 0 := by
+  rw [le_iff_eq_or_lt] at hn
+  rcases hn with rfl | hn
+  · apply coeff_natDegree
+  have deq1 : (X + 1 : F[X]).natDegree = 1 := by
+    rw [show (X + 1 : F[X]) = X + C 1 by simp, natDegree_X_add_C]
+
+  have deq2 := natDegree_comp (p := p) (q := X + 1)
+  rw [deq1, mul_one] at deq2
+
+  simp only [stdDiff, AddMonoidHom.coe_mk, ZeroHom.coe_mk, coeff_sub]
+  rw [Polynomial.coeff_eq_zero_of_natDegree_lt, Polynomial.coeff_eq_zero_of_natDegree_lt, sub_zero]
+  all_goals aesop
+
 variable {F} in
 -- if `p` has degree `n`, then `Δ p` has degree `n - 1`. This is because the coefficient of `X^n` in
 -- `Δ p` is `0` and the coefficient of `X^(n - 1)` is `p.natDegree * leadingCoeff p`.
-lemma natDegree_eq (p : F[X]) : (Δ p).natDegree = p.natDegree - 1 := by sorry
+lemma natDegree_eq (p : F[X]) : (Δ p).natDegree = p.natDegree - 1 := by
+  if p_ne_zero : p = 0
+  then
+      subst p_ne_zero
+      simp
+  else if p_ne_C : ∃ r, p = C r
+  then
+    obtain ⟨r, rfl⟩ := p_ne_C
+    simp
+  else
+  rw [natDegree_eq_of_le_of_coeff_ne_zero]
+  · rw [natDegree_le_iff_coeff_eq_zero]
+    intro n hn
+    apply coeff_eq_zero_of_natDegree_le
+    omega
+  · rw [coeff_natDegree_sub_one]
+    simp only [nsmul_eq_mul, ne_eq, mul_eq_zero, Nat.cast_eq_zero, leadingCoeff_eq_zero, p_ne_zero,
+      or_false]
+    contrapose! p_ne_zero
+    rw [natDegree_eq_zero] at p_ne_zero
+    tauto
+
+
 
 variable {F} in
 /--
@@ -209,8 +293,6 @@ the set of binomial polynomials `X choose k` is a basis for `F[X]`.
 noncomputable def basis : Basis ℕ F F[X] :=
   .mk (v := binomialPolynomial F)
     (by
-      rw [linearIndependent_iff']
-      intro s g hg
       sorry)
     (fun x _ ↦ eq_sum_range x ▸ Submodule.sum_mem _ fun k hk ↦ Submodule.smul_mem _ _ $
       Submodule.subset_span ⟨k, rfl⟩)
