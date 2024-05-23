@@ -3,7 +3,8 @@ import Mathlib.Data.Nat.Factorial.BigOperators
 import Mathlib.Algebra.Polynomial.Roots
 import Mathlib.Order.Interval.Set.Infinite
 import Mathlib.Logic.Function.Iterate
-import Mathlib.Algebra.Polynomial.Degree.Lemmas
+
+import DimensionTheory.missing_lemmas.Polynomial
 
 open Polynomial BigOperators
 open scoped Nat
@@ -202,6 +203,27 @@ lemma succ (k : ℕ) :
   rw [← mul_smul, mul_comm _ (k + 1 : F)⁻¹, mul_smul]
 
 
+lemma ne_zero (k : ℕ) : binomialPolynomial F k ≠ 0 := by
+  induction k with
+  | zero => simp
+  | succ k ih =>
+    rw [succ]
+    simp only [map_natCast, ne_eq, smul_eq_zero, inv_eq_zero, mul_eq_zero, not_or]
+    exact ⟨by norm_cast, ih, X_sub_C_ne_zero (k : F)⟩
+
+lemma natDegree_eq (k : ℕ) : (binomialPolynomial F k).natDegree = k := by
+  induction k with
+  | zero => simp
+  | succ k ih =>
+    rw [succ, natDegree_smul_of_smul_regular]
+    pick_goal 2
+    · intro x y (hxy : _ • _ = _ • _)
+      simp only [smul_eq_mul, mul_eq_mul_left_iff, inv_eq_zero] at hxy
+      exact hxy.resolve_right (by norm_cast)
+
+    rw [natDegree_mul (hp := ne_zero _ _) (hq := X_sub_C_ne_zero (k : F)),
+      natDegree_X_sub_C, ih]
+
 @[simp]
 lemma eval_of_le (k n : ℕ) (h : k ≤ n) :
     eval (n : F) (binomialPolynomial F k) = (n.choose k : F) := by
@@ -293,8 +315,12 @@ the set of binomial polynomials `X choose k` is a basis for `F[X]`.
 noncomputable def basis : Basis ℕ F F[X] :=
   .mk (v := binomialPolynomial F)
     (by
-      sorry)
-    (fun x _ ↦ eq_sum_range x ▸ Submodule.sum_mem _ fun k hk ↦ Submodule.smul_mem _ _ $
+      apply linearIndependent_of_degree_distinct (ne_zero := ne_zero F)
+      intro i j hij hd
+      rw [degree_eq_natDegree (ne_zero _ _), degree_eq_natDegree (ne_zero _ _),
+        natDegree_eq, natDegree_eq] at hd
+      exact hij (by exact_mod_cast hd))
+    (fun x _ ↦ eq_sum_range x ▸ Submodule.sum_mem _ fun k _ ↦ Submodule.smul_mem _ _ $
       Submodule.subset_span ⟨k, rfl⟩)
 
 end binomialPolynomial
