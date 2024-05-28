@@ -1,6 +1,5 @@
 import Mathlib.Algebra.Polynomial.Degree.Lemmas
 import Mathlib.LinearAlgebra.LinearIndependent
-import LeanCopilot
 
 open Polynomial
 
