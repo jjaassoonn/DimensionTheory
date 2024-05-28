@@ -1,10 +1,32 @@
 import Mathlib.Algebra.Polynomial.Degree.Lemmas
 import Mathlib.LinearAlgebra.LinearIndependent
 
-open Polynomial
+open Polynomial BigOperators
 
 variable (R : Type*) [DivisionRing R]
 variable {ι : Type*} (B : ι → R[X])
+
+lemma Polynomial.natDegree_sum_finset (s : Finset R[X]) :
+    (∑ p ∈ s, p).natDegree ≤ s.sup (fun p => p.natDegree) := by
+  classical
+  induction s using Finset.induction_on with
+  | empty => simp
+  | @insert p s hp hs =>
+    rw [Finset.sum_insert hp, Finset.sup_insert]
+    trans p.natDegree ⊔ (∑ p ∈ s, p).natDegree
+    · exact natDegree_add_le _ _
+    exact sup_le_sup (le_refl _) hs
+
+lemma Polynomial.natDegree_sum (s : Finset ι) :
+    (∑ i ∈ s, B i).natDegree ≤ s.sup (fun i => (B i).natDegree) := by
+  classical
+  induction s using Finset.induction_on with
+  | empty => simp
+  | @insert p s hp hs =>
+    rw [Finset.sum_insert hp, Finset.sup_insert]
+    trans (B p).natDegree ⊔ (∑ p ∈ s, B p).natDegree
+    · exact natDegree_add_le _ _
+    exact sup_le_sup (le_refl _) hs
 
 lemma Polynomial.finset_linearIndependent_of_natDegree_distinct'
     (s : Finset (R[X]))
@@ -22,10 +44,36 @@ lemma Polynomial.finset_linearIndependent_of_natDegree_distinct'
       let M : ℕ := s.image (fun i => i.natDegree) |>.max' (Finset.image_nonempty.mpr s_ne)
       have hM : M ∈ s.image (fun i => i.natDegree) := Finset.max'_mem _ _
       obtain ⟨p, hp1, hp2⟩ := Finset.mem_image.mp hM
-      have s_eq : s = insert p (s.erase p) := sorry
+
+      if hM0 : M = 0
+      then
+        have hs : ∃ r : R, s = {C r} := by
+          rw [hM0] at hp2
+          rw [Polynomial.natDegree_eq_zero] at hp2
+          obtain ⟨r, rfl⟩ := hp2
+          use r
+          ext x
+          simp only [Finset.mem_singleton]
+          constructor
+          · intro hx
+            have ineq1 : x.natDegree ≤ M := Finset.le_max' _ _ (Finset.mem_image_of_mem _ hx)
+            simp only [hM0, nonpos_iff_eq_zero] at ineq1
+            by_contra rid
+            refine degree_distinct (C r) x hp1 hx (Ne.symm rid) ?_
+            simp only [natDegree_C, ineq1]
+
+          · rintro rfl; exact hp1
+        obtain ⟨r, hr⟩ := hs
+        subst hr
+        rw [linearIndependent_unique_iff]
+        simpa using ne_zero
+      else
+      have s_eq : s = insert p (s.erase p) := by
+        simp_all only [ne_eq, Finset.forall_mem_not_eq', Finset.mem_image, Finset.insert_erase, M]
+      have le1 : s.erase p ≤ s := Finset.erase_subset _ _
       suffices LinearIndependent R (fun (i : (insert p (s.erase p) : Finset (R[X]))) => i.1) by
         convert this
-      convert @linearIndependent_insert R R[X] _ _ _ (s.erase p) p sorry |>.mpr ?_
+      convert @linearIndependent_insert R R[X] _ _ _ (s.erase p) p (by simp) |>.mpr ?_
       · change _ ↔ _ ∈ (_ : Set R[X])
         simp only [Finset.mem_insert, Finset.mem_erase, ne_eq, Finset.coe_erase, Set.mem_diff,
           Finset.mem_coe, Set.mem_singleton_iff, Set.mem_setOf_eq]
@@ -35,10 +83,28 @@ lemma Polynomial.finset_linearIndependent_of_natDegree_distinct'
           Set.insert_diff_singleton, Set.mem_insert_iff, Finset.mem_coe]
         tauto
       constructor
-      · have := ih (s.erase p) sorry sorry sorry
+      · have := ih (s.erase p) (Finset.erase_ssubset hp1) (fun _ h => ne_zero _ <| le1 h)
+          (fun _ _ h1 h2 => degree_distinct _ _ (le1 h1) (le1 h2))
         convert this
       intro r
-      sorry
+      have H (q : R[X]) (hq : q ∈ s.erase p) : q.natDegree < p.natDegree := by
+        refine lt_of_le_of_ne (hp2 ▸ Finset.le_max' _ _ ?_) <| degree_distinct _ _ (le1 hq) hp1 ?_
+        · rw [Finset.mem_image]
+          exact ⟨q, le1 hq, rfl⟩
+        · simp only [Finset.mem_erase, ne_eq] at hq
+          exact hq.1
+
+      have H' (q : R[X]) (hq : q ∈ Submodule.span R (s.erase p)) : q.natDegree < p.natDegree := by
+        rw [mem_span_finset] at hq
+        obtain ⟨l, hl1, rfl⟩ := hq
+        refine lt_of_le_of_lt (Polynomial.natDegree_sum _ _ _) ?_
+        rw [Finset.sup_lt_iff]
+        · intro q hq
+          refine lt_of_le_of_lt (Polynomial.natDegree_smul_le _ _) <| H _ hq
+        · simp only [bot_eq_zero']
+          rw [hp2]
+          omega
+      exact lt_irrefl _ <| H' p r
 
 lemma Polynomial.finset_linearIndependent_of_natDegree_distinct
     (s : Finset ι)
