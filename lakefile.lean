@@ -14,9 +14,15 @@ require mathlib from git
 @[default_target]
 lean_lib «DimensionTheory» where
   -- add any library configuration options here
+  moreLinkArgs := #[
+    "-L./.lake/packages/LeanCopilot/.lake/build/lib",
+    "-lctranslate2"
+  ]
 
 require checkdecls from git "https://github.com/PatrickMassot/checkdecls.git"
 
 -- meta if get_config? env = some "dev" then
 require «doc-gen4» from git
   "https://github.com/leanprover/doc-gen4" @ "main"
+
+require LeanCopilot from git "https://github.com/lean-dojo/LeanCopilot.git" @ "v1.2.2"

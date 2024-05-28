@@ -1,53 +1,92 @@
 import Mathlib.Algebra.Polynomial.Degree.Lemmas
 import Mathlib.LinearAlgebra.LinearIndependent
+import LeanCopilot
 
 open Polynomial
 
-variable (R : Type*) [Ring R]
+variable (R : Type*) [DivisionRing R]
 variable {ι : Type*} (B : ι → R[X])
+
+lemma Polynomial.finset_linearIndependent_of_natDegree_distinct'
+    (s : Finset (R[X]))
+    (ne_zero : ∀ i, i ∈ s → i ≠ 0)
+    (degree_distinct : ∀ (i j), i ∈ s → j ∈ s → i ≠ j → i.natDegree ≠ j.natDegree) :
+    LinearIndependent R (ι := s) (fun i => i.1) := by
+  classical
+  induction s using Finset.strongInduction with
+  | H s ih =>
+    cases Finset.eq_empty_or_nonempty s with
+    | inl eq =>
+      rw [eq]
+      exact linearIndependent_empty_type
+    | inr s_ne =>
+      let M : ℕ := s.image (fun i => i.natDegree) |>.max' (Finset.image_nonempty.mpr s_ne)
+      have hM : M ∈ s.image (fun i => i.natDegree) := Finset.max'_mem _ _
+      obtain ⟨p, hp1, hp2⟩ := Finset.mem_image.mp hM
+      have s_eq : s = insert p (s.erase p) := sorry
+      suffices LinearIndependent R (fun (i : (insert p (s.erase p) : Finset (R[X]))) => i.1) by
+        convert this
+      convert @linearIndependent_insert R R[X] _ _ _ (s.erase p) p sorry |>.mpr ?_
+      · change _ ↔ _ ∈ (_ : Set R[X])
+        simp only [Finset.mem_insert, Finset.mem_erase, ne_eq, Finset.coe_erase, Set.mem_diff,
+          Finset.mem_coe, Set.mem_singleton_iff, Set.mem_setOf_eq]
+        tauto
+      · change _ ↔ _ ∈ (_ : Set R[X])
+        simp only [Finset.mem_insert, Finset.mem_erase, ne_eq, Finset.coe_erase,
+          Set.insert_diff_singleton, Set.mem_insert_iff, Finset.mem_coe]
+        tauto
+      constructor
+      · have := ih (s.erase p) sorry sorry sorry
+        convert this
+      intro r
+      sorry
 
 lemma Polynomial.finset_linearIndependent_of_natDegree_distinct
     (s : Finset ι)
     (ne_zero : ∀ i, i ∈ s → B i ≠ 0)
     (degree_distinct : ∀ (i j), i ∈ s → j ∈ s → i ≠ j → (B i).natDegree ≠ (B j).natDegree) :
     LinearIndependent R (fun i : s ↦ B i) := by
-  -- suffices ∀ (n : ℕ) (s : Finset ι) (hs : ∀ i, i ∈ s → (B i).natDegree ≤ n) (ne_zero : ∀ i, i ∈ s → B i ≠ 0)
-  --     (degree_distinct : ∀ (i j), i ∈ s → j ∈ s → i ≠ j → (B i).natDegree ≠ (B j).natDegree),
-  --     LinearIndependent R (fun i : s ↦ B i) from
-  --   this (s.sup fun i ↦ (B i).natDegree) s
-  --     (by intro i hi; exact s.le_sup (f := fun i ↦ (B i).natDegree) hi)
-  --     ne_zero degree_distinct
+  classical
+  have := Polynomial.finset_linearIndependent_of_natDegree_distinct' R (s.image B)
+    (by
+      intro i hi
+      simp only [Finset.mem_image] at hi
+      rcases hi with ⟨i, hi, rfl⟩
+      apply ne_zero _ hi)
+    (by
+      intro i j hi hj
+      simp only [Finset.mem_image] at hi hj
+      rcases hi with ⟨i, hi, rfl⟩
+      rcases hj with ⟨j, hj, rfl⟩
+      intro h
 
-  -- refine Nat.rec ?_ ?_
-  -- · simp only [Nat.zero_eq, nonpos_iff_eq_zero, ne_eq]
-  --   intro s hs ne_zero degree_distinct
-  --   simp_rw [natDegree_eq_zero] at hs
-  --   choose x hx using hs
-  --   by_cases card : s.card ≤ 1
-  --   · rw [Finset.card_le_one] at card
-  --     by_cases ne : s = ∅
-  --     · subst ne
-  --       exact linearIndependent_empty_type
-
-  --     let instU : Unique s :=
-  --     ⟨⟨⟨Finset.nonempty_of_ne_empty ne |>.choose, Finset.nonempty_of_ne_empty ne |>.choose_spec⟩⟩,
-  --       by rintro ⟨x, hx⟩; ext; apply card _ hx _ (Finset.nonempty_of_ne_empty ne |>.choose_spec)⟩
-  --     exact linearIndependent_unique (fun i : s ↦ B i) <| ne_zero _ <|
-  --       Finset.nonempty_of_ne_empty ne |>.choose_spec
-  --   replace card : 1 < s.card := by omega
-  --   rw [Finset.one_lt_card] at card
-  --   obtain ⟨i, hi, j, hj, hij⟩ := card
-
-  --   exfalso
-  --   refine degree_distinct i j hi hj hij ?_
-  --   rw [← hx i hi, ← hx j hj]
-  --   simp
-
-  -- -- induction step
-  -- intro n IH s max_degree ne_zero degree_distinct
-  -- rw [linearIndependent_iff']
-
-  sorry
+      apply degree_distinct _ _ hi hj
+      rintro rfl
+      simp at h)
+  let e : s ≃ s.image B :=
+  { toFun := fun x ↦ ⟨B x, Finset.mem_image_of_mem _ x.2⟩
+    invFun := fun x ↦ ⟨Finset.mem_image.mp x.2 |>.choose,
+      Finset.mem_image.mp x.2 |>.choose_spec.1⟩
+    left_inv := by
+      rintro ⟨x, hx⟩
+      ext
+      simp only
+      generalize_proofs h
+      specialize degree_distinct x h.choose hx h.choose_spec.1
+      by_contra! h'
+      specialize degree_distinct h'.symm
+      rw [h.choose_spec.2] at degree_distinct
+      simp at degree_distinct
+    right_inv := by
+      rintro ⟨x, hx⟩
+      simp only [Finset.mem_image] at hx
+      rcases hx with ⟨y, -, rfl⟩
+      simp only [Subtype.mk.injEq]
+      generalize_proofs h
+      exact h.choose_spec.2 }
+  rw [linearIndependent_equiv' e]
+  · exact this
+  · rfl
 
 lemma Polynomial.finset_linearIndependent_of_degree_distinct
     (s : Finset ι)
@@ -67,4 +106,4 @@ lemma Polynomial.linearIndependent_of_degree_distinct
     LinearIndependent R B := by
   rw [linearIndependent_iff_finset_linearIndependent]
   intro s
-  refine finset_linearIndependent_of_degree_distinct R B _ (by aesop) (by aesop)
+  refine finset_linearIndependent_of_degree_distinct R B _  (by aesop) (by aesop)
