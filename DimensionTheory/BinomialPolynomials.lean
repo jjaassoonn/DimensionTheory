@@ -255,6 +255,19 @@ lemma eval_of_le (k n : ℕ) (h : k ≤ n) :
         omega
       · rw [Nat.descFactorial_self]
 
+lemma eval_of_gt (k n : ℕ) (h : k > n) :
+    eval (n : F) (binomialPolynomial F k) = 0 := by
+  delta binomialPolynomial
+  simp only [map_natCast, eval_smul, smul_eq_mul]
+  rw [eval_prod]
+  simp_rw [eval_sub, eval_X, eval_natCast]
+  suffices eq1 : ∏ x ∈ Finset.range k, (n - x : F) = 0 by
+    rw [eq1, mul_zero]
+  fapply Finset.prod_eq_zero
+  · exact n
+  · simpa
+  · simp
+
 @[simp]
 lemma stdDiff_succ (k : ℕ) :
     Δ (binomialPolynomial F (k + 1)) = binomialPolynomial F k := by
@@ -275,6 +288,10 @@ lemma stdDiff_succ (k : ℕ) :
   norm_cast
 
 variable {F}
+/--
+In Serre's Local algebra book, this is eₖ(P), where we write the polynomial as
+∑ eₖ (X choose k). It can be calculated by Δᵏp (0).
+-/
 noncomputable abbrev coeff' (p : F[X]) (k : ℕ) : F := (Δ^[k] p).eval 0
 
 @[simp]
