@@ -2,6 +2,7 @@
 \label{sec:integer_valued_polynomial}
 
 \begin{definition}[Binomial Polynomial]
+    \label{def:binomial_polynomial}
     For any field $F$ with characteristic $0$, the binomial polynomials are defined as
     $\{ Q_k(X) = \choose X k \mid k \in \mathbb{N} \}$:
     \begin{equation}
@@ -18,7 +19,9 @@
 
 \begin{lemma}
     For any field $F$ with characteristic $0$, the binomial polynomials forms a basis for $F[X]$.
-    \uses{binomialPolynomial.basis}
+    \lean{binomialPolynomial.basis}
+    \leanok
+    \uses{def:binomial_polynomial}
 \end{lemma}
 \begin{proof}
     The set of binomial polynomials is linearly independent since they have distinct degrees.
