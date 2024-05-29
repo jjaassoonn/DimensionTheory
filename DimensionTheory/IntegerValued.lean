@@ -367,6 +367,9 @@ protected lemma IsIntegerValued.neg {p : F[X]} (hp : IsIntegerValued p) :
   exact Subring.neg_mem _ (hp n)
 
 variable (F) in
+/--
+The collection of integer-valued polynomials forms a subring.
+-/
 def integerValued : Subring F[X] where
   carrier := {p | IsIntegerValued p}
   mul_mem' := IsIntegerValued.mul
