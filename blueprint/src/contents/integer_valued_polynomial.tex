@@ -1,0 +1,26 @@
+\section{Integer Valued Polynomials}
+\label{sec:integer_valued_polynomial}
+
+\begin{definition}[Binomial Polynomial]
+    For any field $F$ with characteristic $0$, the binomial polynomials are defined as
+    $\{ Q_k(X) = \choose X k \mid k \in \mathbb{N} \}$:
+    \begin{equation}
+        \begin{aligned}
+            Q_0(X) &= 1 \\
+            Q_1(X) &= X \\
+            Q_2(X) &= \frac{X(X-1)}{2} \\
+            Q_3(X) &= \frac{X(X-1)(X-2)}{6} \\
+            Q_4(X) &= \frac{X(X-1)(X-2)(X-3)}{24} \\
+            &\vdots
+        \end{aligned}
+    \end{equation}
+\end{definition}
+
+\begin{lemma}
+    For any field $F$ with characteristic $0$, the binomial polynomials forms a basis for $F[X]$.
+    \uses{binomialPolynomial.basis}
+\end{lemma}
+\begin{proof}
+    The set of binomial polynomials is linearly independent since they have distinct degrees.
+    % TODO
+\end{proof}
