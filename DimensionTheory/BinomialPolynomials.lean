@@ -4,7 +4,7 @@ import Mathlib.Algebra.Polynomial.Roots
 import Mathlib.Order.Interval.Set.Infinite
 import Mathlib.Logic.Function.Iterate
 
-import DimensionTheory.missing_lemmas.PolynomialLinearIndependent
+import DimensionTheory.missing_lemmas.Polynomial
 import DimensionTheory.missing_lemmas.Factorial
 
 open Polynomial BigOperators
