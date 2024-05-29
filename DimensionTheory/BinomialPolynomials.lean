@@ -27,10 +27,15 @@ noncomputable def stdDiff : R[X] →ₗ[R] R[X] where
     simp only [add_comp, coeff_sub, coeff_add]
     ring
 
-@[inherit_doc]
-scoped[Polynomial] prefix:max "Δ" => stdDiff
+def stdDiffFunc {α β : Type*} [Add α] [One α] [Sub β] (f : α → β) : α → β :=
+  fun x ↦ f (x + 1) - f (x)
 
-notation "Δ^[" n "]" p => stdDiff^[n] p
+@[inherit_doc]
+scoped[Polynomial] prefix:max " Δ " => stdDiff
+scoped[Function] prefix:max " Δ " => stdDiffFunc
+
+scoped[Polynomial] notation " Δ^[ " n " ] " p => stdDiff^[n] p
+scoped[Function] notation " Δ^[ " n " ] " f => stdDiffFunc^[n] f
 
 namespace stdDiff
 
@@ -399,26 +404,5 @@ lemma natDegree_pow (p : F[X]) (k : ℕ) (hk : k ≤ p.natDegree) : (Δ^[k] p).n
   | succ k ih =>
     rw [Function.iterate_succ', Function.comp_apply, natDegree_eq, ih (by omega)]
     omega
-
--- not true
--- lemma pow_natDegree_eq (p : F[X]) : (Δ^[p.natDegree] p) = C (eval (p.natDegree : F) p) := by
---   have h := natDegree_pow p p.natDegree (le_refl _)
---   simp only [ge_iff_le, le_refl, tsub_eq_zero_of_le, natDegree_eq_zero] at h
---   obtain ⟨c, hc⟩ := h
---   have eq_p := binomialPolynomial.eq_sum_range p
---   apply_fun eval (p.natDegree : F) at eq_p
---   rw [eval_finset_sum] at eq_p
---   simp_rw [eval_smul, binomialPolynomial.eval_nat] at eq_p
---   simp only [smul_eq_mul, mul_ite, mul_zero] at eq_p
---   replace eq_p :
---       eval (p.natDegree : F) p =
---       ∑ x ∈ Finset.range (p.natDegree + 1),
---         eval 0 (Δ^[x] p) * (p.natDegree.choose x : F)  := by
---     rw [eq_p]
---     refine Finset.sum_congr rfl fun k hk => ?_
---     rw [if_pos]
---     simp only [Finset.mem_range] at hk
---     omega
-
 
 end stdDiff
