@@ -4,7 +4,7 @@ import Mathlib.Algebra.Polynomial.Roots
 import Mathlib.Order.Interval.Set.Infinite
 import Mathlib.Logic.Function.Iterate
 
-import DimensionTheory.missing_lemmas.Polynomial
+import DimensionTheory.missing_lemmas.PolynomialLinearIndependent
 
 open Polynomial BigOperators
 open scoped Nat
@@ -16,9 +16,11 @@ variable {R} in
 /--
 The standard difference operator `Δ` is defined as `p ↦ p(X + 1) - p(X)`.
 -/
-noncomputable def stdDiff : R[X] →+ R[X] where
+noncomputable def stdDiff : R[X] →ₗ[R] R[X] where
   toFun p := Polynomial.comp p (X + 1) - p
-  map_zero' := by simp
+  map_smul' r p := by
+    ext n
+    simp only [smul_comp, coeff_sub, coeff_smul, smul_eq_mul, RingHom.id_apply, mul_sub]
   map_add' p q := by
     ext
     simp only [add_comp, coeff_sub, coeff_add]
@@ -62,7 +64,7 @@ lemma coeff_natDegree_sub_one (p : F[X]) :
     obtain ⟨c, rfl⟩ := h
     simp
   else
-    simp only [stdDiff, AddMonoidHom.coe_mk, ZeroHom.coe_mk, coeff_sub]
+    simp only [stdDiff, LinearMap.coe_mk, AddHom.coe_mk, coeff_sub, nsmul_eq_mul]
     rw [comp_eq_sum_left, coeff_sum]
     simp_rw [coeff_C_mul, coeff_X_add_one_pow F]
     rw [sum_def]
@@ -111,7 +113,7 @@ lemma coeff_eq_zero_of_natDegree_le (p : F[X]) (n : ℕ) (hn : p.natDegree ≤ n
   have deq2 := natDegree_comp (p := p) (q := X + 1)
   rw [deq1, mul_one] at deq2
 
-  simp only [stdDiff, AddMonoidHom.coe_mk, ZeroHom.coe_mk, coeff_sub]
+  simp only [stdDiff, LinearMap.coe_mk, AddHom.coe_mk, coeff_sub]
   rw [Polynomial.coeff_eq_zero_of_natDegree_lt, Polynomial.coeff_eq_zero_of_natDegree_lt, sub_zero]
   all_goals aesop
 
@@ -268,6 +270,17 @@ lemma eval_of_gt (k n : ℕ) (h : k > n) :
   · simpa
   · simp
 
+lemma eval_zero (k : ℕ) :
+    eval 0 (binomialPolynomial F k) =
+    if k = 0 then 1 else 0 := by
+  if h : k = 0
+  then
+    subst h
+    simp
+  else
+    rw [if_neg h]
+    simpa using eval_of_gt F k 0 (by omega)
+
 @[simp]
 lemma stdDiff_succ (k : ℕ) :
     Δ (binomialPolynomial F (k + 1)) = binomialPolynomial F k := by
@@ -277,7 +290,7 @@ lemma stdDiff_succ (k : ℕ) :
     (hi := CharZero.cast_injective.comp Subtype.val_injective)
   rintro ⟨n, hn⟩
   simp only [Set.mem_Ici] at hn
-  simp only [Function.comp_apply, stdDiff, AddMonoidHom.coe_mk, ZeroHom.coe_mk, eval_sub, eval_comp,
+  simp only [Function.comp_apply, stdDiff, LinearMap.coe_mk, AddHom.coe_mk, eval_sub, eval_comp,
     eval_add, eval_X, eval_one, Set.mem_setOf_eq]
   rw [eval_of_le, eval_of_le] <;> try omega
 

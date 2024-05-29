@@ -29,9 +29,10 @@ lemma IsIntegerValued.tfae (p : F[X]) :
       p ∈ Submodule.span ℤ (Set.range <| binomialPolynomial F),
       ∀ (n : ℕ), (p.eval n : F) ∈ (algebraMap ℤ F).range,
       IsIntegerValued p,
-      IsIntegerValued (Δ p) ∧ ∃ (n : ℕ), (p.eval n : F) ∈ (algebraMap ℤ F).range
+      Δ p ∈ Submodule.span ℤ (Set.range <| binomialPolynomial F) ∧
+        ∃ (n : ℕ), (p.eval n : F) ∈ (algebraMap ℤ F).range
     ] := by
-  tfae_have 1 → 2
+  tfae_have h12 : 1 → 2
   · intro h
     rw [mem_span_set] at h
     obtain ⟨c, hc, rfl⟩ := h
@@ -52,13 +53,44 @@ lemma IsIntegerValued.tfae (p : F[X]) :
       rw [binomialPolynomial.eval_of_gt _ _ _ (by simpa using le)]
       simp
 
-  tfae_have 2 → 3
+  tfae_have h23 : 2 → 3
   · intro h
     simp only [isIntegerValued_def, eventually_iff, mem_atTop_sets, ge_iff_le, Set.mem_setOf_eq]
     refine ⟨0, fun n _ => h n⟩
 
+  tfae_have h14 : 1 → 4
+  · intro hp
+    rw [mem_span_set] at hp
+    obtain ⟨c, hc, (rfl : ∑ _ ∈ _, _ = _)⟩ := hp
+    constructor
+    · rw [map_sum]
+      refine Submodule.sum_mem _ fun i hi => ?_
+      specialize hc hi
+      obtain ⟨k, rfl⟩ := hc
+      dsimp only
+      rw [map_zsmul]
+      cases k with
+      | zero => simp
+      | succ k =>
+        rw [binomialPolynomial.stdDiff_succ]
+        refine Submodule.smul_mem _ _ <| Submodule.subset_span ⟨k, rfl⟩
+    · refine ⟨0, ?_⟩
+      simp only [Nat.cast_zero, eval_finset_sum, eval_mul, eval_intCast, eval_smul, zsmul_eq_mul]
+      refine Subring.sum_mem _ fun i hi => Subring.mul_mem _ ?_ ?_
+      · simp
+      · specialize hc hi
+        obtain ⟨k, rfl⟩ := hc
+        rw [binomialPolynomial.eval_zero]
+        refine ⟨if k = 0 then 1 else 0, ?_⟩
+        split_ifs <;> simp
 
-  sorry
+  tfae_have h41 : 4 → 1
+  · sorry
+
+  tfae_have h31 : 3 → 1
+  · sorry
+
+  tfae_finish
 
 open IsIntegerValued
 
