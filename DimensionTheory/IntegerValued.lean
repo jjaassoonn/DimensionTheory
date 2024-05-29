@@ -19,39 +19,80 @@ A polynomial `p` is integer valued if any of the following equivalent condition 
 4. `Δp` is integer valued and `p(n)` is integer for at least one integer `n`
 -/
 def IsIntegerValued (p : R[X]) : Prop :=
-  ∀ᶠ (n : ℕ) in atTop, (p.eval n : R) ∈ (algebraMap ℤ R).range
+  ∀ᶠ (n : ℤ) in atTop, (p.eval n : R) ∈ (algebraMap ℤ R).range
 
 lemma isIntegerValued_def (p : R[X]) :
-    IsIntegerValued p ↔ ∀ᶠ (n : ℕ) in atTop, (p.eval n : R) ∈ (algebraMap ℤ R).range := Iff.rfl
+    IsIntegerValued p ↔ ∀ᶠ (n : ℤ) in atTop, (p.eval n : R) ∈ (algebraMap ℤ R).range := Iff.rfl
+
+lemma IsIntegerValued.delta_mem_span_of_mem_span
+    (p : F[X]) (hp : p ∈ Submodule.span ℤ (Set.range <| binomialPolynomial F)) :
+    Δ p ∈ Submodule.span ℤ (Set.range <| binomialPolynomial F) := by
+  rw [mem_span_set] at hp
+  obtain ⟨c, hc, (rfl : ∑ _ ∈ _, _ • _ = _)⟩ := hp
+  rw [map_sum]
+  simp_rw [map_zsmul]
+  refine Submodule.sum_mem _ fun k hk => Submodule.smul_mem _ _ ?_
+  specialize hc hk
+  obtain ⟨k, rfl⟩ := hc
+  cases k with
+  | zero => simp
+  | succ k =>
+    rw [binomialPolynomial.stdDiff_succ]
+    refine Submodule.subset_span ⟨k, rfl⟩
+
+lemma IsIntegerValued.delta_pow_mem_span_of_mem_span
+    (p : F[X]) (hp : p ∈ Submodule.span ℤ (Set.range <| binomialPolynomial F)) (k : ℕ) :
+    (Δ^[k] p) ∈ Submodule.span ℤ (Set.range <| binomialPolynomial F) := by
+  induction k with
+  | zero => simpa
+  | succ k ih =>
+    rw [Function.iterate_succ', Function.comp_apply]
+    exact IsIntegerValued.delta_mem_span_of_mem_span _ ih
+
+lemma IsIntegerValued.eval_of_mem_span
+    (p : F[X]) (hp : p ∈ Submodule.span ℤ (Set.range <| binomialPolynomial F)) (x : ℤ) :
+    eval (x : F) p ∈ (algebraMap ℤ F).range := by
+  rw [mem_span_set] at hp
+  obtain ⟨c, hc, rfl⟩ := hp
+  rw [Finsupp.sum, eval_finset_sum]
+  refine Subring.sum_mem _ fun i hi => ?_
+  rw [eval_smul, zsmul_eq_mul]
+  specialize hc hi
+  obtain ⟨k, rfl⟩ := hc
+  refine Subring.mul_mem _ (by simp) ?_
+  if le : k ≤ x
+  then
+    rw [binomialPolynomial.eval_int_of_le F k x le]
+    exact ⟨x.toNat.choose k, by simp⟩
+  else
+    if h : x < 0
+    then
+      rw [show x = -(-x).toNat by
+        induction x with
+        | ofNat x => norm_cast at h
+        | negSucc x => rw [Int.neg_negSucc]; rfl]
+      simp only [Int.cast_neg, Int.cast_natCast, binomialPolynomial.eval_neg_nat, Int.reduceNeg,
+        zsmul_eq_mul, Int.cast_pow, Int.cast_one, algebraMap_int_eq, RingHom.mem_range, eq_intCast]
+      refine ⟨(-1)^k * ((-x).toNat + k - 1).choose k, by simp⟩
+    else
+
+    lift x to ℕ
+    · linarith
+    simp only [Int.cast_natCast, algebraMap_int_eq, RingHom.mem_range, eq_intCast]
+    rw [binomialPolynomial.eval_of_gt _ _ _ (by simpa using le)]
+    simp
+
 
 lemma IsIntegerValued.tfae (p : F[X]) :
     List.TFAE [
       p ∈ Submodule.span ℤ (Set.range <| binomialPolynomial F),
-      ∀ (n : ℕ), (p.eval n : F) ∈ (algebraMap ℤ F).range,
+      ∀ (n : ℤ), (p.eval n : F) ∈ (algebraMap ℤ F).range,
       IsIntegerValued p,
       Δ p ∈ Submodule.span ℤ (Set.range <| binomialPolynomial F) ∧
-        ∃ (n : ℕ), (p.eval n : F) ∈ (algebraMap ℤ F).range
+        ∃ (n : ℤ), (p.eval n : F) ∈ (algebraMap ℤ F).range
     ] := by
   tfae_have h12 : 1 → 2
-  · intro h
-    rw [mem_span_set] at h
-    obtain ⟨c, hc, rfl⟩ := h
-    intro m
-
-    rw [Finsupp.sum, eval_finset_sum]
-    refine Subring.sum_mem _ fun i hi => ?_
-    rw [eval_smul, zsmul_eq_mul]
-    specialize hc hi
-    obtain ⟨k, rfl⟩ := hc
-    have := binomialPolynomial.eval_of_le F k m
-    refine Subring.mul_mem _ (by simp) ?_
-    if le : k ≤ m
-    then
-      rw [binomialPolynomial.eval_of_le _ _ _ le]
-      exact ⟨m.choose k, by simp⟩
-    else
-      rw [binomialPolynomial.eval_of_gt _ _ _ (by simpa using le)]
-      simp
+  · apply IsIntegerValued.eval_of_mem_span
 
   tfae_have h23 : 2 → 3
   · intro h
@@ -59,33 +100,60 @@ lemma IsIntegerValued.tfae (p : F[X]) :
     refine ⟨0, fun n _ => h n⟩
 
   tfae_have h14 : 1 → 4
-  · intro hp
-    rw [mem_span_set] at hp
-    obtain ⟨c, hc, (rfl : ∑ _ ∈ _, _ = _)⟩ := hp
-    constructor
-    · rw [map_sum]
-      refine Submodule.sum_mem _ fun i hi => ?_
-      specialize hc hi
-      obtain ⟨k, rfl⟩ := hc
-      dsimp only
-      rw [map_zsmul]
-      cases k with
-      | zero => simp
-      | succ k =>
-        rw [binomialPolynomial.stdDiff_succ]
-        refine Submodule.smul_mem _ _ <| Submodule.subset_span ⟨k, rfl⟩
-    · refine ⟨0, ?_⟩
-      simp only [Nat.cast_zero, eval_finset_sum, eval_mul, eval_intCast, eval_smul, zsmul_eq_mul]
-      refine Subring.sum_mem _ fun i hi => Subring.mul_mem _ ?_ ?_
-      · simp
-      · specialize hc hi
-        obtain ⟨k, rfl⟩ := hc
-        rw [binomialPolynomial.eval_zero]
-        refine ⟨if k = 0 then 1 else 0, ?_⟩
-        split_ifs <;> simp
+  · exact fun hp => ⟨IsIntegerValued.delta_mem_span_of_mem_span p hp, 0,
+      IsIntegerValued.eval_of_mem_span p hp 0⟩
 
   tfae_have h41 : 4 → 1
-  · sorry
+  · if h_p_deg : p.natDegree = 0
+    then
+      rw [natDegree_eq_zero] at h_p_deg
+      obtain ⟨r, rfl⟩ := h_p_deg
+      simp only [stdDiff.apply_C, Submodule.zero_mem, eval_C, algebraMap_int_eq, RingHom.mem_range,
+        eq_intCast, exists_const, true_and, forall_exists_index]
+      rintro z rfl
+      rw [show C (z : F) = z • 1 by simp]
+      exact Submodule.smul_mem _ _ <| Submodule.subset_span ⟨0, by simp⟩
+
+    else
+
+    rintro ⟨h, ⟨m, ⟨n, hn⟩⟩⟩
+    -- rw [mem_span_set] at h
+    -- obtain ⟨c, hc, (hp : ∑ i ∈ _, c i • _ = _)⟩ := h
+    -- have eq1 := (binomialPolynomial.basis F).total_repr p
+    -- apply_fun stdDiff at eq1
+    -- rw [← hp] at eq1
+    -- change stdDiff (∑ _ ∈ _, _) = _ at eq1
+    -- dsimp only [LinearMap.coe_smulRight, LinearMap.id_coe, id_eq] at eq1
+    -- have hc' (i : c.support) : ∃ (k : ℕ), i = binomialPolynomial F k := by
+    --   obtain ⟨k, hk⟩ := hc i.2
+    --   exact ⟨_, hk.symm⟩
+    -- choose k hk using hc'
+    -- replace hp : Δ p = ∑ i ∈ c.support.attach, c i • binomialPolynomial F (k i) := by
+    --   rw [← hp, ← Finset.sum_attach]
+    --   refine Finset.sum_congr rfl fun i hi => ?_
+    --   rw [hk i]
+
+    have eq_p := binomialPolynomial.eq_sum_range p
+    have eq_delta_p := binomialPolynomial.eq_sum_range (Δ p)
+    replace eq_delta_p := calc Δ p
+        _ = _ := eq_delta_p
+        _ = ∑ k ∈ Finset.range p.natDegree, _ := Finset.sum_congr (by
+          rw [stdDiff.natDegree_eq]
+          congr
+          refine Nat.succ_pred_eq_of_pos $ show 0 < p.natDegree by omega) fun _ _ ↦ rfl
+        _ = ∑ k ∈ Finset.range p.natDegree, eval 0 (Δ^[k+1] p) • binomialPolynomial F k :=
+            Finset.sum_congr rfl fun k _ => by simp
+    rw [Finset.sum_range_succ] at eq_p
+    have eq1 := calc p - Δ p
+        _ = (∑ _ ∈ _, _ + _) - (∑ _ ∈ _, _) := congr_arg₂ (· - ·) eq_p eq_delta_p
+        -- _ = (∑ k ∈ Finset.range, eval 0 (Δ^[k]) - ∑ k ∈ Finset.range, _) + _ := add_sub_comm
+    rw [add_sub_right_comm, ← Finset.sum_sub_distrib] at eq1
+    simp_rw [← sub_smul, ← eval_sub] at eq1
+    rw [sub_eq_iff_eq_add] at eq1
+    rw [eq1]
+    refine Submodule.add_mem _ (Submodule.add_mem _ (Submodule.sum_mem _ fun k hk => ?_) ?_) h
+    · sorry
+    · sorry
 
   tfae_have h31 : 3 → 1
   · sorry
@@ -95,7 +163,7 @@ lemma IsIntegerValued.tfae (p : F[X]) :
 open IsIntegerValued
 
 lemma IsIntegerValued.iff_forall (p : F[X]) :
-    IsIntegerValued p ↔  ∀ (n : ℕ), (p.eval n : F) ∈ (algebraMap ℤ F).range :=
+    IsIntegerValued p ↔  ∀ (n : ℤ), (p.eval n : F) ∈ (algebraMap ℤ F).range :=
   tfae p |>.out 2 1
 
 -- this is true in any commutative ring as well. Here I am being lazy by assuming field.

@@ -5,6 +5,7 @@ import Mathlib.Order.Interval.Set.Infinite
 import Mathlib.Logic.Function.Iterate
 
 import DimensionTheory.missing_lemmas.PolynomialLinearIndependent
+import DimensionTheory.missing_lemmas.Factorial
 
 open Polynomial BigOperators
 open scoped Nat
@@ -29,7 +30,7 @@ noncomputable def stdDiff : R[X] →ₗ[R] R[X] where
 @[inherit_doc]
 scoped[Polynomial] prefix:max "Δ" => stdDiff
 
-local notation "Δ^[" n "]" p => stdDiff^[n] p
+notation "Δ^[" n "]" p => stdDiff^[n] p
 
 namespace stdDiff
 
@@ -101,7 +102,6 @@ lemma coeff_natDegree (p : F[X]) : (Δ p).coeff p.natDegree = 0 := by
   rw [deq1, mul_one, ceq0, one_pow, mul_one] at ceq1
   simp [stdDiff, ceq1]
 
-
 lemma coeff_eq_zero_of_natDegree_le (p : F[X]) (n : ℕ) (hn : p.natDegree ≤ n) :
     (Δ p).coeff n = 0 := by
   rw [le_iff_eq_or_lt] at hn
@@ -141,8 +141,6 @@ lemma natDegree_eq (p : F[X]) : (Δ p).natDegree = p.natDegree - 1 := by
     contrapose! p_ne_zero
     rw [natDegree_eq_zero] at p_ne_zero
     tauto
-
-
 
 variable {F} in
 /--
@@ -257,6 +255,16 @@ lemma eval_of_le (k n : ℕ) (h : k ≤ n) :
         omega
       · rw [Nat.descFactorial_self]
 
+@[simp]
+lemma eval_int_of_le (k : ℕ) (n : ℤ) (h : k ≤ n) :
+    eval (n : F) (binomialPolynomial F k) = (n.toNat.choose k : F) := by
+  lift n to ℕ
+  · linarith
+
+  simp only [Int.cast_natCast, Int.toNat_ofNat]
+  rw [eval_of_le F k n]
+  norm_cast at h
+
 lemma eval_of_gt (k n : ℕ) (h : k > n) :
     eval (n : F) (binomialPolynomial F k) = 0 := by
   delta binomialPolynomial
@@ -270,6 +278,24 @@ lemma eval_of_gt (k n : ℕ) (h : k > n) :
   · simpa
   · simp
 
+lemma eval_neg_nat (k n : ℕ) :
+    eval (-n : F) (binomialPolynomial F k) =
+    (-1)^k • (n + k - 1).choose k := by
+  delta binomialPolynomial
+  rw [eval_smul, eval_prod]
+  simp_rw [eval_sub, eval_C, eval_X]
+  rw [show ∏ x ∈ Finset.range k, (-↑n - ↑x : F) = ∏ x ∈ Finset.range k, (↑n + ↑x) * (-1) from
+    Finset.prod_congr rfl fun _ _ => by ring]
+  rw [← Finset.prod_mul_pow_card, Finset.card_range]
+  rw [show ((n + k - 1).choose k : F) = (k ! : F)⁻¹ * (k ! * (n + k - 1).choose k) by
+    rw [← mul_assoc, inv_mul_cancel, one_mul]
+    exact_mod_cast Nat.factorial_ne_zero _,
+    show (k ! * (n + k - 1).choose k : F) = ((k ! * (n + k - 1).choose k : ℕ) : F) by simp,
+    ← Nat.ascFactorial_eq_factorial_mul_choose', Nat.ascFactorial_eq_prod_range]
+  simp only [smul_eq_mul, Int.reduceNeg, Nat.cast_prod, Nat.cast_add, zsmul_eq_mul, Int.cast_pow,
+    Int.cast_neg, Int.cast_one]
+  ring
+
 lemma eval_zero (k : ℕ) :
     eval 0 (binomialPolynomial F k) =
     if k = 0 then 1 else 0 := by
@@ -280,6 +306,13 @@ lemma eval_zero (k : ℕ) :
   else
     rw [if_neg h]
     simpa using eval_of_gt F k 0 (by omega)
+
+lemma eval_nat (n k : ℕ) :
+    eval (n : F) (binomialPolynomial F k) =
+    if k ≤ n then (n.choose k : F) else 0 := by
+  split_ifs with h
+  · rwa [eval_of_le]
+  · rw [eval_of_gt]; linarith
 
 @[simp]
 lemma stdDiff_succ (k : ℕ) :
@@ -339,6 +372,7 @@ lemma eq_sum_range (p : F[X]) : p =
     omega
   rw [eq, stdDiff.eval_eq_sum]
 
+variable (F) in
 /--
 the set of binomial polynomials `X choose k` is a basis for `F[X]`.
 -/
@@ -354,3 +388,37 @@ noncomputable def basis : Basis ℕ F F[X] :=
       Submodule.subset_span ⟨k, rfl⟩)
 
 end binomialPolynomial
+
+namespace stdDiff
+
+variable {F}
+
+lemma natDegree_pow (p : F[X]) (k : ℕ) (hk : k ≤ p.natDegree) : (Δ^[k] p).natDegree = p.natDegree - k := by
+  induction k with
+  | zero => simp
+  | succ k ih =>
+    rw [Function.iterate_succ', Function.comp_apply, natDegree_eq, ih (by omega)]
+    omega
+
+-- not true
+-- lemma pow_natDegree_eq (p : F[X]) : (Δ^[p.natDegree] p) = C (eval (p.natDegree : F) p) := by
+--   have h := natDegree_pow p p.natDegree (le_refl _)
+--   simp only [ge_iff_le, le_refl, tsub_eq_zero_of_le, natDegree_eq_zero] at h
+--   obtain ⟨c, hc⟩ := h
+--   have eq_p := binomialPolynomial.eq_sum_range p
+--   apply_fun eval (p.natDegree : F) at eq_p
+--   rw [eval_finset_sum] at eq_p
+--   simp_rw [eval_smul, binomialPolynomial.eval_nat] at eq_p
+--   simp only [smul_eq_mul, mul_ite, mul_zero] at eq_p
+--   replace eq_p :
+--       eval (p.natDegree : F) p =
+--       ∑ x ∈ Finset.range (p.natDegree + 1),
+--         eval 0 (Δ^[x] p) * (p.natDegree.choose x : F)  := by
+--     rw [eq_p]
+--     refine Finset.sum_congr rfl fun k hk => ?_
+--     rw [if_pos]
+--     simp only [Finset.mem_range] at hk
+--     omega
+
+
+end stdDiff
