@@ -24,7 +24,7 @@ def IsIntegerValued (p : R[X]) : Prop :=
 lemma isIntegerValued_def (p : R[X]) :
     IsIntegerValued p ↔ ∀ᶠ (n : ℕ) in atTop, (p.eval n : R) ∈ (algebraMap ℤ R).range := Iff.rfl
 
-lemma iIntegerValued_tfae (p : F[X]) :
+lemma IsIntegerValued.tfae (p : F[X]) :
     List.TFAE [
       p ∈ Submodule.span ℤ (Set.range <| binomialPolynomial F),
       ∀ (n : ℕ), (p.eval n : F) ∈ (algebraMap ℤ F).range,
@@ -59,5 +59,54 @@ lemma iIntegerValued_tfae (p : F[X]) :
 
 
   sorry
+
+open IsIntegerValued
+
+lemma IsIntegerValued.iff_forall (p : F[X]) :
+    IsIntegerValued p ↔  ∀ (n : ℕ), (p.eval n : F) ∈ (algebraMap ℤ F).range :=
+  tfae p |>.out 2 1
+
+-- this is true in any commutative ring as well. Here I am being lazy by assuming field.
+protected lemma IsIntegerValued.add {p q : F[X]} (hp : IsIntegerValued p) (hq : IsIntegerValued q) :
+    IsIntegerValued (p + q) := by
+  rw [iff_forall] at *
+  intro n
+  rw [eval_add]
+  exact Subring.add_mem _ (hp n) (hq n)
+
+-- this is true in any commutative ring as well. Here I am being lazy by assuming field.
+protected lemma IsIntegerValued.mul {p q : F[X]} (hp : IsIntegerValued p) (hq : IsIntegerValued q) :
+    IsIntegerValued (p * q) := by
+  rw [iff_forall] at *
+  intro n
+  rw [eval_mul]
+  exact Subring.mul_mem _ (hp n) (hq n)
+
+-- this is true in any commutative ring as well. Here I am being lazy by assuming field.
+protected lemma IsIntegerValued.zero : IsIntegerValued (0 : F[X]) := by
+  rw [iff_forall]; intro; simp
+
+-- this is true in any commutative ring as well. Here I am being lazy by assuming field.
+protected lemma IsIntegerValued.one : IsIntegerValued (1 : F[X]) := by
+  rw [iff_forall]; intro; simp
+
+-- this is true in any commutative ring as well. Here I am being lazy by assuming field.
+protected lemma IsIntegerValued.neg {p : F[X]} (hp : IsIntegerValued p) :
+    IsIntegerValued (-p : F[X]) := by
+  rw [iff_forall] at *
+  intro n
+  rw [eval_neg]
+  exact Subring.neg_mem _ (hp n)
+
+variable (F) in
+def integerValued : Subring F[X] where
+  carrier := {p | IsIntegerValued p}
+  mul_mem' := IsIntegerValued.mul
+  one_mem' := IsIntegerValued.one
+  add_mem' := IsIntegerValued.add
+  zero_mem' := IsIntegerValued.zero
+  neg_mem' := IsIntegerValued.neg
+
+lemma mem_integerValued {p} : p ∈ integerValued F ↔ IsIntegerValued p := Iff.rfl
 
 end Polynomial
