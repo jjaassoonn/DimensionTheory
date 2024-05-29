@@ -1,6 +1,7 @@
 /.lake
 /.VSCodeCounter
 
+*.pax
 *.aux
 *.fdb_latexmk
 *.fls

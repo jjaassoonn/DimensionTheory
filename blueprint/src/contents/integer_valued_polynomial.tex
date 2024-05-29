@@ -3,8 +3,10 @@
 
 \begin{definition}[Binomial Polynomial]
     \label{def:binomial_polynomial}
+    \lean{binomialPolynomial}
+    \leanok
     For any field $F$ with characteristic $0$, the binomial polynomials are defined as
-    $\{ Q_k(X) = \choose X k \mid k \in \mathbb{N} \}$:
+    $$\{ Q_k(X) = \choose X k \mid k \in \mathbb{N} \}.$$
     \begin{equation}
         \begin{aligned}
             Q_0(X) &= 1 \\
@@ -27,3 +29,9 @@
     The set of binomial polynomials is linearly independent since they have distinct degrees.
     % TODO
 \end{proof}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "introduction"
+%%% TeX-master: "../web"
+%%% End:
