@@ -1,9 +1,5 @@
-import Mathlib.Order.Filter.AtTopBot
-
 import DimensionTheory.BinomialPolynomials
 import DimensionTheory.missing_lemmas.Int
-
-import LeanCopilot
 
 open Filter BigOperators
 
@@ -22,17 +18,17 @@ A polynomial `p` is integer valued if any of the following equivalent condition 
 3. `p` evaluates to an integer for all sufficiently large integer inputs
 4. `Δp` is integer valued and `p(n)` is integer for at least one integer `n`
 -/
-def IsIntegerValued (p : R[X]) : Prop :=
-  ∀ᶠ (n : ℤ) in atTop, (p.eval n : R) ∈ (algebraMap ℤ R).range
+class IsIntegerValued (p : R[X]) : Prop where
+  out : ∀ᶠ (n : ℤ) in atTop, (p.eval n : R) ∈ (algebraMap ℤ R).range
 
 lemma isIntegerValued_def (p : R[X]) :
-    IsIntegerValued p ↔ ∀ᶠ (n : ℤ) in atTop, (p.eval n : R) ∈ (algebraMap ℤ R).range := Iff.rfl
+    IsIntegerValued p ↔ ∀ᶠ (n : ℤ) in atTop, (p.eval n : R) ∈ (algebraMap ℤ R).range :=
+  ⟨fun h => h.out, fun h => ⟨h⟩⟩
 
 lemma isIntegerValued_def' (p : R[X]) :
     IsIntegerValued p ↔
     ∃ N : ℤ, ∀ n : ℤ, N ≤ n → (p.eval n : R) ∈ (algebraMap ℤ R).range := by
   rw [isIntegerValued_def]; simp
-
 
 lemma IsIntegerValued.delta_mem_span_of_mem_span
     (p : F[X]) (hp : p ∈ Submodule.span ℤ (Set.range <| binomialPolynomial F)) :
@@ -337,7 +333,7 @@ lemma IsIntegerValued.iff_forall (p : F[X]) :
   tfae p |>.out 2 1
 
 -- this is true in any commutative ring as well. Here I am being lazy by assuming field.
-protected lemma IsIntegerValued.add {p q : F[X]} (hp : IsIntegerValued p) (hq : IsIntegerValued q) :
+instance IsIntegerValued.add {p q : F[X]} [hp : IsIntegerValued p] [hq : IsIntegerValued q] :
     IsIntegerValued (p + q) := by
   rw [iff_forall] at *
   intro n
@@ -345,7 +341,7 @@ protected lemma IsIntegerValued.add {p q : F[X]} (hp : IsIntegerValued p) (hq : 
   exact Subring.add_mem _ (hp n) (hq n)
 
 -- this is true in any commutative ring as well. Here I am being lazy by assuming field.
-protected lemma IsIntegerValued.mul {p q : F[X]} (hp : IsIntegerValued p) (hq : IsIntegerValued q) :
+instance IsIntegerValued.mul {p q : F[X]} [hp : IsIntegerValued p] [hq : IsIntegerValued q] :
     IsIntegerValued (p * q) := by
   rw [iff_forall] at *
   intro n
@@ -353,7 +349,7 @@ protected lemma IsIntegerValued.mul {p q : F[X]} (hp : IsIntegerValued p) (hq : 
   exact Subring.mul_mem _ (hp n) (hq n)
 
 -- this is true in any commutative ring as well. Here I am being lazy by assuming field.
-protected lemma IsIntegerValued.zero : IsIntegerValued (0 : F[X]) := by
+instance IsIntegerValued.zero : IsIntegerValued (0 : F[X]) := by
   rw [iff_forall]; intro; simp
 
 -- this is true in any commutative ring as well. Here I am being lazy by assuming field.
@@ -361,19 +357,19 @@ protected lemma IsIntegerValued.one : IsIntegerValued (1 : F[X]) := by
   rw [iff_forall]; intro; simp
 
 -- this is true in any commutative ring as well. Here I am being lazy by assuming field.
-protected lemma IsIntegerValued.neg {p : F[X]} (hp : IsIntegerValued p) :
+instance IsIntegerValued.neg {p : F[X]} [hp : IsIntegerValued p] :
     IsIntegerValued (-p : F[X]) := by
   rw [iff_forall] at *
   intro n
   rw [eval_neg]
   exact Subring.neg_mem _ (hp n)
 
-protected lemma IsIntegerValued.stdDiff {p : F[X]} (hp : IsIntegerValued p) :
+instance IsIntegerValued.stdDiff {p : F[X]} [hp : IsIntegerValued p] :
     IsIntegerValued (Δ p) := by
   have := IsIntegerValued.tfae p |>.out 2 3 |>.mp hp
   exact this.1
 
-protected lemma IsIntegerValued.stdDiff_pow {p : F[X]} (hp : IsIntegerValued p) (n : ℕ) :
+instance IsIntegerValued.stdDiff_pow {p : F[X]} [hp : IsIntegerValued p] (n : ℕ) :
     IsIntegerValued (Δ^[n] p) := by
   induction n with
   | zero => simpa
@@ -381,49 +377,65 @@ protected lemma IsIntegerValued.stdDiff_pow {p : F[X]} (hp : IsIntegerValued p) 
     rw [Function.iterate_succ']
     exact ih.stdDiff
 
+instance IsIntegerValued.antideriv {p : F[X]} [hp : IsIntegerValued p] :
+    IsIntegerValued (∫ p) := by
+  have := IsIntegerValued.tfae (∫ p) |>.out 2 3
+  rw [this]
+  rw [binomialPolynomial.stdDiff_antideriv]
+  refine ⟨hp, 0, ?_⟩
+  rw [binomialPolynomial.antideriv_eq, eval_finset_sum]
+  simp_rw [eval_smul, smul_eq_mul]
+  refine Subring.sum_mem _ fun i _ => Subring.mul_mem _ ?_ ?_
+  · have := hp.stdDiff_pow i
+    rw [iff_forall] at this
+    simpa using this 0
+  · rw [Int.cast_zero]
+    rw [binomialPolynomial.eval_zero]
+    simp
+
 variable (F) in
 /--
 The collection of integer-valued polynomials forms a subring.
 -/
 def integerValued : Subring F[X] where
   carrier := {p | IsIntegerValued p}
-  mul_mem' := IsIntegerValued.mul
+  mul_mem' hp hq := IsIntegerValued.mul (hp := hp) (hq := hq)
   one_mem' := IsIntegerValued.one
-  add_mem' := IsIntegerValued.add
+  add_mem' hp hq := IsIntegerValued.add (hp := hp) (hq := hq)
   zero_mem' := IsIntegerValued.zero
-  neg_mem' := IsIntegerValued.neg
+  neg_mem' hp := IsIntegerValued.neg (hp := hp)
 
 lemma mem_integerValued {p} : p ∈ integerValued F ↔ IsIntegerValued p := Iff.rfl
 
-lemma IsIntegerValued.coeff'_in_int {f : F[X]} (hf : IsIntegerValued f) (i : ℕ) :
+lemma IsIntegerValued.coeff'_in_int (f : F[X]) [hf : IsIntegerValued f] (i : ℕ) :
     binomialPolynomial.coeff' f i ∈ (algebraMap ℤ F).range := by
   simpa using (IsIntegerValued.iff_forall _ |>.1 $ hf.stdDiff_pow i) 0
 
-noncomputable def IsIntegerValued.coeff {f : F[X]} (hf : IsIntegerValued f) (i : ℕ) : ℤ :=
-  hf.coeff'_in_int i |>.choose
+noncomputable def coeffInt {f : F[X]} [IsIntegerValued f] (i : ℕ) : ℤ :=
+  IsIntegerValued.coeff'_in_int f i |>.choose
 
-lemma IsIntegerValued.coeff_spec {f : F[X]} (hf : IsIntegerValued f) (i : ℕ) :
-    (hf.coeff i : F) = (Δ^[i] f).eval 0 :=
-  hf.coeff'_in_int i |>.choose_spec
+lemma coeffInt_spec {f : F[X]} [IsIntegerValued f] (i : ℕ) :
+    (f.coeffInt i : F) = (Δ^[i] f).eval 0 :=
+  IsIntegerValued.coeff'_in_int f i |>.choose_spec
 
-lemma IsIntegerValued.coe_eq_sum_range{f : F[X]} (hf : IsIntegerValued f):
+lemma coe_eq_sum_range (f : F[X]) [IsIntegerValued f]:
     (f : F[X]) =
-    ∑ k in Finset.range (f.natDegree + 1), hf.coeff k • binomialPolynomial F k := by
+    ∑ k in Finset.range (f.natDegree + 1), f.coeffInt k • binomialPolynomial F k := by
   conv_lhs => rw [binomialPolynomial.eq_sum_range f]
   refine Finset.sum_congr rfl fun x _ => ?_
-  rw [zsmul_eq_mul, ← coeff_spec, Algebra.smul_def]
+  rw [zsmul_eq_mul, ← coeffInt_spec, Algebra.smul_def]
   rfl
 
-noncomputable def IsIntegerValued.evalInt {f : F[X]} (hf : IsIntegerValued f) (n : ℤ) : ℤ :=
+noncomputable def evalInt (f : F[X]) [hf : IsIntegerValued f] (n : ℤ) : ℤ :=
   IsIntegerValued.iff_forall _ |>.1 hf n |>.choose
 
-lemma IsIntegerValued.evalInt_spec {f : F[X]} (hf : IsIntegerValued f) (n : ℤ) :
-    (hf.evalInt n : F) = (f.eval n : F) :=
+lemma evalInt_spec (f : F[X]) [hf : IsIntegerValued f] (n : ℤ) :
+    (f.evalInt n : F) = (f.eval n : F) :=
   IsIntegerValued.iff_forall _ |>.1 hf n |>.choose_spec
 
-lemma IsIntegerValued.coeff_natDegree_pos_iff_eval_eventually_pos
-    {f : F[X]} (hf : IsIntegerValued f) :
-    0 < hf.coeff (f.natDegree) ↔
-    ∀ᶠ (n : ℤ) in atTop, 0 < (hf.evalInt n) := sorry
+lemma coeff_natDegree_pos_iff_eval_eventually_pos
+    (f : F[X]) [hf : IsIntegerValued f] :
+    0 < f.coeffInt (f.natDegree) ↔
+    ∀ᶠ (n : ℤ) in atTop, 0 < (f.evalInt n) := sorry
 
 end Polynomial

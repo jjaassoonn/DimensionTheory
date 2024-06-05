@@ -3,11 +3,12 @@ import Mathlib.Data.Nat.Factorial.BigOperators
 import Mathlib.Algebra.Polynomial.Roots
 import Mathlib.Order.Interval.Set.Infinite
 import Mathlib.Logic.Function.Iterate
+import Mathlib.Order.Filter.AtTopBot
 
 import DimensionTheory.missing_lemmas.Polynomial
 import DimensionTheory.missing_lemmas.Factorial
 
-open Polynomial BigOperators
+open Polynomial BigOperators Filter
 open scoped Nat
 
 
@@ -31,11 +32,11 @@ def stdDiffFunc {α β : Type*} [Add α] [One α] [Sub β] (f : α → β) : α 
   fun x ↦ f (x + 1) - f (x)
 
 @[inherit_doc]
-scoped[Polynomial] prefix:max " Δ " => stdDiff
-scoped[Function] prefix:max " Δ " => stdDiffFunc
+scoped[Polynomial] prefix:max "Δ" => stdDiff
+scoped[Function] prefix:max "fΔ" => stdDiffFunc
 
-scoped[Polynomial] notation " Δ^[ " n " ] " p => stdDiff^[n] p
-scoped[Function] notation " Δ^[ " n " ] " f => stdDiffFunc^[n] f
+scoped[Polynomial] notation "Δ^[ " n " ] " p => stdDiff^[n] p
+scoped[Function] notation "fΔ^[ " n " ] " f => stdDiffFunc^[n] f
 
 namespace stdDiff
 
@@ -47,6 +48,9 @@ lemma apply_X : Δ (X : R[X]) = 1 := by simp [stdDiff]
 
 @[simp]
 lemma apply_C (r : R) : Δ (C r) = 0 := by simp [stdDiff]
+
+lemma pow_apply_C (r : R) (k : ℕ) (hk : 0 < k) : (Δ^[k] (C r)) = 0 := by
+  induction k <;> simp_all
 
 @[simp]
 lemma apply_constant : Δ (1 : R[X]) = 0 := by simp [stdDiff]
@@ -146,6 +150,30 @@ lemma natDegree_eq (p : F[X]) : (Δ p).natDegree = p.natDegree - 1 := by
     contrapose! p_ne_zero
     rw [natDegree_eq_zero] at p_ne_zero
     tauto
+
+variable {F} in
+lemma pow_natDegree_eq (p : F[X]) (k : ℕ) : (Δ^[k] p).natDegree = p.natDegree - k := by
+  induction k with
+  | zero => simp
+  | succ n ih =>
+    simp only [Function.iterate_succ', Function.comp_apply, natDegree_eq, ih]
+    omega
+
+variable {F} in
+lemma eventually_eq_zero (p : F[X]) : ∀ᶠ (k : ℕ) in atTop, (Δ^[k] p) = 0 := by
+  simp only [eventually_atTop, ge_iff_le]
+  refine ⟨p.natDegree + 1, fun m hm => ?_⟩
+  apply eq_of_infinite_eval_eq
+  refine Set.Infinite.mono (s := (↑) '' @Set.univ ℕ) ?_ $ Set.Infinite.image
+    (fun _ _ _ _ h => by exact_mod_cast h) Set.infinite_univ
+  rintro _ ⟨n, -, rfl⟩
+  simp only [eval_zero, Set.mem_setOf_eq]
+  have eq0 : (Δ^[p.natDegree] p).natDegree = 0 := by rw [pow_natDegree_eq]; omega
+  rw [natDegree_eq_zero] at eq0
+  obtain ⟨f, hf⟩ := eq0
+  rw [show m = (m - p.natDegree) + p.natDegree by omega]
+  rw [Function.iterate_add, Function.comp_apply, ← hf, pow_apply_C, eval_zero]
+  omega
 
 variable {F} in
 /--
@@ -338,6 +366,18 @@ lemma stdDiff_succ (k : ℕ) :
   rw [sub_eq_iff_eq_add]
   norm_cast
 
+@[simp]
+lemma stdDiff_zero : Δ (binomialPolynomial F 0) = 0 := by simp
+
+lemma stdDiff_eq (k : ℕ) :
+    Δ (binomialPolynomial F k) =
+    if k = 0
+    then 0
+    else binomialPolynomial F (k - 1) := by
+  cases k with
+  | zero => simp
+  | succ n => simp
+
 variable {F}
 /--
 In Serre's Local algebra book, this is eₖ(P), where we write the polynomial as
@@ -391,6 +431,48 @@ noncomputable def basis : Basis ℕ F F[X] :=
       exact hij (by exact_mod_cast hd))
     (fun x _ ↦ eq_sum_range x ▸ Submodule.sum_mem _ fun k _ ↦ Submodule.smul_mem _ _ $
       Submodule.subset_span ⟨k, rfl⟩)
+
+@[simp]
+lemma basis_apply (k : ℕ) : basis F k = binomialPolynomial F k := by simp [basis]
+
+noncomputable def antideriv : F[X] →ₗ[F] F[X] :=
+(Finsupp.total _ _ _ $ fun n => binomialPolynomial F (n + 1)) ∘ₗ (basis F).repr.toLinearMap
+
+lemma antideriv_eq_succ (k : ℕ) :
+    antideriv (binomialPolynomial F k) =
+    binomialPolynomial F (k + 1) := by
+  delta antideriv
+  simp only [LinearMap.coe_comp, LinearEquiv.coe_coe, Function.comp_apply]
+  have := (basis F).repr_self k
+  rw [basis_apply] at this
+  simp only [this, Finsupp.total_single, one_smul]
+
+lemma antideriv_eq (p : F[X]) :
+    antideriv p =
+    ∑ k in Finset.range (p.natDegree + 1), (Δ^[k] p).eval 0 • binomialPolynomial F (k + 1) := by
+  conv_lhs => rw [eq_sum_range p, map_sum]
+  refine Finset.sum_congr rfl fun k _ => ?_
+  simp only [LinearMapClass.map_smul, antideriv_eq_succ]
+
+scoped [Polynomial] prefix:max "∫" => binomialPolynomial.antideriv
+
+lemma antideriv_stdDiff (p : F[X]) : ∫ (Δ p) = p - (C $ p.eval 0) := by
+  conv_lhs => rw [eq_sum_range p]
+  rw [map_sum, map_sum, Finset.sum_range_succ', map_smul, map_smul, stdDiff_zero, map_zero,
+    smul_zero, add_zero]
+  simp_rw [map_smul, stdDiff_succ, antideriv_eq_succ]
+  nth_rw 3 [eq_sum_range p]
+  rw [Finset.sum_range_succ']
+  simp only [Function.iterate_succ, Function.comp_apply, Function.iterate_zero, id_eq, zeroth]
+  rw [add_sub_assoc, show eval 0 p • 1 - C (eval 0 p) = 0 by
+    rw [Algebra.smul_def, mul_one, sub_eq_zero]; rfl, add_zero]
+
+lemma stdDiff_antideriv (p : F[X]) : Δ (∫ p) = p := by
+  conv_lhs => rw [eq_sum_range p]
+  rw [map_sum, map_sum, Finset.sum_range_succ', map_smul, map_smul]
+  simp_rw [map_smul, antideriv_eq_succ, stdDiff_succ]
+  conv_rhs => rw [eq_sum_range p]
+  rw [Finset.sum_range_succ']
 
 end binomialPolynomial
 
