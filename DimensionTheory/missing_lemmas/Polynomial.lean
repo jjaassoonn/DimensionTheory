@@ -1,5 +1,17 @@
+/-
+Copyright (c) 2024 Jujian Zhang. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jujian Zhang
+-/
+
 import Mathlib.Algebra.Polynomial.Degree.Lemmas
 import Mathlib.LinearAlgebra.LinearIndependent
+
+/-!
+# Some missing lemmas on polynomials
+
+- A set of polynomial with different degrees are linearly independent.
+-/
 
 open Polynomial BigOperators
 

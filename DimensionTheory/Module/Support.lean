@@ -1,8 +1,22 @@
+/-
+Copyright (c) 2024 Jujian Zhang. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jujian Zhang
+-/
+
 import Mathlib.Algebra.Module.LocalizedModule
 import Mathlib.AlgebraicGeometry.PrimeSpectrum.Basic
 import Mathlib.Algebra.Exact
 
 import DimensionTheory.missing_lemmas.Ideal
+
+/-!
+# Support an `R`-module
+
+`Supp(M) = {𝔭 | M_𝔭 ≠ 0}`
+
+When `M` is finitely generated, `𝔭 ∈ Supp M` if and only if `𝔭 ∈ V(Ann(M))`
+-/
 
 open PrimeSpectrum
 open BigOperators

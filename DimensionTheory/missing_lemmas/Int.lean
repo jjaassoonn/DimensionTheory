@@ -1,4 +1,15 @@
+/-
+Copyright (c) 2024 Jujian Zhang. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jujian Zhang
+-/
+
 import Init.Data.Int.Basic
+
+/-!
+# Some missing lemmas on integers
+-/
+
 
 theorem Int.coe_toNat_of_nonneg (z : Int) (hz : 0 ≤ z) : (z.toNat : Int) = z := by
   induction z with

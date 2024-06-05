@@ -1,5 +1,24 @@
+/-
+Copyright (c) 2024 Jujian Zhang. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jujian Zhang
+-/
+
 import DimensionTheory.BinomialPolynomials
 import DimensionTheory.missing_lemmas.Int
+
+/-!
+# Integer Valued Polynomial
+
+Serre's Local algebra, page 21, lemma 2
+
+A polynomial `p` is integer valued if any of the following equivalent condition holds:
+1. `p` is a `ℤ`-linear combination of binomial polynomials
+2. `p` evaluates to an integer for all integer inputs
+3. `p` evaluates to an integer for all sufficiently large integer inputs
+4. `Δp` is integer valued and `p(n)` is integer for at least one integer `n`
+
+-/
 
 open Filter BigOperators
 
@@ -10,7 +29,7 @@ namespace Polynomial
 variable {R F}
 
 /--
-Serre's Local algebra, page 21, lemma 2 (probably needs char 0 fields)
+Serre's Local algebra, page 21, lemma 2
 
 A polynomial `p` is integer valued if any of the following equivalent condition holds:
 1. `p` is a `ℤ`-linear combination of binomial polynomials

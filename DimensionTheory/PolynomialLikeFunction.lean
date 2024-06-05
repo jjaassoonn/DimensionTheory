@@ -1,4 +1,17 @@
+/-
+Copyright (c) 2024 Jujian Zhang. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jujian Zhang
+-/
+
 import DimensionTheory.IntegerValuedPolynomial
+
+/-!
+# Polyomial like functions
+
+A function `f : ℤ → ℤ` is called polynomial-like function if there is a polynomial `p : ℚ[X]` such
+that `f(n) = p(n)` for sufficiently large `n`.
+-/
 
 open Polynomial Filter List Function
 

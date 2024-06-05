@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2024 Jujian Zhang. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jujian Zhang
+-/
+
 import Mathlib.Algebra.Polynomial.Eval
 import Mathlib.Data.Nat.Factorial.BigOperators
 import Mathlib.Algebra.Polynomial.Roots
@@ -8,6 +14,14 @@ import Mathlib.Order.Filter.AtTopBot
 import DimensionTheory.missing_lemmas.Polynomial
 import DimensionTheory.missing_lemmas.Factorial
 import DimensionTheory.missing_lemmas.Int
+
+/-!
+# Binomial Polynomial
+
+In this file we define binomial polynomials `X choose k` and prove that they form a basis of `F[X]`
+over `F` when `F` is a field.
+
+-/
 
 open Polynomial BigOperators Filter
 open scoped Nat
@@ -280,7 +294,8 @@ lemma zeroth : binomialPolynomial F 0 = 1 := by simp [binomialPolynomial]
 lemma first : binomialPolynomial F 1 = X := by simp [binomialPolynomial]
 
 lemma succ (k : ℕ) :
-    binomialPolynomial F (k + 1) = (k + 1 : F)⁻¹ • (binomialPolynomial F k * (X - (C k : F[X]))) := by
+    binomialPolynomial F (k + 1) =
+    (k + 1 : F)⁻¹ • (binomialPolynomial F k * (X - (C k : F[X]))) := by
   simp only [binomialPolynomial, Nat.factorial_succ, Nat.cast_mul, Nat.cast_add, Nat.cast_one,
     mul_inv_rev, map_natCast, Finset.prod_range_succ, ← smul_mul_assoc, mul_smul, nsmul_eq_mul]
   rw [← mul_smul, mul_comm _ (k + 1 : F)⁻¹, mul_smul]
@@ -532,7 +547,8 @@ namespace stdDiff
 
 variable {F}
 
-lemma natDegree_pow (p : F[X]) (k : ℕ) (hk : k ≤ p.natDegree) : (Δ^[k] p).natDegree = p.natDegree - k := by
+lemma natDegree_pow (p : F[X]) (k : ℕ) (hk : k ≤ p.natDegree) :
+    (Δ^[k] p).natDegree = p.natDegree - k := by
   induction k with
   | zero => simp
   | succ k ih =>
