@@ -29,14 +29,21 @@ noncomputable def stdDiff : R[X] →ₗ[R] R[X] where
     simp only [add_comp, coeff_sub, coeff_add]
     ring
 
+/--
+The standard difference operator `Δ` is defined as `p ↦ p(X + 1) - p(X)`.
+-/
+
 def stdDiffFunc {α β : Type*} [Add α] [One α] [Sub β] (f : α → β) : α → β :=
   fun x ↦ f (x + 1) - f (x)
 
 @[inherit_doc]
 scoped[Polynomial] prefix:max "Δ" => stdDiff
+@[inherit_doc]
 scoped[Function] prefix:max "fΔ" => stdDiffFunc
 
+/--iterated standard difference-/
 scoped[Polynomial] notation "Δ^[ " n " ] " p => stdDiff^[n] p
+/--iterated standard difference-/
 scoped[Function] notation "fΔ^[ " n " ] " f => stdDiffFunc^[n] f
 
 namespace stdDiffFunc
@@ -99,7 +106,6 @@ lemma pow_apply_C (r : R) (k : ℕ) (hk : 0 < k) : (Δ^[k] (C r)) = 0 := by
 @[simp]
 lemma apply_constant : Δ (1 : R[X]) = 0 := by simp [stdDiff]
 
-@[simp]
 lemma apply_smul (p : R[X]) (r : R) : Δ (r • p) = r • Δ p := by
   ext; simp [mul_sub, stdDiff]
 
@@ -410,7 +416,6 @@ lemma stdDiff_succ (k : ℕ) :
   rw [sub_eq_iff_eq_add]
   norm_cast
 
-@[simp]
 lemma stdDiff_zero : Δ (binomialPolynomial F 0) = 0 := by simp
 
 lemma stdDiff_eq (k : ℕ) :
@@ -479,6 +484,8 @@ noncomputable def basis : Basis ℕ F F[X] :=
 @[simp]
 lemma basis_apply (k : ℕ) : basis F k = binomialPolynomial F k := by simp [basis]
 
+/-- antiderivative: the inverse operator to `Δ`, defined by sending `X choose k` to
+`X.choose (k + 1)`.-/
 noncomputable def antideriv : F[X] →ₗ[F] F[X] :=
 (Finsupp.total _ _ _ $ fun n => binomialPolynomial F (n + 1)) ∘ₗ (basis F).repr.toLinearMap
 
@@ -498,6 +505,7 @@ lemma antideriv_eq (p : F[X]) :
   refine Finset.sum_congr rfl fun k _ => ?_
   simp only [LinearMapClass.map_smul, antideriv_eq_succ]
 
+@[inherit_doc]
 scoped [Polynomial] prefix:max "∫" => binomialPolynomial.antideriv
 
 lemma antideriv_stdDiff (p : F[X]) : ∫ (Δ p) = p - (C $ p.eval 0) := by
