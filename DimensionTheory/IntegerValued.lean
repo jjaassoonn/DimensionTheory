@@ -3,6 +3,8 @@ import Mathlib.Order.Filter.AtTopBot
 import DimensionTheory.BinomialPolynomials
 import DimensionTheory.missing_lemmas.Int
 
+import LeanCopilot
+
 open Filter BigOperators
 
 variable (R F : Type*) [CommRing R] [Field F] [CharZero F]
@@ -366,6 +368,19 @@ protected lemma IsIntegerValued.neg {p : F[X]} (hp : IsIntegerValued p) :
   rw [eval_neg]
   exact Subring.neg_mem _ (hp n)
 
+protected lemma IsIntegerValued.stdDiff {p : F[X]} (hp : IsIntegerValued p) :
+    IsIntegerValued (Δ p) := by
+  have := IsIntegerValued.tfae p |>.out 2 3 |>.mp hp
+  exact this.1
+
+protected lemma IsIntegerValued.stdDiff_pow {p : F[X]} (hp : IsIntegerValued p) (n : ℕ) :
+    IsIntegerValued (Δ^[n] p) := by
+  induction n with
+  | zero => simpa
+  | succ n ih =>
+    rw [Function.iterate_succ']
+    exact ih.stdDiff
+
 variable (F) in
 /--
 The collection of integer-valued polynomials forms a subring.
@@ -379,5 +394,36 @@ def integerValued : Subring F[X] where
   neg_mem' := IsIntegerValued.neg
 
 lemma mem_integerValued {p} : p ∈ integerValued F ↔ IsIntegerValued p := Iff.rfl
+
+lemma IsIntegerValued.coeff'_in_int {f : F[X]} (hf : IsIntegerValued f) (i : ℕ) :
+    binomialPolynomial.coeff' f i ∈ (algebraMap ℤ F).range := by
+  simpa using (IsIntegerValued.iff_forall _ |>.1 $ hf.stdDiff_pow i) 0
+
+noncomputable def IsIntegerValued.coeff {f : F[X]} (hf : IsIntegerValued f) (i : ℕ) : ℤ :=
+  hf.coeff'_in_int i |>.choose
+
+lemma IsIntegerValued.coeff_spec {f : F[X]} (hf : IsIntegerValued f) (i : ℕ) :
+    (hf.coeff i : F) = (Δ^[i] f).eval 0 :=
+  hf.coeff'_in_int i |>.choose_spec
+
+lemma IsIntegerValued.coe_eq_sum_range{f : F[X]} (hf : IsIntegerValued f):
+    (f : F[X]) =
+    ∑ k in Finset.range (f.natDegree + 1), hf.coeff k • binomialPolynomial F k := by
+  conv_lhs => rw [binomialPolynomial.eq_sum_range f]
+  refine Finset.sum_congr rfl fun x _ => ?_
+  rw [zsmul_eq_mul, ← coeff_spec, Algebra.smul_def]
+  rfl
+
+noncomputable def IsIntegerValued.evalInt {f : F[X]} (hf : IsIntegerValued f) (n : ℤ) : ℤ :=
+  IsIntegerValued.iff_forall _ |>.1 hf n |>.choose
+
+lemma IsIntegerValued.evalInt_spec {f : F[X]} (hf : IsIntegerValued f) (n : ℤ) :
+    (hf.evalInt n : F) = (f.eval n : F) :=
+  IsIntegerValued.iff_forall _ |>.1 hf n |>.choose_spec
+
+lemma IsIntegerValued.coeff_natDegree_pos_iff_eval_eventually_pos
+    {f : F[X]} (hf : IsIntegerValued f) :
+    0 < hf.coeff (f.natDegree) ↔
+    ∀ᶠ (n : ℤ) in atTop, 0 < (hf.evalInt n) := sorry
 
 end Polynomial
