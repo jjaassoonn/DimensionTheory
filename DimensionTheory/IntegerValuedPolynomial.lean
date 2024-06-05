@@ -7,6 +7,8 @@ Authors: Jujian Zhang
 import DimensionTheory.BinomialPolynomials
 import DimensionTheory.missing_lemmas.Int
 
+import Mathlib.Analysis.Asymptotics.AsymptoticEquivalent
+
 /-!
 # Integer Valued Polynomial
 
@@ -347,6 +349,11 @@ lemma IsIntegerValued.tfae (p : F[X]) :
 
 open IsIntegerValued
 
+instance (k : ℕ) : IsIntegerValued (binomialPolynomial F k) := by
+  have := IsIntegerValued.tfae (binomialPolynomial F k) |>.out 2 0
+  rw [this]
+  exact Submodule.subset_span ⟨k, rfl⟩
+
 lemma IsIntegerValued.iff_forall (p : F[X]) :
     IsIntegerValued p ↔  ∀ (n : ℤ), (p.eval n : F) ∈ (algebraMap ℤ F).range :=
   tfae p |>.out 2 1
@@ -437,8 +444,8 @@ lemma coeffInt_spec {f : F[X]} [IsIntegerValued f] (i : ℕ) :
     (f.coeffInt i : F) = (Δ^[i] f).eval 0 :=
   IsIntegerValued.coeff'_in_int f i |>.choose_spec
 
-lemma coe_eq_sum_range (f : F[X]) [IsIntegerValued f]:
-    (f : F[X]) =
+lemma eq_sum_range (f : F[X]) [IsIntegerValued f]:
+    f =
     ∑ k in Finset.range (f.natDegree + 1), f.coeffInt k • binomialPolynomial F k := by
   conv_lhs => rw [binomialPolynomial.eq_sum_range f]
   refine Finset.sum_congr rfl fun x _ => ?_
@@ -452,9 +459,135 @@ lemma evalInt_spec (f : F[X]) [hf : IsIntegerValued f] (n : ℤ) :
     (f.evalInt n : F) = (f.eval n : F) :=
   IsIntegerValued.iff_forall _ |>.1 hf n |>.choose_spec
 
-lemma coeff_natDegree_pos_iff_eval_eventually_pos
-    (f : F[X]) [hf : IsIntegerValued f] :
-    0 < f.coeffInt (f.natDegree) ↔
-    ∀ᶠ (n : ℤ) in atTop, 0 < (f.evalInt n) := sorry
+lemma evalInt_spec' (f : F[X]) [IsIntegerValued f] (n : ℤ) (hn : f.natDegree ≤ n) :
+    f.evalInt n =
+    ∑ i in Finset.range (f.natDegree + 1), f.coeffInt i • (n.toNat.choose i : ℤ) := by
+  apply_fun ((↑) : ℤ → F) using Int.cast_injective
+  rw [evalInt_spec]
+  conv_lhs => rw [eq_sum_range f, eval_finset_sum]
+  simp_rw [eval_smul]
+  simp only [zsmul_eq_mul, smul_eq_mul, Int.cast_sum, Int.cast_mul, Int.cast_natCast]
+  refine Finset.sum_congr rfl fun i hi => ?_
+  simp only [Finset.mem_range] at hi
+  rw [binomialPolynomial.eval_int_of_le]
+  omega
+
+open Asymptotics
+open scoped Nat
+
+lemma binomialPolynomial_eval_equivalent (k : ℕ) :
+    (↑) ∘ (binomialPolynomial F k).evalInt ~[atTop]
+    fun n => (n^k / k ! : ℚ) := by
+  refine IsEquivalent.trans ?_ $ Nat.choose_isEquivalent_atTop_int k
+  rw [isEquivalent_iff_tendsto_one]
+  · rw [tendsto_iff_forall_eventually_mem]
+    intro s hs
+    simp only [Pi.div_apply, Function.comp_apply, eventually_atTop, ge_iff_le]
+    refine ⟨k, fun n hn => ?_⟩
+    have eq1 : (binomialPolynomial F k).evalInt n = (n.toNat.choose k : ℤ) := by
+      apply_fun ((↑) : ℤ → F) using Int.cast_injective
+      rw [evalInt_spec]
+      rw [binomialPolynomial.eval_int_of_le]
+      pick_goal 2
+      · assumption
+      simp
+    rw [eq1]
+    simp only [Int.cast_natCast]
+    rw [div_self]
+    pick_goal 2
+    · simp only [ne_eq, Nat.cast_eq_zero]
+      intro r
+      rw [Nat.choose_eq_zero_iff] at r
+      apply_fun ((↑) : ℕ → ℤ) at r using Nat.mono_cast (α := ℤ)
+      simp only [Nat.succ_eq_add_one, Nat.cast_add, Nat.cast_one] at r
+      rw [Int.coe_toNat_of_nonneg] at r
+      · omega
+      · omega
+
+    exact mem_of_mem_nhds hs
+  · simp only [ne_eq, div_eq_zero_iff, pow_eq_zero_iff', Int.cast_eq_zero, Nat.cast_eq_zero,
+      not_or, not_and, Decidable.not_not, eventually_atTop, ge_iff_le]
+    refine ⟨k, fun n hn => ?_⟩
+    intro r
+    rw [Nat.choose_eq_zero_iff] at r
+    apply_fun ((↑) : ℕ → ℤ) at r using Nat.mono_cast (α := ℤ)
+    simp only [Nat.succ_eq_add_one, Nat.cast_add, Nat.cast_one] at r
+    rw [Int.coe_toNat_of_nonneg] at r
+    · omega
+    · omega
+
+-- example (f : F[X]) [hf : IsIntegerValued f] :
+--     ((↑) : ℤ → ℚ) ∘ f.evalInt ~[atTop]
+--     fun n => f.coeffInt f.natDegree • (n^f.natDegree / f.natDegree !) := by
+--   if hdeg : f.natDegree = 0
+--   then
+--     simp only [hdeg, pow_zero, Nat.factorial_zero, Nat.cast_one, ne_eq, one_ne_zero,
+--       not_false_eq_true, div_self, zsmul_eq_mul, mul_one]
+--     change _ ~[atTop] Function.const _ (f.coeffInt 0 : ℚ)
+--     rw [natDegree_eq_zero] at hdeg
+--     obtain ⟨c, rfl⟩ := hdeg
+--     rw [IsIntegerValued.iff_forall] at hf
+--     specialize hf 0
+--     simp only [Int.cast_zero, eval_C, algebraMap_int_eq, RingHom.mem_range, eq_intCast] at hf
+--     obtain ⟨c, rfl⟩ := hf
+--     if hc : c = 0
+--     then
+--       subst hc
+--       conver Int.cast ∘ (0 : F[X]).evalInt ~[atTop] Function.const _ 0
+--       simp only [Int.cast_zero, map_zero]
+--       sorry
+--     else
+--     have : (C (c : F)).evalInt ~[atTop] Function.const _ c := by
+--       rw [isEquivalent_const_iff_tendsto]
+--     rw [show (C (c : F)).evalInt =[atTop] Function.const _ c by
+--       ext x
+--       simp only [map_intCast, Function.const_apply]
+--       apply_fun ((↑) : ℤ → F) using Int.cast_injective
+--       rw [evalInt_spec']
+--       pick_goal 2
+--       · simp only [natDegree_intCast, CharP.cast_eq_zero]; norm_num
+--       simp only [natDegree_intCast, zero_add, Finset.range_one, smul_eq_mul, Finset.sum_singleton,
+--         Nat.choose_zero_right, Nat.cast_one, mul_one, Int.cast_inj]
+
+--       letI : (c : F[X]).IsIntegerValued := sorry
+--       apply_fun ((↑) : ℤ → F) using Int.cast_injective
+--       rw [coeffInt_spec]
+--       simp only [Function.iterate_zero, id_eq, eval_intCast]
+--       ]
+--     rw [isEquivalent_const_iff_tendsto, tendsto_iff_forall_eventually_mem]
+--     intro s hs
+--     simp only [Function.comp_apply, eventually_atTop, ge_iff_le] at hs ⊢
+--     rw [mem_nhds_iff] at hs
+
+--     sorry
+--   else
+
+--   rw [Asymptotics.isEquivalent_iff_tendsto_one]
+--   · sorry
+--   · simp only [zsmul_eq_mul, ne_eq, mul_eq_zero, Int.cast_eq_zero, div_eq_zero_iff,
+--       pow_eq_zero_iff', Nat.cast_eq_zero, not_or, not_and, Decidable.not_not, eventually_atTop,
+--       ge_iff_le]
+--     refine ⟨f.natDegree, fun n hn => ⟨?_, by rintro rfl; simpa using hn,
+--       f.natDegree.factorial_ne_zero⟩⟩
+
+--     intro rid
+--     have := f.eq_sum_range
+--     rw [Finset.sum_range_succ, rid, zero_smul, add_zero] at this
+--     apply_fun natDegree at this
+--     have ineq := Polynomial.natDegree_sum F (fun i => f.coeffInt i • binomialPolynomial F i)
+--       (Finset.range f.natDegree)
+--     rw [← this] at ineq
+--     have := Finset.le_sup
+--     sorry
+
+
+-- lemma coeff_natDegree_pos_iff_eval_eventually_pos
+--     (f : F[X]) [hf : IsIntegerValued f] :
+--     0 < f.coeffInt (f.natDegree) ↔
+--     ∀ᶠ (n : ℤ) in atTop, 0 < (f.evalInt n) := by
+--   constructor
+--   · have := eq_sum_range f
+--     sorry
+--   · sorry
 
 end Polynomial
