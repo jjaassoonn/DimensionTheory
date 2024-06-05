@@ -7,6 +7,7 @@ import Mathlib.Order.Filter.AtTopBot
 
 import DimensionTheory.missing_lemmas.Polynomial
 import DimensionTheory.missing_lemmas.Factorial
+import DimensionTheory.missing_lemmas.Int
 
 open Polynomial BigOperators Filter
 open scoped Nat
@@ -37,6 +38,49 @@ scoped[Function] prefix:max "fΔ" => stdDiffFunc
 
 scoped[Polynomial] notation "Δ^[ " n " ] " p => stdDiff^[n] p
 scoped[Function] notation "fΔ^[ " n " ] " f => stdDiffFunc^[n] f
+
+namespace stdDiffFunc
+
+open Function
+
+lemma eventually_constant_of_stdDiffFunc_eventually_eq_zero_nat
+    {α : Type*} [AddGroup α] (f : ℕ → α)
+    (hf : ∀ᶠ (m : ℕ) in atTop, fΔ f m = 0) :
+    ∃ e : α, ∀ᶠ (m : ℕ) in atTop, f m = e := by
+  simp only [eventually_atTop, ge_iff_le] at hf ⊢
+  obtain ⟨n, hn⟩ := hf
+  refine ⟨f n, n, fun m hm => ?_⟩
+  have h (k : ℕ) : f n = f (n + k) := by
+    induction k with
+    | zero => simp
+    | succ k ih =>
+      specialize hn (n + k) (by norm_num)
+      simp only [stdDiffFunc] at hn
+      rw [sub_eq_zero] at hn
+      rw [← add_assoc, hn, ih]
+  rw [show m = n + (m - n) by omega, ← h]
+
+lemma eventually_constant_of_stdDiffFunc_eventually_eq_zero_int
+    {α : Type*} [AddGroup α] (f : ℤ → α)
+    (hf : ∀ᶠ (m : ℤ) in atTop, fΔ f m = 0) :
+    ∃ e : α, ∀ᶠ (m : ℤ) in atTop, f m = e := by
+  simp only [eventually_atTop, ge_iff_le] at hf ⊢
+  obtain ⟨n, hn⟩ := hf
+  refine ⟨f n, n, fun m hm => ?_⟩
+  have h (k : ℕ) : f n = f (n + k) := by
+    induction k with
+    | zero => simp
+    | succ k ih =>
+      specialize hn (n + k) (by norm_num)
+      simp only [stdDiffFunc] at hn
+      rw [sub_eq_zero] at hn
+
+      rw [Nat.cast_add, ← add_assoc, Nat.cast_one, hn, ih]
+  specialize h (m - n).toNat
+  rw [Int.coe_toNat_of_nonneg _ (by linarith)] at h
+  rw [show m = n + (m - n) by omega, ← h]
+
+end stdDiffFunc
 
 namespace stdDiff
 

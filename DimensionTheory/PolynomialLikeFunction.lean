@@ -2,13 +2,19 @@ import DimensionTheory.IntegerValuedPolynomial
 
 open Polynomial Filter List Function
 
-
+/--
+A function `ℤ → ℤ` is polynomial like if `f(n) = p(n)` for some polynomial `p : ℚ[X]` and all large
+enough `n : ℤ`
+-/
 class Function.PolynomialLike (f : ℤ → ℤ) : Prop where
   out : ∃ (p : ℚ[X]), ∀ᶠ (n : ℤ) in atTop, (f n : ℚ) = (p.eval n : ℚ)
 
 instance : Function.PolynomialLike 0 where
   out := ⟨0, by simp⟩
 
+/--
+If `f` is a polynomial-like function, then `f.polynomial` is the polynomial representing `f`.
+-/
 noncomputable abbrev Function.polynomial (f : ℤ → ℤ) [hf : f.PolynomialLike] : ℚ[X] :=
   hf.out.choose
 
@@ -101,7 +107,6 @@ lemma Function.stdDiff_eventually_eq_zero
 
 instance (f : ℤ → ℤ) [(fΔ f).PolynomialLike] : f.PolynomialLike := by
   let P := (fΔ  f).polynomial
-  have hP : P.IsIntegerValued := polynomial_isIntegerValued _
   let R := ∫ P
   have hR : R.IsIntegerValued := (polynomial_isIntegerValued _).antideriv
   let g : ℤ → ℤ := fun n => f n - R.evalInt n
@@ -122,31 +127,53 @@ instance (f : ℤ → ℤ) [(fΔ f).PolynomialLike] : f.PolynomialLike := by
     rw [Int.cast_sub, hn, evalInt_spec,
       show stdDiff R = P from binomialPolynomial.stdDiff_antideriv _, Int.cast_zero, sub_eq_zero]
 
-  -- have hg : ∃ e, ∀ᶠ (n : ℤ) in atTop, g n = e := by
-  --   refine ⟨g 0, ?_⟩
-  --   have hP' := (fΔ f).polynomial_spec
-  --   simp only [eventually_atTop, ge_iff_le] at hg hP' ⊢
-  --   obtain ⟨n, hn⟩ := hg
-  --   obtain ⟨n', hn'⟩ := hP'
-  --   refine ⟨max n n', fun m hm => ?_⟩
-  --   specialize hn m (by omega)
-  --   simp only [stdDiffFunc] at hn
-  --   rw [show f (m + 1) - R.evalInt (m + 1) - (f m - R.evalInt m) =
-  --     (f (m + 1) - f m) - (R.evalInt (m + 1) - R.evalInt m) by abel,
-  --     show f (m + 1) - f m = fΔ f m from rfl,
-  --     show R.evalInt (m + 1) - R.evalInt m = (Δ R).evalInt m by
-  --       apply_fun ((↑) : ℤ → ℚ) using Int.cast_injective
-  --       simp [evalInt_spec]] at hn
-  --   simp_rw [show Δ R = P by exact binomialPolynomial.stdDiff_antideriv _] at hn
-  --   specialize hn' m (by omega)
-  --   rw [← evalInt_spec] at hn'
+  obtain ⟨e, hg⟩ : ∃ e, ∀ᶠ (n : ℤ) in atTop, g n = e :=
+    stdDiffFunc.eventually_constant_of_stdDiffFunc_eventually_eq_zero_int _ hg
 
-  -- have h : ∃ e, ∀ᶠ (n : ℤ) in atTop, f n = R.evalInt n + e := by
-  --   simp only [eventually_atTop, ge_iff_le] at hg ⊢
-  --   obtain ⟨n, hn⟩ := hg
-  --   simp? [g, stdDiffFunc] at hn
-  sorry
+  have h : ∀ᶠ (n : ℤ) in atTop, f n = R.evalInt n + e := by
+    simp only [eventually_atTop, ge_iff_le] at hg ⊢
+    obtain ⟨n, hn⟩ := hg
+    refine ⟨n, fun m hm => ?_⟩
+    specialize hn m hm
+    simp only [g] at hn
+    rw [← hn]
+    abel
 
+  refine ⟨R + C (e : ℚ), ?_⟩
+  simp only [eventually_atTop, ge_iff_le, map_intCast, eval_add, eval_intCast] at h ⊢
+  obtain ⟨n, hn⟩ := h
+  refine ⟨n, fun m hm => ?_⟩
+  specialize hn m hm
+  simp [hn, evalInt_spec]
+
+
+lemma Function.PolynomialLike.of_stdDiffFunc_pow
+    (f : ℤ → ℤ) (k : ℕ) [h : (fΔ^[k] f).PolynomialLike] : f.PolynomialLike := by
+  induction k generalizing h with
+  | zero => simpa using h
+  | succ k ih =>
+    rw [Function.iterate_succ', Function.comp_apply] at h
+    have : PolynomialLike (stdDiffFunc^[k] f) := inferInstance
+    apply ih
+
+lemma Function.PolynomialLike.of_stdDiffFunc_pow_eventually_zero
+    (f : ℤ → ℤ) (hf : ∃ (r : ℕ), ∀ᶠ (n : ℤ) in atTop, (fΔ^[r] f) n = 0) :
+    f.PolynomialLike := by
+  obtain ⟨r, hr⟩ := hf
+  haveI : (fΔ^[r] f).PolynomialLike := by
+    refine ⟨0, ?_⟩
+    simp only [eventually_atTop, ge_iff_le, eval_zero, Int.cast_eq_zero] at hr ⊢
+    obtain ⟨n, hn⟩ := hr
+    refine ⟨n, fun m hm => ?_⟩
+    exact hn m hm
+  exact of_stdDiffFunc_pow _ r
+
+
+/--
+Serre's local algebra
+
+Chapter II.B.2 Lemma 2 page 21.
+-/
 lemma Function.PolynomialLike.tfae (f : ℤ → ℤ) : TFAE
     [
       f.PolynomialLike,
@@ -159,4 +186,10 @@ lemma Function.PolynomialLike.tfae (f : ℤ → ℤ) : TFAE
   tfae_have 1 → 3
   · intro hf; apply stdDiff_eventually_eq_zero
 
-  sorry
+  tfae_have 2 → 1
+  · intro _; infer_instance
+
+  tfae_have 3 → 1
+  · apply of_stdDiffFunc_pow_eventually_zero
+
+  tfae_finish
