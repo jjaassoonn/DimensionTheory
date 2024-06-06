@@ -541,6 +541,37 @@ lemma stdDiff_antideriv (p : F[X]) : Δ (∫ p) = p := by
   conv_rhs => rw [eq_sum_range p]
   rw [Finset.sum_range_succ']
 
+
+lemma coeff'_natDegree'_ne_zero (p : F[X]) (h : p ≠ 0) : coeff' p p.natDegree ≠ 0 := by
+  if h : p.natDegree = 0
+  then
+    rw [natDegree_eq_zero] at h
+    obtain ⟨c, rfl⟩ := h
+    rw [natDegree_C, coeff'_zero, eval_C, ne_eq]
+    simpa using h
+  else
+
+  intro r
+  delta coeff' at r
+  have := eq_sum_range p
+
+  rw [Finset.sum_range_succ, r, zero_smul, add_zero] at this
+  apply_fun natDegree at this
+  have ineq := Polynomial.natDegree_sum F (fun i => coeff' p i • binomialPolynomial F i)
+      (Finset.range p.natDegree)
+  rw [← this] at ineq
+  have ineq2 : ((Finset.range p.natDegree).sup fun i =>
+    (coeff' p i • binomialPolynomial F i).natDegree) < p.natDegree := by
+    rw [Finset.sup_lt_iff]
+    pick_goal 2
+    · simp only [bot_eq_zero']; omega
+    intro i hi
+    refine lt_of_le_of_lt (natDegree_smul_le _ _) ?_
+    rw [natDegree_eq]
+    simpa using hi
+  linarith
+
+
 end binomialPolynomial
 
 namespace stdDiff
