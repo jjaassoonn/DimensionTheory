@@ -8,7 +8,6 @@ import DimensionTheory.BinomialPolynomials
 import DimensionTheory.missing_lemmas.Int
 
 import Mathlib.Analysis.Asymptotics.AsymptoticEquivalent
-import Mathlib.Analysis.SpecificLimits.Basic
 
 /-!
 # Integer Valued Polynomial

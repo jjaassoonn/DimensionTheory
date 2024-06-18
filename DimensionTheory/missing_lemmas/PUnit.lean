@@ -5,7 +5,7 @@ Authors: Jujian Zhang
 -/
 
 import Mathlib.Algebra.PUnitInstances
-import Mathlib.LinearAlgebra.Basic
+import Mathlib.Algebra.Module.Equiv
 
 /-!
 If a module has only one element, then it is isomorphic to the trivial module.

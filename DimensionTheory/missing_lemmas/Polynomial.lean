@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 
-import Mathlib.Algebra.Polynomial.Degree.Lemmas
 import Mathlib.LinearAlgebra.LinearIndependent
+import Mathlib.Algebra.Polynomial.Degree.Definitions
 
 /-!
 # Some missing lemmas on polynomials
