@@ -166,7 +166,8 @@ lemma Function.PolynomialLike.of_stdDiffFunc_pow
   | zero => simpa using h
   | succ k ih =>
     rw [Function.iterate_succ', Function.comp_apply] at h
-    have : PolynomialLike (stdDiffFunc^[k] f) := inferInstance
+    have : PolynomialLike (fΔ^[k] f) :=
+      instPolynomialLikeIterateForallIntStdDiffFunc f _
     apply ih
 
 lemma Function.PolynomialLike.of_stdDiffFunc_pow_eventually_zero
