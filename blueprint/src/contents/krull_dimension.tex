@@ -1,3 +1,18 @@
-\chapter{Krull Dimension}
+\chapter{Krull Dimension and Module length}
 \label{sec:krull_dimension}
 
+
+\begin{theorem}
+\lean{instIsFiniteLengthModuleOfIsArtinianOfIsNoetherian}
+\lean{FiniteLengthModule.of_noetherian_of_artinian}
+A module $M$ is of finite length if and only if it is Noetherian and Artinian.
+\end{theorem}
+
+\begin{theorem}
+\lean{moduleLength.eq_length_submodule_add_length_quotient}
+The length of a module is an additive function. That is, for any submodule $N$ of $M$, we have
+\[
+\ell(M) = \ell(N) + \ell(M/N),
+\]
+where $\ell(M)$ denotes the length of $M$.
+\end{theorem}
