@@ -2,7 +2,13 @@ import Mathlib.Data.List.Dedup
 
 namespace List
 
-variable {α : Type*} [DecidableEq α]
+variable {α β : Type*} [DecidableEq α]
+
+lemma map_ne_nil_of_ne_nil (l : List α) (h : l ≠ List.nil)
+    (f : α → β) : l.map f ≠ List.nil := by
+  cases l with | nil => ?_ | cons x l => ?_
+  · cases h rfl
+  · dsimp; exact List.cons_ne_nil _ _
 
 lemma dedup_length_lt_of_not_nodup (l : List α) (h : ¬ l.Nodup) :
     l.dedup.length < l.length := by
