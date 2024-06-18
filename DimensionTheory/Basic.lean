@@ -1,4 +1,0 @@
-import DimensionTheory.Module.Support
-import DimensionTheory.BinomialPolynomials
-import DimensionTheory.PolynomialLikeFunction
-import DimensionTheory.IntegerValuedPolynomial

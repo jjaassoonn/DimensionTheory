@@ -1,3 +1,18 @@
--- This module serves as the root of the `DimensionTheory` library.
--- Import modules here that should be built as part of the library.
-import «DimensionTheory».Basic
+import DimensionTheory.BinomialPolynomials
+import DimensionTheory.IntegerValuedPolynomial
+import DimensionTheory.Module.JordanHolder
+import DimensionTheory.Module.Length
+import DimensionTheory.Module.SimpleModule
+import DimensionTheory.Module.Support
+import DimensionTheory.Order.KrullDimension
+import DimensionTheory.Order.ListOnPartialOrderTypes
+import DimensionTheory.PolynomialLikeFunction
+import DimensionTheory.RingTheory.KrullDimension
+import DimensionTheory.Topology.KrullDimension
+import DimensionTheory.missing_lemmas.Factorial
+import DimensionTheory.missing_lemmas.Ideal
+import DimensionTheory.missing_lemmas.Int
+import DimensionTheory.missing_lemmas.List
+import DimensionTheory.missing_lemmas.PUnit
+import DimensionTheory.missing_lemmas.Polynomial
+import DimensionTheory.missing_lemmas.RelSeries
