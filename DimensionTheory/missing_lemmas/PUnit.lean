@@ -1,5 +1,16 @@
+/-
+Copyright (c) 2024 Jujian Zhang. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jujian Zhang
+-/
+
 import Mathlib.Algebra.PUnitInstances
 import Mathlib.LinearAlgebra.Basic
+
+/-!
+If a module has only one element, then it is isomorphic to the trivial module.
+
+-/
 
 namespace PUnit
 
