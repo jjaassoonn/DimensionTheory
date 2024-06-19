@@ -88,7 +88,6 @@ instance : Ring (A 0) := inferInstanceAs $ Ring $ subring A
 
 end GradeZero
 
-
 namespace GradeZero
 
 variable {ι S R : Type*} [AddMonoid ι] [DecidableEq ι]
@@ -105,5 +104,20 @@ mul_comm := by
 
 end GradeZero
 
+namespace GradeZero
+
+variable {ι S R : Type*} [AddMonoid ι] [DecidableEq ι]
+variable [CommRing R] [SetLike S R] [AddSubgroupClass S R]
+
+variable (A : ι → S) [GradedRing A]
+
+instance : CommRing (A 0) where
+__ := (inferInstance : Ring (A 0))
+mul_comm := by
+  rintro ⟨a, ha⟩ ⟨b, hb⟩
+  ext
+  simpa using mul_comm _ _
+
+end GradeZero
 
 end SetLike
