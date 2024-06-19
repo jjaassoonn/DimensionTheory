@@ -7,12 +7,16 @@ import DimensionTheory.Module.Support
 import DimensionTheory.Order.KrullDimension
 import DimensionTheory.Order.ListOnPartialOrderTypes
 import DimensionTheory.PolynomialLikeFunction
+import DimensionTheory.RingTheory.ArtinianAndNoetherian
 import DimensionTheory.RingTheory.KrullDimension
 import DimensionTheory.Topology.KrullDimension
+import DimensionTheory.missing_lemmas.AboutSheafConditions
+import DimensionTheory.missing_lemmas.Artinian
 import DimensionTheory.missing_lemmas.Factorial
 import DimensionTheory.missing_lemmas.Ideal
 import DimensionTheory.missing_lemmas.Int
 import DimensionTheory.missing_lemmas.List
+import DimensionTheory.missing_lemmas.Noetherian
 import DimensionTheory.missing_lemmas.PUnit
 import DimensionTheory.missing_lemmas.Polynomial
 import DimensionTheory.missing_lemmas.RelSeries
