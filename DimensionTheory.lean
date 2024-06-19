@@ -1,10 +1,15 @@
 import DimensionTheory.BinomialPolynomials
+import DimensionTheory.HilbertSerre.AdditiveFunction
+import DimensionTheory.HilbertSerre.FiniteInstances
+import DimensionTheory.HilbertSerre.Polynomial
+import DimensionTheory.HilbertSerre.Theorem
 import DimensionTheory.IntegerValuedPolynomial
 import DimensionTheory.Module.FGModuleCat.Abelian
 import DimensionTheory.Module.FGModuleCat.EpiMono
 import DimensionTheory.Module.FGModuleCat.Kernels
 import DimensionTheory.Module.Graded.Homogeneous
 import DimensionTheory.Module.Graded.Noetherian
+import DimensionTheory.Module.Graded.Subgrading
 import DimensionTheory.Module.JordanHolder
 import DimensionTheory.Module.Length
 import DimensionTheory.Module.SimpleModule
@@ -13,6 +18,7 @@ import DimensionTheory.Order.KrullDimension
 import DimensionTheory.Order.ListOnPartialOrderTypes
 import DimensionTheory.PolynomialLikeFunction
 import DimensionTheory.RingTheory.ArtinianAndNoetherian
+import DimensionTheory.RingTheory.HilbertPolynomial
 import DimensionTheory.RingTheory.KrullDimension
 import DimensionTheory.Topology.KrullDimension
 import DimensionTheory.missing_lemmas.AboutSheafConditions
