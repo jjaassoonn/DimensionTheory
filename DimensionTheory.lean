@@ -1,5 +1,10 @@
 import DimensionTheory.BinomialPolynomials
 import DimensionTheory.IntegerValuedPolynomial
+import DimensionTheory.Module.FGModuleCat.Abelian
+import DimensionTheory.Module.FGModuleCat.EpiMono
+import DimensionTheory.Module.FGModuleCat.Kernels
+import DimensionTheory.Module.Graded.Homogeneous
+import DimensionTheory.Module.Graded.Noetherian
 import DimensionTheory.Module.JordanHolder
 import DimensionTheory.Module.Length
 import DimensionTheory.Module.SimpleModule
@@ -12,7 +17,12 @@ import DimensionTheory.RingTheory.KrullDimension
 import DimensionTheory.Topology.KrullDimension
 import DimensionTheory.missing_lemmas.AboutSheafConditions
 import DimensionTheory.missing_lemmas.Artinian
+import DimensionTheory.missing_lemmas.FGModuleCat
 import DimensionTheory.missing_lemmas.Factorial
+import DimensionTheory.missing_lemmas.GradeZeroModule
+import DimensionTheory.missing_lemmas.GradeZeroMonoid
+import DimensionTheory.missing_lemmas.GradedModule
+import DimensionTheory.missing_lemmas.GradedRing
 import DimensionTheory.missing_lemmas.Ideal
 import DimensionTheory.missing_lemmas.Int
 import DimensionTheory.missing_lemmas.List

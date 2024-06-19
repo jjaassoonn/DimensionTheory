@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 
-import DimensionTheory.missing_lemmas.Noetherian
 import DimensionTheory.Module.FGModuleCat.Kernels
 
 import Mathlib.CategoryTheory.Abelian.Basic

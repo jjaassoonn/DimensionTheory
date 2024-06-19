@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 
-import DimensionTheory.missing_lemmas.FGModuleCat
 
 import Mathlib.LinearAlgebra.Quotient
+import Mathlib.CategoryTheory.ConcreteCategory.EpiMono
+import Mathlib.Algebra.Category.FGModuleCat.Basic
 
 /-!
 # Monomorphisms in finitely generated modules over a Noetherian ring

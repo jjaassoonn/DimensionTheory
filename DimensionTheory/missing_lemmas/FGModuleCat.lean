@@ -4,8 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 
-import Mathlib.Algebra.Category.FGModuleCat.Limits
-import Mathlib.Algebra.Category.Ring.Constructions
+import Mathlib.Algebra.Category.FGModuleCat.Basic
+import Mathlib.Algebra.Category.ModuleCat.EpiMono
+import Mathlib.Algebra.Category.ModuleCat.Limits
+import Mathlib.Algebra.Category.ModuleCat.Products
+import Mathlib.CategoryTheory.Limits.Constructions.LimitsOfProductsAndEqualizers
 
 /-!
 # Some missing lemmas about the category of finitely generated modules over a neotherian ring
