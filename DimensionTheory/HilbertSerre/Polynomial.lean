@@ -43,6 +43,8 @@ open PowerSeries
 
 namespace generatingSetOverBaseRing
 
+omit noetherian_ring in
+include hS in
 lemma poles_eq_one_sub_pow_of_deg_eq_one :
     S.poles = ⟨1 - X, invOfUnit (1 - X) 1, mul_invOfUnit (1 - X) 1 <| by
     simp only [map_sub, map_one, constantCoeff_X, sub_zero, Units.val_one], by
@@ -78,6 +80,7 @@ noncomputable def hilbertPolynomial : ℚ[X] :=
   if S.toFinset.card = 0 then 0
   else hilbert (numeratorPolynomial 𝒜 ℳ μ S) (S.toFinset.card - 1)
 
+include hS in
 /--
 The key property of the Hilbert polynomial, i.e. for any `n : ℕ` that is large enough,
 the value of `μ` at `ℳ n` is equal to the value of the Hilbert polynomial at `n`.
@@ -116,6 +119,7 @@ theorem AdditiveFunction_eq_hilbertPolynomial_eval
     simp only [invOneSubPow, zero_add, Nat.choose_zero_right, Nat.cast_one, pow_one, Units.inv_mk]
     exact mk_one_mul_one_sub_eq_one
 
+include hS in
 /--
 The Hilbert polynomial is unique. In other words, for any `h : ℚ[X]`, if `h` satisfies the key
 property of the Hilbert polynomial (i.e. for any large enough `n : ℕ`, the value of `μ` at `ℳ n`

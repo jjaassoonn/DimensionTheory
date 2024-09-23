@@ -7,6 +7,7 @@ Authors: Jujian Zhang
 import Mathlib.Algebra.Homology.ShortComplex.ShortExact
 import Mathlib.Algebra.Homology.ExactSequence
 import Mathlib.Tactic.Linarith
+import Mathlib.CategoryTheory.Abelian.Exact
 
 /-!
 # Additive Functions from an abelian Category
@@ -82,9 +83,10 @@ lemma map_zero : μ 0 = 0 := by
     g := 0
     zero := by aesop_cat }
   have hs : s.Exact := by
-    rw [← exact_iff_shortComplex_exact (S := s)]
-    change Exact 0 0
-    exact exact_zero_mono 0
+    rw [ShortComplex.exact_iff_mono]
+    simp only [s]
+    · infer_instance
+    · rfl
   replace hs : s.ShortExact := ⟨hs⟩
   have : μ 0 + μ 0 = μ 0 := μ.additive s hs
   aesop
@@ -98,9 +100,10 @@ lemma eq_of_iso {x y : 𝒞} (e : x ≅ y) : μ x = μ y := by
     g := 0
     zero := by aesop_cat }
   have hs : s.Exact := by
-    rw [← exact_iff_shortComplex_exact (S := s)]
-    change Exact e.hom 0
-    exact exact_epi_zero e.hom
+    rw [ShortComplex.exact_iff_epi]
+    simp only
+    · infer_instance
+    · rfl
   replace hs : s.ShortExact := ⟨hs⟩
   have : μ x + μ 0 = μ y := μ.additive s hs
   rwa [map_zero, add_zero] at this
@@ -119,11 +122,19 @@ private noncomputable abbrev sc1 : ShortComplex 𝒞 where
     rw [Category.assoc, image.fac, kernel.condition]
 
 private lemma sc1_exact : sc1 f |>.Exact := by
-  rw [← exact_iff_shortComplex_exact]
-  dsimp
-  have e1 : Exact (kernel.ι f) f := by exact exact_kernel_ι
-  have e2 : Exact (kernel.ι f) (factorThruImage f ≫ image.ι f) := by aesop_cat
-  rwa [exact_comp_mono_iff] at e2
+  simp only [sc1]
+  apply ShortComplex.exact_of_f_is_kernel
+
+  fapply KernelFork.IsLimit.ofι
+  · intro x g h
+    refine kernel.lift _ g ?_
+    rw [← image.fac f, ← Category.assoc, h]
+    simp only [zero_comp]
+  · intro x g h
+    simp only [kernel.lift_ι]
+  · intro x g h g' h'
+    ext
+    simpa
 
 private lemma sc1_shortExact : sc1 f |>.ShortExact := ⟨sc1_exact _⟩
 
@@ -136,11 +147,16 @@ private noncomputable abbrev sc2 : ShortComplex 𝒞 where
   zero := by aesop_cat
 
 private lemma sc2_exact : sc2 f |>.Exact := by
-  rw [← exact_iff_shortComplex_exact]
-  dsimp
-  have e1 : Exact f (cokernel.π f):= Abelian.exact_cokernel f
-  have e2 : Exact (factorThruImage f ≫ image.ι f) (cokernel.π f) := by aesop_cat
-  exact Abelian.exact_epi_comp_iff _ _ _ |>.mp e2
+  apply ShortComplex.exact_of_g_is_cokernel
+  simp only
+  fapply CokernelCofork.IsColimit.ofπ
+  · intro x g h
+    refine cokernel.desc _ g ?_
+    rw [← image.fac f, Category.assoc, h]
+    simp
+  · aesop_cat
+  · intros x g h g' h'
+    aesop_cat
 
 private lemma sc2_shortExact : sc2 f |>.ShortExact := ⟨sc2_exact _⟩
 
@@ -168,11 +184,12 @@ private noncomputable def imageIsoKernel : image s.f ≅ kernel s.g :=
   calc image s.f
     _ ≅ imageSubobject s.f := imageSubobjectIso _ |>.symm
     _ ≅ kernelSubobject s.g :=
-      letI := imageToKernel_isIso_of_image_eq_kernel s.f s.g <|
-        (Abelian.exact_iff_image_eq_kernel s.f s.g).mp <| exact_iff_shortComplex_exact _ |>.mpr hs
+      letI : IsIso (imageToKernel s.f s.g s.zero) := by
+        rwa [← ShortComplex.exact_iff_isIso_imageToKernel]
       asIso (imageToKernel s.f s.g _)
     _ ≅ kernel s.g := kernelSubobjectIso _
 
+include hs in
 lemma apply_shortComplex_of_exact : μ (kernel s.f) - μ (image s.g) = μ s.X₁ - μ s.X₂ := by
   have eq1 : μ (kernel s.f) + μ (image s.f) - (μ (kernel s.g) + μ (image s.g)) = μ s.X₁ - μ s.X₂ :=
     congr_arg₂ (· - ·)
@@ -200,15 +217,18 @@ private noncomputable def im_eq_ker_succ (n : ℕ) (hn : n + 2 ≤ N := by omega
     (image (S.map' n (n + 1))) ≅ kernel (S.map' (n + 1) (n + 2)) :=
   (imageSubobjectIso (S.map' n (n + 1))).symm ≪≫
     @asIso (f := imageToKernel (S.map' n (n + 1)) (S.map' (n + 1) (n + 2)) <|
-        hS.toIsComplex.zero n) _
-      (imageToKernel_isIso_of_image_eq_kernel (S.map' n (n + 1)) (S.map' (n + 1) (n + 2)) <|
-        (Abelian.exact_iff_image_eq_kernel (S.map' n (n + 1)) (S.map' (n + 1) (n + 2))).mp <|
-        (exact_iff_shortComplex_exact (S.sc hS.toIsComplex n)).mpr <| hS.exact _) ≪≫
+        hS.toIsComplex.zero n) _ (by
+        let S' : ShortComplex 𝒞 := S.sc hS.toIsComplex n
+        change IsIso (imageToKernel S'.f S'.g S'.zero)
+        rw [← ShortComplex.exact_iff_isIso_imageToKernel]
+        exact hS.exact _) ≪≫
   kernelSubobjectIso (S.map' (n + 1) (n + 2))
 
+include hS in
 lemma apply_image_eq_apply_ker_succ (n : ℕ) (hn : n + 2 ≤ N) : μ (im_ n) = μ (ker_ (n + 1)) :=
   μ.eq_of_iso (im_eq_ker_succ S hS n hn)
 
+include hS in
 lemma apply_sub_apply_succ (n : ℕ) (hn : n + 3 ≤ N) :
     μ (S.obj' n) - μ (S.obj' (n + 1)) =
     μ (ker_ n) - μ (ker_ (n + 2)) := by
@@ -217,6 +237,7 @@ lemma apply_sub_apply_succ (n : ℕ) (hn : n + 3 ≤ N) :
   rw [apply_image_eq_apply_ker_succ (hS := hS)] at eq0
   exact eq0
 
+include hS in
 lemma apply_eq_apply_image_add_apply_image
     (n : ℕ) (hn1 : 1 ≤ n := by omega) (hn2 : n + 1 ≤ N := by omega) :
     μ (S.obj' n) = μ (image (S.map' (n - 1) n)) + μ (image (S.map' n (n + 1))) := by
@@ -239,40 +260,20 @@ lemma apply_eq_apply_image_add_apply_image
       simp only [← S.map_comp, homOfLE_comp, ← eq1] }
 
   have sc_exact : sc.Exact := by
-    have e1 := hS.exact (n - 1)
-    rw [← exact_iff_shortComplex_exact] at e1 ⊢
-    change Exact (image.ι _) (factorThruImage (S.map' n (n + 1)))
-    have e4 : Exact (image.ι (ComposableArrows.map' S (n - 1) n))
-      (factorThruImage (ComposableArrows.map' S n (n + 1)) ≫
-        image.ι (ComposableArrows.map' S n (n + 1))) := by
-      rw [image.fac]
-      suffices Exact (Abelian.image.ι (S.map' (n - 1) n)) (S.map' n (n + 1)) by
-        have eq0 := Abelian.imageIsoImage_hom_comp_image_ι (S.map' (n - 1) n)
-        rw [← Iso.eq_inv_comp] at eq0
-        rwa [eq0, exact_iso_comp]
-      rw [← Abelian.exact_iff_exact_image_ι]
-      change Exact (S.map' _ _) (S.map' _ _) at e1
-
-      let α1 : S.obj' (n - 1 + 1) ≅ S.obj' n := eqToIso (by congr; omega)
-      replace e1 := exact_comp_hom_inv_comp_iff
-        (f := S.map' (n - 1) (n - 1 + 1)) (g := S.map' (n - 1 + 1) (n - 1 + 2)) (i := α1) |>.mpr e1
-      rwa [show S.map' (n - 1) (n - 1 + 1) ≫ α1.hom = S.map' (n - 1) n from ?_,
-        show α1.inv ≫ S.map' (n - 1 + 1) (n - 1 + 2) =
-          S.map' n (n + 1) ≫ (eqToIso (by congr 2; omega)).hom from _,
-        exact_comp_iso] at e1
-      · rw [show α1.inv = S.map (eqToHom <| by congr 1; omega) from _, ← S.map_comp,
-          show (eqToIso _).hom = S.map (eqToHom <| by congr 1; omega) from _, ← S.map_comp]
-        · rfl
-        · rw [eqToIso.hom, eqToHom_map]
-        · rw [eqToIso.inv, eqToHom_map]
-      · rw [show α1.hom = S.map (eqToHom <| by congr 1; omega) from _, ← S.map_comp]
-        congr 1
-        rw [eqToIso.hom, eqToHom_map]
-    rwa [exact_comp_mono_iff] at e4
+    have e1 := hS.exact' (n - 1) n (n + 1)
+    rw [ShortComplex.exact_iff_image_eq_kernel] at e1 ⊢
+    simp only [ComposableArrows.obj', Int.reduceNeg, id_eq, Int.Nat.cast_ofNat_Int,
+      ComposableArrows.map', homOfLE_leOfHom] at e1 ⊢
+    convert e1 using 1
+    · exact imageSubobject_mono _
+    · generalize_proofs _ _ h
+      simp_rw [← image.fac (S.map <| homOfLE h)]
+      rw [kernelSubobject_comp_mono]
 
   have sc_shortExact : sc.ShortExact := ⟨sc_exact⟩
   exact μ.additive _ sc_shortExact |>.symm
 
+include hS in
 lemma apply_eq_apply_kernel_add_apply_kernel
     (n : ℕ) (hn : n + 2 ≤ N) :
     μ (S.obj' n) = μ (kernel (S.map' n (n + 1))) + μ (kernel (S.map' (n + 1) (n + 2))) := by
@@ -285,10 +286,17 @@ lemma apply_eq_apply_kernel_add_apply_kernel
     zero := zero_of_comp_mono (kernel.ι _) <| by simp }
 
   have sc_exact : sc.Exact := by
-    rw [← exact_iff_shortComplex_exact]
-    change Exact (kernel.ι _) (kernel.lift _ _ _)
-    rw [← exact_comp_mono_iff (h := kernel.ι _), kernel.lift_ι]
-    exact exact_kernel_ι
+    apply ShortComplex.exact_of_f_is_kernel
+    simp only [ComposableArrows.obj', Int.reduceNeg, id_eq, Nat.cast_ofNat, Int.Nat.cast_ofNat_Int,
+      ComposableArrows.map', homOfLE_leOfHom]
+    fapply KernelFork.IsLimit.ofι
+    · intro x g h
+      exact kernel.lift _ g <| by simpa using h =≫ kernel.ι _
+    · intro x g h
+      simp
+    · intro x g h g' h'
+      ext
+      simpa
 
   have sc_shortExact : sc.ShortExact := by
     refine .mk' sc_exact equalizer.ι_mono ?_
@@ -312,6 +320,7 @@ variable (S : ComposableArrows 𝒞 5) (hS : S.Exact)
 
 local notation "μ_" n => μ (S.obj' n)
 
+include hS in
 lemma alternating_apply_aux_of_length6 :
     (μ_ 0) - (μ_ 1) + (μ_ 2) - (μ_ 3) + (μ_ 4) - (μ_ 5) =
     (μ (kernel (S.map' 0 1)) - μ (kernel (S.map' 4 5))) + (μ_ 4) - (μ_ 5) := by
@@ -321,6 +330,7 @@ lemma alternating_apply_aux_of_length6 :
   rw [apply_sub_apply_succ (hS := hS) (n := 0), apply_sub_apply_succ (hS := hS) (n := 2)]
   abel
 
+include hS in
 lemma alternating_sum_apply_of_length6 :
     (μ_ 0) - (μ_ 1) + (μ_ 2) - (μ_ 3) + (μ_ 4) - (μ_ 5) =
     μ (kernel (S.map' 0 1)) - μ (cokernel (S.map' 4 5)) := by
@@ -331,6 +341,7 @@ lemma alternating_sum_apply_of_length6 :
   simp only [Int.ofNat_eq_coe, Int.Nat.cast_ofNat_Int, id_eq, Nat.cast_ofNat, Fin.zero_eta,
     Fin.mk_one, ComposableArrows.map', sub_add_sub_cancel]
 
+include hS in
 lemma alternating_sum_apply_eq_zero_of_zero_zero_of_length6_aux
     (left_zero : IsZero S.left) (right_zero : IsZero S.right) :
     (μ_ 0) - (μ_ 1) + (μ_ 2) - (μ_ 3) + (μ_ 4) - (μ_ 5) = 0 := by
@@ -344,6 +355,7 @@ lemma alternating_sum_apply_eq_zero_of_zero_zero_of_length6_aux
     rw [show ComposableArrows.map' S 0 1 = 0 from IsZero.eq_zero_of_src left_zero _]
     exact kernelZeroIsoSource ≪≫ left_zero.isoZero
 
+include hS in
 lemma alternating_sum_apply_eq_zero_of_zero_zero_of_length6
     (left_zero : IsZero S.left) (right_zero : IsZero S.right) :
     - (μ_ 1) + (μ_ 2) - (μ_ 3) + (μ_ 4) = 0 := by
@@ -354,7 +366,7 @@ lemma alternating_sum_apply_eq_zero_of_zero_zero_of_length6
   rw [show (μ_ 5) = 0 from (μ.eq_of_iso <| IsZero.iso right_zero <| isZero_zero _).trans μ.map_zero]
   rw [zero_sub, sub_zero]
 
-
+include hS in
 lemma alternating_sum_apply_eq_zero_of_zero_zero_of_length6'
     (left_zero : IsZero S.left) (right_zero : IsZero S.right) :
     (μ_ 1) - (μ_ 2) + (μ_ 3) - (μ_ 4) = 0 := by
@@ -423,7 +435,7 @@ instance addCommMonoid : AddCommMonoid (𝒞 ⟹+ T) where
 
 instance : AddCommGroup (𝒞 ⟹+ T) where
   __ := addCommMonoid
-  add_left_neg _ := ext fun _ ↦ by simp
+  neg_add_cancel _ := ext fun _ ↦ by simp
   zsmul := zsmulRec
 
 end AddCommGroup

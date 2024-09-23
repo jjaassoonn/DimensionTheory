@@ -12,6 +12,7 @@ import Mathlib.RingTheory.FiniteType
 import Mathlib.RingTheory.Adjoin.Basic
 import Mathlib.RingTheory.Finiteness
 import Mathlib.Algebra.Module.GradedModule
+import Mathlib.Algebra.Group.Subgroup.Finite
 
 /-!
 # The properties of a graded Noetherian ring.
@@ -76,14 +77,17 @@ instance (I : Ideal A) : Membership A (HomogeneousGeneratingSetOf 𝒜 I) where
 variable {𝒜}
 variable {I : Ideal A} (S : HomogeneousGeneratingSetOf 𝒜 I)
 
+omit noetherian_ring [GradedRing 𝒜] in
 lemma homogeneous {a : A} (h : a ∈ S) : Homogeneous 𝒜 a := S.homogeneous' h
 
+omit noetherian_ring [GradedRing 𝒜] in
 lemma ne_zero {a : A} (h : a ∈ S) : a ≠ 0 := S.ne_zero' h
 
 /-- Since each elements is homogeneous, it has a degree-/
 noncomputable def deg {a : A} (h : a ∈ S) : ℕ :=
   S.homogeneous h |>.choose
 
+omit noetherian_ring [GradedRing 𝒜] in
 lemma mem_deg {a : A} (h : a ∈ S) : a ∈ 𝒜 (S.deg h) :=
   S.homogeneous h |>.choose_spec
 
@@ -101,6 +105,7 @@ noncomputable def Irrelevant :
 
 variable (S : HomogeneousGeneratingSetOf 𝒜 (HomogeneousIdeal.irrelevant 𝒜).toIdeal)
 
+omit noetherian_ring in
 lemma irrelevant.deg_pos {a : A} (h : a ∈ S) : 0 < deg _ h := by
   by_contra! rid
   simp only [nonpos_iff_eq_zero] at rid
@@ -111,6 +116,7 @@ lemma irrelevant.deg_pos {a : A} (h : a ∈ S) : 0 < deg _ h := by
     GradedRing.proj_apply, DirectSum.decompose_of_mem_same (hx := h_deg1)] at m
   exact (ne_zero _ h) m
 
+omit noetherian_ring in
 lemma irrelevant.adjoin_eq_top :
     Algebra.adjoin (𝒜 0) S.toFinset = (⊤ : Subalgebra (𝒜 0) A) := by
     classical
@@ -236,6 +242,7 @@ then `f` represents the monomial `∏ᵢ aᵢ ^ nᵢ`
 def evalMonomial (f : A →₀ ℕ) : A :=
   ∏ a in f.support, a ^ (f a)
 
+omit noetherian_ring in
 @[simp] lemma evalMonomial_zero : evalMonomial (A := A) 0 = 1 := by
   simp [evalMonomial]
 
@@ -248,9 +255,11 @@ def degreeMonomial
     (deg : ⦃a : A⦄ → (ha : a ∈ f.support) → ℕ) : ℕ :=
   ∑ i in f.support.attach, deg i.2 * f i
 
+omit [CommRing A] noetherian_ring in
 lemma degreeMonomial_zero : degreeMonomial (A := A) 0 (fun a h ↦ by simp at h) = 0 := by
   simp [degreeMonomial]
 
+omit noetherian_ring in
 lemma evalMonomial_mem_aux {ι : Type*} (s : Finset ι)
     (deg : s → ℕ)
     (pow : s → ℕ)
@@ -273,6 +282,7 @@ lemma evalMonomial_mem_aux {ι : Type*} (s : Finset ι)
       rintro ⟨i, hi⟩
       exact h_deg ⟨i, by aesop⟩
 
+omit noetherian_ring in
 lemma evalMonomial_mem
     (f : A →₀ ℕ)
     (deg : ⦃a : A⦄ → (ha : a ∈ f.support) → ℕ)
@@ -286,6 +296,7 @@ lemma evalMonomial_mem
 
 variable (S : HomogeneousGeneratingSetOf 𝒜 (HomogeneousIdeal.irrelevant 𝒜).toIdeal)
 
+omit noetherian_ring in
 lemma evalMonomial_homogeneous
     (f : A →₀ ℕ) (hf : f.support ⊆ S.toFinset) :
     Homogeneous 𝒜 (evalMonomial f) := by
@@ -294,6 +305,7 @@ lemma evalMonomial_homogeneous
       (deg := fun _ h ↦ S.deg (hf h))
       (h_deg := fun _ h ↦ S.mem_deg (hf h))⟩
 
+omit noetherian_ring in
 lemma top_eq_span_monomial :
     (⊤ : Submodule (𝒜 0) A) =
     Submodule.span (𝒜 0)
@@ -386,6 +398,7 @@ lemma Finset.single_le_sum' {ι : Type*}
       rw [le_add_iff_nonneg_left]
       norm_num
 
+omit noetherian_ring in
 lemma monomial_finite_of_bounded_degree (k : ℕ) :
     {p | ∃ (hp1 : p.support ⊆ S.toFinset),
       (degreeMonomial p fun a ha ↦ S.deg (hp1 ha)) ≤ k}.Finite := by
@@ -472,14 +485,17 @@ instance (p : Submodule A M) : Membership M (HomogeneousGeneratingSetOf ℳ p) w
 variable {ℳ}
 variable {p : Submodule A M} (S : HomogeneousGeneratingSetOf ℳ p)
 
+omit finite_module noetherian_ring [DirectSum.Decomposition ℳ] in
 lemma homogeneous {a : M} (h : a ∈ S) : Homogeneous ℳ a := S.homogeneous' h
 
+omit finite_module noetherian_ring [DirectSum.Decomposition ℳ] in
 lemma ne_zero {a : M} (h : a ∈ S) : a ≠ 0 := S.ne_zero' h
 
 /-- Since each element is homogeneous, it has a degree. -/
 noncomputable def deg {a : M} (h : a ∈ S) : ℕ :=
   S.homogeneous h |>.choose
 
+omit finite_module noetherian_ring [DirectSum.Decomposition ℳ] in
 lemma mem_deg {a : M} (h : a ∈ S) : a ∈ ℳ (S.deg h) :=
   S.homogeneous h |>.choose_spec
 
@@ -502,6 +518,7 @@ open GradedRing.finite_algebra_over_degree_zero_subring
 variable (T : GradedRing.HomogeneousGeneratingSetOf 𝒜 (HomogeneousIdeal.irrelevant 𝒜).toIdeal)
 variable (TM : HomogeneousGeneratingSetOf ℳ (⊤ : Submodule A M))
 
+omit finite_module noetherian_ring [DirectSum.Decomposition ℳ] [GradedSMul 𝒜 ℳ] in
 variable {𝒜 ℳ} in
 lemma generatingSet_is_finite (k : ℕ) :
     {x : ℳ k |
@@ -534,6 +551,7 @@ lemma generatingSet_is_finite (k : ℕ) :
       rw [hx, hy]
     exact Set.toFinite _
 
+omit finite_module noetherian_ring in
 variable {𝒜 ℳ} in
 lemma kth_degree_eq_span (k : ℕ) :
     (⊤ : Submodule (𝒜 0) (ℳ k)) =

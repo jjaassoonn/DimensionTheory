@@ -42,7 +42,7 @@ lemma le_getLast_of_chain'_le
     exact l_chain
   rw [List.mem_iff_get] at hy
   obtain ⟨m, hm, rfl⟩ := hy
-  rw [List.getLast_eq_get]
+  rw [List.getLast_eq_getElem]
   refine s'.rel_get_of_le (Nat.lt_succ_iff.mp m.2 : (⟨_, _⟩ : Fin _) ≤ ⟨_, _⟩)
 
 lemma dedup_head?_of_chain'_wcovby [DecidableEq α]
@@ -74,6 +74,7 @@ lemma dedup_head!_of_chain'_wcovby [DecidableEq α] [Inhabited α]
     (l : List α) (l_chain : l.Chain' (. ⩿ .)) : l.dedup.head! = l.head! :=
   by rwa [List.head!_eq_head?, List.head!_eq_head?, List.dedup_head?_of_chain'_wcovby]
 
+omit [PartialOrder α] in
 lemma dedup_getLast_eq_getLast_of_chain'_wcovby [DecidableEq α] [PartialOrder α]
     (l : List α) (l_chain : l.Chain' (. ⩿ .)) (l_ne_nil : l ≠ []) :
     l.dedup.getLast (List.dedup_ne_nil_of_ne_nil _ l_ne_nil) = l.getLast l_ne_nil := by

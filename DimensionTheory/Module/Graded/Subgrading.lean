@@ -55,6 +55,8 @@ protected def grading.decompose (a : A') : ⨁ i, A'.grading i :=
 ∑ i in (decompose 𝒜 a).support,
   .of _ (i : ιA) ⟨⟨decompose 𝒜 a i, A'.2 i a.2⟩, SetLike.coe_mem _⟩
 
+set_option linter.unusedSectionVars false
+
 lemma grading.decompose_zero : grading.decompose A' 0 = 0 := by
   delta grading.decompose
   convert Finset.sum_empty

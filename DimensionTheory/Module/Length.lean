@@ -5,10 +5,10 @@ Authors: Jujian Zhang
 -/
 
 import DimensionTheory.Module.JordanHolder
-import DimensionTheory.Order.KrullDimension
 import DimensionTheory.missing_lemmas.RelSeries
 import DimensionTheory.missing_lemmas.PUnit
 
+import Mathlib.Order.KrullDimension
 import Mathlib.RingTheory.Noetherian
 import Mathlib.RingTheory.Artinian
 import Mathlib.LinearAlgebra.Basis.VectorSpace
@@ -345,7 +345,7 @@ variable (R M)
 
 instance isNoetherian_of_finiteLength [h : FiniteLengthModule R M] :
     IsNoetherian R M := by
-  rw [isNoetherian_iff_wellFounded]
+  rw [isNoetherian_iff]
   refine RelEmbedding.wellFounded_iff_no_descending_seq.2 ⟨λ a ↦ ?_⟩
   let p : LTSeries (Submodule R M) := LTSeries.mk (h.compositionSeries.length + 1)
     (a ·) fun i j h ↦ by rw [← gt_iff_lt]; erw [a.2]; exact h
@@ -354,8 +354,8 @@ instance isNoetherian_of_finiteLength [h : FiniteLengthModule R M] :
   norm_num at this
 
 instance isArtinian_of_finiteLength [h : FiniteLengthModule R M] :
-    IsArtinian R M where
-  wellFounded_submodule_lt' := RelEmbedding.wellFounded_iff_no_descending_seq.2 ⟨λ a ↦ by
+    IsArtinian R M := isArtinian_iff _ _ |>.2 <|
+  RelEmbedding.wellFounded_iff_no_descending_seq.2 ⟨λ a ↦ by
     let p : LTSeries (Submodule R M) := LTSeries.mk (h.compositionSeries.length + 1)
       (λ x ↦ a (h.compositionSeries.length + 1 - x))
       (λ i j (h : i.1 < j.1) ↦ by
@@ -375,6 +375,7 @@ let wf : WellFounded ((. < .) : Submodule R M → Submodule R M → Prop) :=
   (inferInstance : IsArtinian R M).1
 wf.succ N
 
+omit [IsArtinian R M] in
 lemma _root_.Submodule.exists_of_ne_last (ne_top : N ≠ ⊤) : ∃ (x : Submodule R M), N < x := by
   obtain ⟨m, _, nm⟩ := SetLike.exists_of_lt (Ne.lt_top ne_top : N < ⊤)
   refine ⟨N ⊔ R ∙ m, SetLike.lt_iff_le_and_exists.mpr ⟨le_sup_left, ⟨m, ?_, nm⟩⟩⟩
@@ -813,7 +814,7 @@ lemma RelSeries.cqf_length_eq_sum (i : Fin (x.length + 1)) :
 lemma RelSeries.cqf_finiteLength_iff_each_qf_finiteLength (i : Fin (x.length + 1)) :
     IsFiniteLengthModule R (x.cqf i) ↔
     ∀ (j : Fin i.1), IsFiniteLengthModule R (x.qf ⟨j.1, by linarith [j.2, i.2]⟩) := by
-  simp_rw [IsFiniteLengthModule_iff_moduleLength_finite', cqf_length_eq_sum, WithTop.sum_lt_top_iff]
+  simp_rw [IsFiniteLengthModule_iff_moduleLength_finite', cqf_length_eq_sum, WithTop.sum_lt_top]
   simp
 
 end lt_series
@@ -897,7 +898,7 @@ lemma moduleLength_le_restrictScalars :
   suffices (moduleLength S M : WithBot (WithTop ℕ)) ≤
     (moduleLength R (RestrictScalars R S M) : WithBot (WithTop ℕ)) by simpa using this
   rw [moduleLength_eq_krullDim_Submodules, moduleLength_eq_krullDim_Submodules]
-  refine krullDim.le_of_strictMono (fun p ↦ { __ := p, smul_mem' := ?_ }) fun _ _ h ↦ h
+  refine krullDim_le_of_strictMono (fun p ↦ { __ := p, smul_mem' := ?_ }) fun _ _ h ↦ h
   intro r m hm
   exact p.smul_mem (algebraMap R S r) hm
 
@@ -908,7 +909,7 @@ lemma moduleLength_eq_restrictScalars_of_surjective
     suffices (moduleLength R (RestrictScalars R S M) : WithBot (WithTop ℕ)) ≤
       (moduleLength S M : WithBot (WithTop ℕ)) by simpa using this
     rw [moduleLength_eq_krullDim_Submodules, moduleLength_eq_krullDim_Submodules]
-    refine krullDim.le_of_strictMono (fun p ↦ { __ := p, smul_mem' := ?_ }) fun _ _ h ↦ h
+    refine krullDim_le_of_strictMono (fun p ↦ { __ := p, smul_mem' := ?_ }) fun _ _ h ↦ h
     intro s m hm
     obtain ⟨r, rfl⟩ := surj.1 s
     exact p.smul_mem r hm

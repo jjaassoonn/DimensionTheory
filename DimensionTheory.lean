@@ -20,7 +20,6 @@ import DimensionTheory.PolynomialLikeFunction
 import DimensionTheory.RingTheory.ArtinianAndNoetherian
 import DimensionTheory.RingTheory.HilbertPolynomial
 import DimensionTheory.RingTheory.KrullDimension
-import DimensionTheory.Topology.KrullDimension
 import DimensionTheory.missing_lemmas.AboutSheafConditions
 import DimensionTheory.missing_lemmas.Artinian
 import DimensionTheory.missing_lemmas.FGModuleCat

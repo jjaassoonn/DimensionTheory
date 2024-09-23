@@ -15,12 +15,13 @@ open BigOperators
 
 universe u v
 
-variable {ι : Type u} [DecidableEq ι] [Fintype ι] (f : ι → Type v) [∀ i, Semiring (f i)]
+variable {ι : Type u} [Fintype ι] (f : ι → Type v) [∀ i, Semiring (f i)]
 
 theorem Ideal.IsPrime.prod_mem_iff_exists_mem'
     {R : Type*} [CommRing R] {I : Ideal R} (hI : I.IsPrime)
-    {ι : Type*} [DecidableEq ι] (f : ι → R) (s : Finset ι) :
+    {ι : Type*} (f : ι → R) (s : Finset ι) :
     (∏ i ∈ s, f i) ∈ I ↔ ∃ i ∈ s, f i ∈ I := by
+  classical
   induction s using Finset.induction_on with
   | empty => simpa [Ideal.ne_top_iff_one] using hI.ne_top
   | @insert i s hi ih =>
@@ -41,6 +42,7 @@ def Pi (I : (Π i, Ideal (f i))) : Ideal (Π i, f i) where
   zero_mem' i := (I i).zero_mem
   smul_mem' r _ h i := (I i).smul_mem (r i) (h i)
 
+omit [Fintype ι] in
 @[simp] lemma mem_Pi (I : (Π i, Ideal (f i))) (x : Π i, f i) : x ∈ Pi I ↔ ∀ i, x i ∈ I i :=
   Iff.rfl
 
@@ -70,9 +72,11 @@ Given an ideal of the product of a family of rings, we can obtain a family of id
 def unPi (I : Ideal (Π i, f i)) (i : ι) : Ideal (f i) :=
   map (Pi.evalRingHom f i) I
 
+omit [Fintype ι] in
 lemma mem_unPi (I : Ideal (Π i, f i)) {i : ι} (x : f i) :
-    x ∈ unPi I i ↔ ∃ y ∈ I, y i = x :=
-  mem_map_iff_of_surjective (hf := fun z ↦ ⟨Pi.single i z, by simp⟩)
+    x ∈ unPi I i ↔ ∃ y ∈ I, y i = x := by
+  classical
+  exact mem_map_iff_of_surjective (hf := fun z ↦ ⟨Pi.single i z, by simp⟩)
 
 lemma mem_prod_of_ideals (I : Ideal (Π i, f i)) (x : Π i, f i) :
     x ∈ I ↔ ∀ i, x i ∈ unPi I i :=
@@ -86,6 +90,7 @@ def PiEquiv : (Π i, Ideal (f i)) ≃ Ideal (Π i, f i) where
   toFun := Pi
   invFun := unPi
   left_inv I := (Pi_eq (Pi I)).symm ▸ funext fun i ↦ ext fun r ↦ mem_unPi _ _ |>.trans <| by
+    classical
     simp only [mem_Pi]
     fconstructor
     · rintro ⟨x, hx1, rfl⟩
@@ -98,6 +103,7 @@ def PiEquiv : (Π i, Ideal (f i)) ≃ Ideal (Π i, f i) where
         (fun z ↦ ⟨Pi.single j z, by simp⟩) |>.mpr ⟨Pi.single i r, fun k ↦ ?_, rfl⟩, by simp⟩
       by_cases eq1 : i = k <;> aesop
   right_inv I := ext fun x ↦ by
+    classical
     simp only [mem_Pi, mem_unPi]
     rw [Pi_eq I]
     fconstructor
@@ -111,7 +117,6 @@ def PiEquiv : (Π i, Ideal (f i)) ≃ Ideal (Π i, f i) where
       obtain ⟨y, hy1, hy2⟩ := H
       exact ⟨y, Pi_eq I ▸ hy1, hy2⟩
 
-open BigOperators in
 lemma Pi_fg_of_unPi_fg (I : Ideal (Π i, f i)) (H : ∀ i, (unPi I i).FG) : I.FG := by
   choose s hs using H
   classical

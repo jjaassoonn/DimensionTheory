@@ -12,8 +12,6 @@ import Mathlib.RingTheory.GradedAlgebra.Basic
 import Mathlib.RingTheory.Finiteness
 import Mathlib.LinearAlgebra.Quotient
 
-#align_import ring_theory.graded_algebra.homogeneous_ideal from "leanprover-community/mathlib"@"4e861f25ba5ceef42ba0712d8ffeb32f38ad6441"
-
 /-!
 # Homogeneous submodules of a graded module
 
@@ -85,7 +83,6 @@ structure HomogeneousSubring extends Subring AA :=
   of `m` are in `I`. -/
 def Submodule.IsHomogeneous : Prop :=
   ∀ (i : ιM) ⦃m : M⦄, m ∈ p → (DirectSum.decompose ℳ m i : M) ∈ p
-#align ideal.is_homogeneous Submodule.IsHomogeneous
 
 /-- An `I : Ideal A` is homogeneous if for every `r ∈ I`, all homogeneous components
   of `r` are in `I`. -/
@@ -96,8 +93,6 @@ variable (A) in
 /-- For any `Semiring A`, we collect the homogeneous submodule of `A`-modules into a type. -/
 structure HomogeneousSubmodule extends Submodule A M where
   is_homogeneous' : Submodule.IsHomogeneous ℳ toSubmodule
-#align homogeneous_ideal HomogeneousSubmodule
-
 
 /-- For any `Semiring A`, we collect the homogeneous ideals of `A` into a type. -/
 def HomogeneousIdeal := HomogeneousSubmodule A 𝒜
@@ -108,15 +103,15 @@ variable {𝒜 ℳ 𝒜𝒜}
 /-- Converting a homogeneous ideal to an ideal. -/
 def HomogeneousIdeal.toIdeal (I : HomogeneousIdeal 𝒜) : Ideal A :=
   I.toSubmodule
-#align homogeneous_ideal.to_ideal HomogeneousIdeal.toIdeal
 
+set_option linter.unusedSectionVars false in
 theorem HomogeneousIdeal.isHomogeneous (I : HomogeneousIdeal 𝒜) : I.toIdeal.IsHomogeneous 𝒜 := I.2
-#align homogeneous_ideal.is_homogeneous HomogeneousIdeal.isHomogeneous
 
 theorem HomogeneousSubmodule.isHomogeneous (I : HomogeneousSubmodule A ℳ) :
     I.toSubmodule.IsHomogeneous ℳ :=
   I.is_homogeneous'
 
+set_option linter.unusedSectionVars false in
 theorem HomogeneousSubring.isHomogeneous (A' : HomogeneousSubring 𝒜𝒜) :
     A'.toSubring.IsHomogeneous 𝒜𝒜 := A'.is_homogeneous'
 
@@ -125,11 +120,12 @@ theorem HomogeneousSubmodule.toSubmodule_injective :
       (HomogeneousSubmodule.toSubmodule : HomogeneousSubmodule A ℳ→ Submodule A M) :=
   fun ⟨x, hx⟩ ⟨y, hy⟩ => fun (h : x = y) => by simp [h]
 
+set_option linter.unusedSectionVars false in
 theorem HomogeneousIdeal.toIdeal_injective :
     Function.Injective (HomogeneousIdeal.toIdeal : HomogeneousIdeal 𝒜 → Ideal A) :=
   HomogeneousSubmodule.toSubmodule_injective
-#align homogeneous_ideal.to_ideal_injective HomogeneousIdeal.toIdeal_injective
 
+set_option linter.unusedSectionVars false in
 theorem HomogeneousSubring.toSubring_injective :
     Function.Injective
       (HomogeneousSubring.toSubring : HomogeneousSubring 𝒜𝒜 → Subring AA) :=
@@ -140,7 +136,6 @@ instance HomogeneousSubmodule.setLike : SetLike (HomogeneousSubmodule A ℳ) M w
   coe_injective' _ _ h := HomogeneousSubmodule.toSubmodule_injective <| SetLike.coe_injective h
 
 instance HomogeneousIdeal.setLike : SetLike (HomogeneousIdeal 𝒜) A := HomogeneousSubmodule.setLike
-#align homogeneous_ideal.set_like HomogeneousIdeal.setLike
 
 instance HomogeneousSubring.setLike : SetLike (HomogeneousSubring 𝒜𝒜) AA where
   coe x := x.toSubring
@@ -158,12 +153,13 @@ theorem HomogeneousSubmodule.ext
     {I J : HomogeneousSubmodule A ℳ} (h : I.toSubmodule = J.toSubmodule) : I = J :=
   HomogeneousSubmodule.toSubmodule_injective h
 
+set_option linter.unusedSectionVars false in
 @[ext]
 theorem HomogeneousIdeal.ext
     {I J : HomogeneousIdeal 𝒜} (h : I.toIdeal = J.toIdeal) : I = J :=
   HomogeneousSubmodule.ext h
-#align homogeneous_ideal.ext HomogeneousIdeal.ext
 
+set_option linter.unusedSectionVars false in
 @[ext]
 theorem HomogeneousSubring.ext {x y : HomogeneousSubring 𝒜𝒜} (h : x.toSubring = y.toSubring) :
     x = y :=
@@ -174,12 +170,13 @@ theorem HomogeneousSubmodule.mem_iff {I : HomogeneousSubmodule A ℳ} {x : M} :
     x ∈ I.toSubmodule ↔ x ∈ I :=
   Iff.rfl
 
+set_option linter.unusedSectionVars false in
 @[simp]
 theorem HomogeneousIdeal.mem_iff {I : HomogeneousIdeal 𝒜} {x : A} :
     x ∈ I.toIdeal ↔ x ∈ I :=
   Iff.rfl
-#align homogeneous_ideal.mem_iff HomogeneousSubmodule.mem_iff
 
+set_option linter.unusedSectionVars false in
 @[simp]
 theorem HomogeneousSubring.mem_iff {A' : HomogeneousSubring 𝒜𝒜} (x : AA) :
     x ∈ A'.toSubring ↔ x ∈ A' :=
@@ -209,24 +206,27 @@ def Subring.homogeneousCore' (R : Subring AA) : Subring AA :=
 is the largest homogeneous ideal of `A` contained in `I`, as an ideal. -/
 def Ideal.homogeneousCore' (I : Ideal A) : Ideal A :=
   Submodule.homogeneousCore' 𝒜 I
-#align ideal.homogeneous_core' Ideal.homogeneousCore'
 
+set_option linter.unusedSectionVars false in
 theorem Submodule.homogeneousCore'_mono : Monotone (Submodule.homogeneousCore' (A := A) ℳ) :=
   fun _ _ I_le_J => Submodule.span_mono <| Set.image_subset _ fun _ => @I_le_J _
 
-theorem Ideal.homogeneousCore'_mono : Monotone (Ideal.homogeneousCore' 𝒜) :=
+set_option linter.unusedSectionVars false in
+theorem Ideal.homogeneousCore'_mono [AddSubmonoidClass σA A] [Decomposition 𝒜] :
+    Monotone (Ideal.homogeneousCore' 𝒜) :=
   Submodule.homogeneousCore'_mono 𝒜
-#align ideal.homogeneous_core'_mono Ideal.homogeneousCore'_mono
 
 theorem Subring.homogeneousCore'_mono : Monotone (Subring.homogeneousCore' 𝒜𝒜) :=
   fun _ _ I_le_J => Subring.closure_mono <| Set.image_subset _ fun _ => @I_le_J _
 
+set_option linter.unusedSectionVars false in
 theorem Submodule.homogeneousCore'_le : p.homogeneousCore' ℳ ≤ p :=
   Submodule.span_le.2 <| image_preimage_subset _ _
 
-theorem Ideal.homogeneousCore'_le : I.homogeneousCore' 𝒜 ≤ I :=
+set_option linter.unusedSectionVars false in
+theorem Ideal.homogeneousCore'_le [AddSubmonoidClass σA A] [Decomposition 𝒜] :
+    I.homogeneousCore' 𝒜 ≤ I :=
   Submodule.homogeneousCore'_le 𝒜 I
-#align ideal.homogeneous_core'_le Submodule.homogeneousCore'_le
 
 theorem Subring.homogeneousCore'_le : R.homogeneousCore' 𝒜𝒜 ≤ R :=
   Subring.closure_le.2 <| image_preimage_subset _ _
@@ -247,10 +247,10 @@ theorem Submodule.isHomogeneous_iff_forall_subset :
     p.IsHomogeneous ℳ ↔ ∀ i, (p : Set M) ⊆ GradedModule.proj ℳ i ⁻¹' (p : Set M) :=
   Iff.rfl
 
+set_option linter.unusedSectionVars false in
 theorem Ideal.isHomogeneous_iff_forall_subset :
     I.IsHomogeneous 𝒜 ↔ ∀ i, (I : Set A) ⊆ GradedRing.proj 𝒜 i ⁻¹' (I : Set A) :=
   Iff.rfl
-#align ideal.is_homogeneous_iff_forall_subset Submodule.isHomogeneous_iff_forall_subset
 
 theorem Subring.isHomogeneous_iff_forall_subset :
     R.IsHomogeneous 𝒜𝒜 ↔ ∀ i, (R : Set AA) ⊆ GradedRing.proj 𝒜𝒜 i ⁻¹' (R : Set AA) :=
@@ -260,15 +260,17 @@ theorem Submodule.isHomogeneous_iff_subset_iInter :
     p.IsHomogeneous ℳ ↔ (p : Set M) ⊆ ⋂ i, GradedModule.proj ℳ i ⁻¹' ↑p :=
   subset_iInter_iff.symm
 
+set_option linter.unusedSectionVars false in
 theorem Ideal.isHomogeneous_iff_subset_iInter :
     I.IsHomogeneous 𝒜 ↔ (I : Set A) ⊆ ⋂ i, GradedRing.proj 𝒜 i ⁻¹' ↑I :=
   subset_iInter_iff.symm
-#align ideal.is_homogeneous_iff_subset_Inter Submodule.isHomogeneous_iff_subset_iInter
 
 theorem Subring.isHomogeneous_iff_subset_iInter :
     R.IsHomogeneous 𝒜𝒜 ↔ (R : Set AA) ⊆ ⋂ i, GradedRing.proj 𝒜𝒜 i ⁻¹' ↑R :=
   subset_iInter_iff.symm
 
+set_option linter.unusedSectionVars false in
+include 𝒜 in
 theorem Submodule.smul_homogeneous_element_mem_of_mem {p : Submodule A M} (r : A) (x : M)
     (hx₁ : Homogeneous ℳ x) (hx₂ : x ∈ p) (j : ιM) : GradedModule.proj ℳ j (r • x) ∈ p := by
   classical
@@ -283,11 +285,13 @@ theorem Submodule.smul_homogeneous_element_mem_of_mem {p : Submodule A M} (r : A
   · exact Submodule.smul_mem _ _ hx₂
   · exact p.zero_mem
 
+set_option linter.unusedSectionVars false in
 theorem Ideal.mul_homogeneous_element_mem_of_mem {I : Ideal A} (r x : A)
     (hx₁ : Homogeneous 𝒜 x) (hx₂ : x ∈ I) (j : ιA) : GradedRing.proj 𝒜 j (r * x) ∈ I :=
   Submodule.smul_homogeneous_element_mem_of_mem 𝒜 𝒜 r x hx₁ hx₂ j
-#align ideal.mul_homogeneous_element_mem_of_mem Ideal.mul_homogeneous_element_mem_of_mem
 
+set_option linter.unusedSectionVars false in
+include 𝒜 in
 theorem Submodule.homogeneous_span (s : Set M) (h : ∀ x ∈ s, Homogeneous ℳ x) :
     (Submodule.span A s).IsHomogeneous ℳ := by
   rintro i r hr
@@ -300,10 +304,10 @@ theorem Submodule.homogeneous_span (s : Set M) (h : ∀ x ∈ s, Homogeneous ℳ
   · exact h _ (hc hz1)
   · exact Submodule.subset_span (hc hz1)
 
+set_option linter.unusedSectionVars false in
 theorem Ideal.homogeneous_span (s : Set A) (h : ∀ x ∈ s, Homogeneous 𝒜 x) :
     (Ideal.span s).IsHomogeneous 𝒜 :=
   Submodule.homogeneous_span 𝒜 𝒜 s h
-#align ideal.is_homogeneous_span Ideal.homogeneous_span
 
 theorem Subring.homogeneous_closure (s : Set AA) (h : ∀ x ∈ s, Homogeneous 𝒜𝒜 x) :
     (Subring.closure s).IsHomogeneous 𝒜𝒜 := by
@@ -367,35 +371,39 @@ def Submodule.homogeneousCore : HomogeneousSubmodule A ℳ :=
 /-- For any `I : Ideal A`, not necessarily homogeneous, `I.homogeneousCore' 𝒜`
 is the largest homogeneous ideal of `A` contained in `I`. -/
 def Ideal.homogeneousCore : HomogeneousIdeal 𝒜 := Submodule.homogeneousCore 𝒜 𝒜 I
-#align ideal.homogeneous_core Ideal.homogeneousCore
 
+set_option linter.unusedSectionVars false in
 theorem Submodule.homogeneousCore_mono : Monotone (Submodule.homogeneousCore 𝒜 ℳ) :=
   Submodule.homogeneousCore'_mono ℳ
 
+set_option linter.unusedSectionVars false in
 theorem Ideal.homogeneousCore_mono : Monotone (Ideal.homogeneousCore 𝒜) :=
   Ideal.homogeneousCore'_mono 𝒜
-#align ideal.homogeneous_core_mono Ideal.homogeneousCore_mono
 
+set_option linter.unusedSectionVars false in
 theorem Submodule.toSubmodule_homogeneousCore_le : (p.homogeneousCore 𝒜 ℳ).toSubmodule ≤ p :=
   Submodule.homogeneousCore'_le ℳ p
 
+set_option linter.unusedSectionVars false in
 theorem Ideal.toIdeal_homogeneousCore_le : (I.homogeneousCore 𝒜).toIdeal ≤ I :=
   Ideal.homogeneousCore'_le 𝒜 I
-#align ideal.to_ideal_homogeneous_core_le Ideal.toIdeal_homogeneousCore_le
 
 variable {ℳ I}
 
+set_option linter.unusedSectionVars false in
 theorem Submodule.mem_homogeneousCore_of_homogeneous_of_mem {x : M} (h : Homogeneous ℳ x)
     (hmem : x ∈ p) : x ∈ p.homogeneousCore 𝒜 ℳ :=
   Submodule.subset_span ⟨⟨x, h⟩, hmem, rfl⟩
 
 variable {𝒜}
+
+set_option linter.unusedSectionVars false in
 theorem Ideal.mem_homogeneousCore_of_homogeneous_of_mem
     {x : A} (h : Homogeneous 𝒜 x) (hmem : x ∈ I) :
     x ∈ I.homogeneousCore 𝒜 :=
   Submodule.mem_homogeneousCore_of_homogeneous_of_mem 𝒜 I h hmem
-#align ideal.mem_homogeneous_core_of_is_homogeneous_of_mem Ideal.mem_homogeneousCore_of_homogeneous_of_mem
 
+set_option linter.unusedSectionVars false in
 theorem Submodule.IsHomogeneous.toSubmodule_homogeneousCore_eq_self (h : p.IsHomogeneous ℳ) :
     (p.homogeneousCore 𝒜 ℳ).toSubmodule = p := by
   apply le_antisymm (p.homogeneousCore'_le ℳ) _
@@ -404,42 +412,48 @@ theorem Submodule.IsHomogeneous.toSubmodule_homogeneousCore_eq_self (h : p.IsHom
   rw [← DirectSum.sum_support_decompose ℳ x]
   exact Submodule.sum_mem _ fun j _ => Submodule.subset_span ⟨⟨_, homogeneous_coe _⟩, h _ hx, rfl⟩
 
+set_option linter.unusedSectionVars false in
 theorem Ideal.IsHomogeneous.toIdeal_homogeneousCore_eq_self (h : I.IsHomogeneous 𝒜) :
     (I.homogeneousCore 𝒜).toIdeal = I :=
   Submodule.IsHomogeneous.toSubmodule_homogeneousCore_eq_self I h
-#align ideal.is_homogeneous.to_ideal_homogeneous_core_eq_self Ideal.IsHomogeneous.toIdeal_homogeneousCore_eq_self
 
+set_option linter.unusedSectionVars false in
 @[simp]
 theorem HomogeneousSubmodule.toSubmodule_homogeneousCore_eq_self (p : HomogeneousSubmodule A ℳ) :
     p.toSubmodule.homogeneousCore 𝒜 ℳ = p := by
   ext1
   convert Submodule.IsHomogeneous.toSubmodule_homogeneousCore_eq_self _ p.isHomogeneous
+  · infer_instance
+  · infer_instance
 
+set_option linter.unusedSectionVars false in
 @[simp]
 theorem HomogeneousIdeal.toIdeal_homogeneousCore_eq_self (I : HomogeneousIdeal 𝒜) :
     I.toIdeal.homogeneousCore 𝒜 = I :=
   HomogeneousSubmodule.toSubmodule_homogeneousCore_eq_self I
-#align homogeneous_ideal.to_ideal_homogeneous_core_eq_self HomogeneousIdeal.toIdeal_homogeneousCore_eq_self
 
 variable (𝒜 I)
 
+set_option linter.unusedSectionVars false in
 theorem Submodule.IsHomogeneous.iff_eq :
     p.IsHomogeneous ℳ ↔ (p.homogeneousCore 𝒜 ℳ).toSubmodule = p :=
   ⟨fun hI => hI.toSubmodule_homogeneousCore_eq_self, fun hI => hI ▸ (p.homogeneousCore 𝒜 ℳ).2⟩
 
+set_option linter.unusedSectionVars false in
 theorem Ideal.IsHomogeneous.iff_eq : I.IsHomogeneous 𝒜 ↔ (I.homogeneousCore 𝒜).toIdeal = I :=
   Submodule.IsHomogeneous.iff_eq 𝒜 I
-#align ideal.is_homogeneous.iff_eq Ideal.IsHomogeneous.iff_eq
 
+include 𝒜 in
+set_option linter.unusedSectionVars false in
 theorem Submodule.IsHomogeneous.iff_exists :
     p.IsHomogeneous ℳ ↔ ∃ S : Set {x // Homogeneous ℳ x}, p = Submodule.span A ((↑) '' S) := by
   rw [Submodule.IsHomogeneous.iff_eq 𝒜, eq_comm]
   exact ((Set.image_preimage.compose (Submodule.gi _ _).gc).exists_eq_l _).symm
 
+set_option linter.unusedSectionVars false in
 theorem Ideal.IsHomogeneous.iff_exists :
     I.IsHomogeneous 𝒜 ↔ ∃ S : Set (homogeneousSubmonoid 𝒜), I = Ideal.span ((↑) '' S) :=
   Submodule.IsHomogeneous.iff_exists 𝒜 I
-#align ideal.is_homogeneous.iff_exists Ideal.IsHomogeneous.iff_exists
 
 end IsHomogeneousSubmoduleDefs
 
@@ -474,14 +488,18 @@ theorem inf {I J : Submodule A M} (HI : I.IsHomogeneous ℳ) (HJ : J.IsHomogeneo
     (I ⊓ J).IsHomogeneous ℳ :=
   fun _ _ hr => ⟨HI _ hr.1, HJ _ hr.2⟩
 
+set_option linter.unusedSectionVars false in
+include 𝒜 in
 theorem sup {I J : Submodule A M} (HI : I.IsHomogeneous ℳ) (HJ : J.IsHomogeneous ℳ) :
     (I ⊔ J).IsHomogeneous ℳ := by
-  rw [iff_exists (𝒜 := 𝒜) (ℳ := ℳ)] at HI HJ ⊢
+  rw [iff_exists (𝒜 := 𝒜)] at HI HJ ⊢
   obtain ⟨⟨s₁, rfl⟩, ⟨s₂, rfl⟩⟩ := HI, HJ
   refine' ⟨s₁ ∪ s₂, _⟩
   rw [Set.image_union]
   exact (Submodule.span_union _ _).symm
 
+set_option linter.unusedSectionVars false in
+include 𝒜 in
 protected theorem iSup {κ : Sort*} {f : κ → Submodule A M} (h : ∀ i, (f i).IsHomogeneous ℳ) :
     (⨆ i, f i).IsHomogeneous ℳ := by
   simp_rw [iff_exists (𝒜 := 𝒜) (ℳ := ℳ)] at h ⊢
@@ -497,6 +515,8 @@ protected theorem iInf {κ : Sort*} {f : κ → Submodule A M} (h : ∀ i, (f i)
   simp only [Submodule.mem_iInf] at hx ⊢
   exact fun j => h _ _ (hx j)
 
+set_option linter.unusedSectionVars false in
+include 𝒜 in
 theorem iSup₂ {κ : Sort*} {κ' : κ → Sort*} {f : ∀ i, κ' i → Submodule A M}
     (h : ∀ i j, (f i j).IsHomogeneous ℳ) : (⨆ (i) (j), f i j).IsHomogeneous ℳ :=
   IsHomogeneous.iSup (𝒜 := 𝒜) fun i => IsHomogeneous.iSup (𝒜 := 𝒜) <| h i
@@ -505,6 +525,8 @@ theorem iInf₂ {κ : Sort*} {κ' : κ → Sort*} {f : ∀ i, κ' i → Submodul
     (h : ∀ i j, (f i j).IsHomogeneous ℳ) : (⨅ (i) (j), f i j).IsHomogeneous ℳ :=
   IsHomogeneous.iInf fun i => IsHomogeneous.iInf <| h i
 
+set_option linter.unusedSectionVars false in
+include 𝒜 in
 theorem sSup {ℐ : Set (Submodule A M)} (h : ∀ I ∈ ℐ, I.IsHomogeneous ℳ) :
     (sSup ℐ).IsHomogeneous ℳ := by
   rw [sSup_eq_iSup]
@@ -519,47 +541,47 @@ end Submodule.IsHomogeneous
 
 namespace Ideal.IsHomogeneous
 
+set_option linter.unusedSectionVars false in
 theorem bot : Ideal.IsHomogeneous 𝒜 ⊥ := Submodule.IsHomogeneous.bot 𝒜
-#align ideal.is_homogeneous.bot Ideal.IsHomogeneous.bot
 
+set_option linter.unusedSectionVars false in
 theorem top : Ideal.IsHomogeneous 𝒜 ⊤ := Submodule.IsHomogeneous.top 𝒜
-#align ideal.is_homogeneous.top Ideal.IsHomogeneous.top
 
 variable {𝒜 ℳ}
 
+set_option linter.unusedSectionVars false in
 theorem inf {I J : Ideal A} (HI : I.IsHomogeneous 𝒜) (HJ : J.IsHomogeneous 𝒜) :
     (I ⊓ J).IsHomogeneous 𝒜 := Submodule.IsHomogeneous.inf HI HJ
-#align ideal.is_homogeneous.inf Ideal.IsHomogeneous.inf
 
+set_option linter.unusedSectionVars false in
 theorem sup {I J : Ideal A} (HI : I.IsHomogeneous 𝒜) (HJ : J.IsHomogeneous 𝒜) :
     (I ⊔ J).IsHomogeneous 𝒜 := Submodule.IsHomogeneous.sup (𝒜 := 𝒜) HI HJ
-#align ideal.is_homogeneous.sup Ideal.IsHomogeneous.sup
 
+set_option linter.unusedSectionVars false in
 protected theorem iSup {κ : Sort*} {f : κ → Ideal A} (h : ∀ i, (f i).IsHomogeneous 𝒜) :
     (⨆ i, f i).IsHomogeneous 𝒜 := Submodule.IsHomogeneous.iSup (𝒜 := 𝒜) h
-#align ideal.is_homogeneous.supr Ideal.IsHomogeneous.iSup
 
+set_option linter.unusedSectionVars false in
 protected theorem iInf {κ : Sort*} {f : κ → Ideal A} (h : ∀ i, (f i).IsHomogeneous 𝒜) :
     (⨅ i, f i).IsHomogeneous 𝒜 := Submodule.IsHomogeneous.iInf h
-#align ideal.is_homogeneous.infi Ideal.IsHomogeneous.iInf
 
+set_option linter.unusedSectionVars false in
 theorem iSup₂ {κ : Sort*} {κ' : κ → Sort*} {f : ∀ i, κ' i → Ideal A}
     (h : ∀ i j, (f i j).IsHomogeneous 𝒜) : (⨆ (i) (j), f i j).IsHomogeneous 𝒜 :=
   Submodule.IsHomogeneous.iSup₂ (𝒜 := 𝒜) h
-#align ideal.is_homogeneous.supr₂ Ideal.IsHomogeneous.iSup₂
 
+set_option linter.unusedSectionVars false in
 theorem iInf₂ {κ : Sort*} {κ' : κ → Sort*} {f : ∀ i, κ' i → Ideal A}
     (h : ∀ i j, (f i j).IsHomogeneous 𝒜) : (⨅ (i) (j), f i j).IsHomogeneous 𝒜 :=
   Submodule.IsHomogeneous.iInf₂ h
-#align ideal.is_homogeneous.infi₂ Submodule.IsHomogeneous.iInf₂
 
+set_option linter.unusedSectionVars false in
 theorem sSup {ℐ : Set (Ideal A)} (h : ∀ I ∈ ℐ, I.IsHomogeneous 𝒜) :
     (sSup ℐ).IsHomogeneous 𝒜 := Submodule.IsHomogeneous.sSup (𝒜 := 𝒜) h
-#align ideal.is_homogeneous.Sup Submodule.IsHomogeneous.sSup
 
+set_option linter.unusedSectionVars false in
 theorem sInf {ℐ : Set (Ideal A)} (h : ∀ I ∈ ℐ, I.IsHomogeneous 𝒜) :
     (sInf ℐ).IsHomogeneous 𝒜 := Submodule.IsHomogeneous.sInf h
-#align ideal.is_homogeneous.Inf Submodule.IsHomogeneous.sInf
 
 end Ideal.IsHomogeneous
 
@@ -599,6 +621,7 @@ theorem coe_top : ((⊤ : HomogeneousSubmodule A ℳ) : Set M) = univ :=
 theorem coe_bot : ((⊥ : HomogeneousSubmodule A ℳ) : Set M) = 0 :=
   rfl
 
+set_option linter.unusedSectionVars false in
 @[simp]
 theorem coe_sup (I J : HomogeneousSubmodule A ℳ) : ↑(I ⊔ J) = (I + J : Set M) :=
   Submodule.coe_sup _ _
@@ -615,6 +638,7 @@ theorem toSubmodule_top : (⊤ : HomogeneousSubmodule A ℳ).toSubmodule = (⊤ 
 theorem toSubmodule_bot : (⊥ : HomogeneousSubmodule A ℳ).toSubmodule = (⊥ : Submodule A M) :=
   rfl
 
+set_option linter.unusedSectionVars false in
 @[simp]
 theorem toSubmodule_sup (I J : HomogeneousSubmodule A ℳ) :
     (I ⊔ J).toSubmodule = I.toSubmodule ⊔ J.toSubmodule := rfl
@@ -623,6 +647,7 @@ theorem toSubmodule_sup (I J : HomogeneousSubmodule A ℳ) :
 theorem toSubmodule_inf (I J : HomogeneousSubmodule A ℳ) :
     (I ⊓ J).toSubmodule = I.toSubmodule ⊓ J.toSubmodule := rfl
 
+set_option linter.unusedSectionVars false in
 @[simp]
 theorem toSubmodule_sSup (ℐ : Set (HomogeneousSubmodule A ℳ)) :
     (sSup ℐ).toSubmodule = ⨆ s ∈ ℐ, toSubmodule s := rfl
@@ -631,6 +656,7 @@ theorem toSubmodule_sSup (ℐ : Set (HomogeneousSubmodule A ℳ)) :
 theorem toSubmodule_sInf (ℐ : Set (HomogeneousSubmodule A ℳ)) :
     (sInf ℐ).toSubmodule = ⨅ s ∈ ℐ, toSubmodule s := rfl
 
+set_option linter.unusedSectionVars false in
 @[simp]
 theorem toSubmodule_iSup {κ : Sort*} (s : κ → HomogeneousSubmodule A ℳ) :
     (⨆ i, s i).toSubmodule = ⨆ i, (s i).toSubmodule := by
@@ -641,6 +667,7 @@ theorem toSubmodule_iInf {κ : Sort*} (s : κ → HomogeneousSubmodule A ℳ) :
     (⨅ i, s i).toSubmodule = ⨅ i, (s i).toSubmodule := by
   rw [iInf, toSubmodule_sInf, iInf_range]
 
+set_option linter.unusedSectionVars false in
 -- @[simp] -- Porting note: simp can prove this
 theorem toSubmodule_iSup₂ {κ : Sort*} {κ' : κ → Sort*}
     (s : ∀ i, κ' i → HomogeneousSubmodule A ℳ) :
@@ -670,6 +697,7 @@ set_option synthInstance.checkSynthOrder false in
 instance : Add (HomogeneousSubmodule A ℳ) :=
   ⟨(· ⊔ ·)⟩
 
+set_option linter.unusedSectionVars false in
 @[simp]
 theorem toSubmodule_add (I J : HomogeneousSubmodule A ℳ) :
     (I + J).toSubmodule = I.toSubmodule + J.toSubmodule := rfl
@@ -695,79 +723,80 @@ instance : SupSet (HomogeneousIdeal 𝒜) := inferInstanceAs <| SupSet <| Homoge
 
 instance : InfSet (HomogeneousIdeal 𝒜) := inferInstanceAs <| InfSet <| HomogeneousSubmodule A 𝒜
 
+set_option linter.unusedSectionVars false in
 @[simp]
 theorem coe_top : ((⊤ : HomogeneousIdeal 𝒜) : Set A) = univ := rfl
-#align homogeneous_ideal.coe_top HomogeneousIdeal.coe_top
 
+set_option linter.unusedSectionVars false in
 @[simp]
 theorem coe_bot : ((⊥ : HomogeneousIdeal 𝒜) : Set A) = 0 := rfl
-#align homogeneous_ideal.coe_bot HomogeneousIdeal.coe_bot
 
+set_option linter.unusedSectionVars false in
 @[simp]
 theorem coe_sup (I J : HomogeneousIdeal 𝒜) : ↑(I ⊔ J) = (I + J : Set A) :=
   Submodule.coe_sup _ _
-#align homogeneous_ideal.coe_sup HomogeneousIdeal.coe_sup
 
+set_option linter.unusedSectionVars false in
 @[simp]
 theorem coe_inf (I J : HomogeneousIdeal 𝒜) : (↑(I ⊓ J) : Set A) = ↑I ∩ ↑J :=
   rfl
-#align homogeneous_ideal.coe_inf HomogeneousIdeal.coe_inf
 
+set_option linter.unusedSectionVars false in
 @[simp]
 theorem toIdeal_top : (⊤ : HomogeneousIdeal 𝒜).toIdeal = (⊤ : Ideal A) := rfl
-#align homogeneous_ideal.to_ideal_top HomogeneousIdeal.toIdeal_top
 
+set_option linter.unusedSectionVars false in
 @[simp]
 theorem toIdeal_bot : (⊥ : HomogeneousIdeal 𝒜).toIdeal = (⊥ : Ideal A) := rfl
-#align homogeneous_ideal.to_ideal_bot HomogeneousIdeal.toIdeal_bot
 
+set_option linter.unusedSectionVars false in
 @[simp]
 theorem toIdeal_sup (I J : HomogeneousIdeal 𝒜) : (I ⊔ J).toIdeal = I.toIdeal ⊔ J.toIdeal := rfl
-#align homogeneous_ideal.to_ideal_sup HomogeneousIdeal.toIdeal_sup
 
+set_option linter.unusedSectionVars false in
 @[simp]
 theorem toIdeal_inf (I J : HomogeneousIdeal 𝒜) : (I ⊓ J).toIdeal = I.toIdeal ⊓ J.toIdeal := rfl
-#align homogeneous_ideal.to_ideal_inf HomogeneousIdeal.toIdeal_inf
 
+set_option linter.unusedSectionVars false in
 @[simp]
 theorem toIdeal_sSup (ℐ : Set (HomogeneousIdeal 𝒜)) : (sSup ℐ).toIdeal = ⨆ s ∈ ℐ, toIdeal s := rfl
-#align homogeneous_ideal.to_ideal_Sup HomogeneousIdeal.toIdeal_sSup
 
+set_option linter.unusedSectionVars false in
 @[simp]
 theorem toIdeal_sInf (ℐ : Set (HomogeneousIdeal 𝒜)) : (sInf ℐ).toIdeal = ⨅ s ∈ ℐ, toIdeal s := rfl
-#align homogeneous_ideal.to_ideal_Inf HomogeneousIdeal.toIdeal_sInf
 
+set_option linter.unusedSectionVars false in
 @[simp]
 theorem toIdeal_iSup {κ : Sort*} (s : κ → HomogeneousIdeal 𝒜) :
     (⨆ i, s i).toIdeal = ⨆ i, (s i).toIdeal :=
   HomogeneousSubmodule.toSubmodule_iSup (𝒜 := 𝒜) s
-#align homogeneous_ideal.to_ideal_supr HomogeneousIdeal.toIdeal_iSup
 
+set_option linter.unusedSectionVars false in
 @[simp]
 theorem toIdeal_iInf {κ : Sort*} (s : κ → HomogeneousIdeal 𝒜) :
     (⨅ i, s i).toIdeal = ⨅ i, (s i).toIdeal :=
   HomogeneousSubmodule.toSubmodule_iInf s
-#align homogeneous_ideal.to_ideal_infi HomogeneousIdeal.toIdeal_iInf
 
+set_option linter.unusedSectionVars false in
 theorem toIdeal_iSup₂ {κ : Sort*} {κ' : κ → Sort*} (s : ∀ i, κ' i → HomogeneousIdeal 𝒜) :
     (⨆ (i) (j), s i j).toIdeal = ⨆ (i) (j), (s i j).toIdeal :=
   HomogeneousSubmodule.toSubmodule_iSup₂ (𝒜 := 𝒜) s
-#align homogeneous_ideal.to_ideal_supr₂ HomogeneousIdeal.toIdeal_iSup₂
 
+set_option linter.unusedSectionVars false in
 theorem toIdeal_iInf₂ {κ : Sort*} {κ' : κ → Sort*} (s : ∀ i, κ' i → HomogeneousIdeal 𝒜) :
     (⨅ (i) (j), s i j).toIdeal = ⨅ (i) (j), (s i j).toIdeal :=
   HomogeneousSubmodule.toSubmodule_iInf₂ s
-#align homogeneous_ideal.to_ideal_infi₂ HomogeneousIdeal.toIdeal_iInf₂
+
+
+set_option linter.unusedSectionVars false
 
 @[simp]
 theorem eq_top_iff (I : HomogeneousIdeal 𝒜) : I = ⊤ ↔ I.toIdeal = ⊤ :=
   HomogeneousSubmodule.eq_top_iff I
-#align homogeneous_ideal.eq_top_iff HomogeneousIdeal.eq_top_iff
 
 @[simp]
 theorem eq_bot_iff (I : HomogeneousIdeal 𝒜) : I = ⊥ ↔ I.toIdeal = ⊥ :=
   HomogeneousSubmodule.eq_bot_iff I
-#align homogeneous_ideal.eq_bot_iff HomogeneousIdeal.eq_bot_iff
 
 instance completeLattice : CompleteLattice (HomogeneousIdeal 𝒜) :=
   inferInstanceAs <| CompleteLattice <| HomogeneousSubmodule A 𝒜
@@ -776,7 +805,6 @@ instance : Add (HomogeneousIdeal 𝒜) := inferInstanceAs <| Add <| HomogeneousS
 
 @[simp]
 theorem toIdeal_add (I J : HomogeneousIdeal 𝒜) : (I + J).toIdeal = I.toIdeal + J.toIdeal := rfl
-#align homogeneous_ideal.to_ideal_add HomogeneousIdeal.toIdeal_add
 
 instance : Inhabited (HomogeneousSubmodule A ℳ) where default := ⊥
 
@@ -793,6 +821,8 @@ variable [CommSemiring A] [Module A M]
 
 variable [AddMonoid ιA] [SetLike σA A] [AddSubmonoidClass σA A] [GradedRing 𝒜]
 
+set_option linter.unusedSectionVars false
+
 -- In general, submodules cannot be multiplied, so this theorem is not generalized
 theorem Ideal.IsHomogeneous.mul {I J : Ideal A} (HI : I.IsHomogeneous 𝒜) (HJ : J.IsHomogeneous 𝒜) :
     (I * J).IsHomogeneous 𝒜 := by
@@ -800,7 +830,6 @@ theorem Ideal.IsHomogeneous.mul {I J : Ideal A} (HI : I.IsHomogeneous 𝒜) (HJ 
   obtain ⟨⟨s₁, rfl⟩, ⟨s₂, rfl⟩⟩ := HI, HJ
   rw [Ideal.span_mul_span']
   exact ⟨s₁ * s₂, congr_arg _ <| (Set.image_mul (homogeneousSubmonoid 𝒜).subtype).symm⟩
-#align ideal.is_homogeneous.mul Ideal.IsHomogeneous.mul
 
 instance : Mul (HomogeneousIdeal 𝒜) where
   mul I J := ⟨I.toIdeal * J.toIdeal, Ideal.IsHomogeneous.mul I.isHomogeneous J.isHomogeneous⟩
@@ -809,7 +838,6 @@ instance : Mul (HomogeneousIdeal 𝒜) where
 theorem HomogeneousIdeal.toIdeal_mul (I J : HomogeneousIdeal 𝒜) :
     (I * J).toIdeal = I.toIdeal * J.toIdeal :=
   rfl
-#align homogeneous_ideal.to_ideal_mul HomogeneousIdeal.toIdeal_mul
 
 end CommSemiring
 
@@ -832,6 +860,8 @@ variable [AddMonoid ιA]
 variable [SetLike σA A] [AddSubmonoidClass σA A] [GradedRing 𝒜]
 variable [DecidableEq ιM] [VAdd ιA ιM] [Decomposition ℳ] [GradedSMul 𝒜 ℳ]
 
+set_option linter.unusedSectionVars false
+
 variable (I : Ideal A) (p : Submodule A M)
 
 theorem Submodule.homogeneousCore.gc :
@@ -841,7 +871,6 @@ theorem Submodule.homogeneousCore.gc :
 
 theorem Ideal.homogeneousCore.gc : GaloisConnection toIdeal (Ideal.homogeneousCore 𝒜) :=
   Submodule.homogeneousCore.gc 𝒜 𝒜
-#align ideal.homogeneous_core.gc Ideal.homogeneousCore.gc
 
 /-- `toSubmodule : HomogeneousSubmodule A ℳ → Submodule A M` and `Submodule.homogeneousCore 𝒜 ℳ`
 forms a galois coinsertion. -/
@@ -858,7 +887,6 @@ def Submodule.homogeneousCore.gi :
 coinsertion. -/
 def Ideal.homogeneousCore.gi : GaloisCoinsertion toIdeal (Ideal.homogeneousCore 𝒜) :=
   Submodule.homogeneousCore.gi 𝒜 𝒜
-#align ideal.homogeneous_core.gi Ideal.homogeneousCore.gi
 
 theorem Submodule.homogeneousCore_eq_sSup :
     p.homogeneousCore 𝒜 ℳ = sSup { q : HomogeneousSubmodule A ℳ | q.toSubmodule ≤ p } :=
@@ -867,8 +895,8 @@ theorem Submodule.homogeneousCore_eq_sSup :
 theorem Ideal.homogeneousCore_eq_sSup :
     I.homogeneousCore 𝒜 = sSup { J : HomogeneousIdeal 𝒜 | J.toIdeal ≤ I } :=
   Submodule.homogeneousCore_eq_sSup 𝒜 𝒜 I
-#align ideal.homogeneous_core_eq_Sup Ideal.homogeneousCore_eq_sSup
 
+include 𝒜 in
 theorem Submodule.homogeneousCore'_eq_sSup :
     p.homogeneousCore' ℳ = sSup { q : Submodule A M | q.IsHomogeneous ℳ ∧ q ≤ p } := by
   refine' (IsLUB.sSup_eq _).symm
@@ -884,7 +912,6 @@ theorem Submodule.homogeneousCore'_eq_sSup :
 theorem Ideal.homogeneousCore'_eq_sSup :
     I.homogeneousCore' 𝒜 = sSup { J : Ideal A | J.IsHomogeneous 𝒜 ∧ J ≤ I } :=
   Submodule.homogeneousCore'_eq_sSup 𝒜 𝒜 I
-#align ideal.homogeneous_core'_eq_Sup Ideal.homogeneousCore'_eq_sSup
 
 end homogeneousCore
 
@@ -913,7 +940,9 @@ def Submodule.homogeneousHull : HomogeneousSubmodule A ℳ :=
 homogeneous ideal containing `I`. -/
 def Ideal.homogeneousHull : HomogeneousIdeal 𝒜 :=
   Submodule.homogeneousHull 𝒜 𝒜 I
-#align ideal.homogeneous_hull Submodule.homogeneousHull
+
+
+set_option linter.unusedSectionVars false
 
 theorem Submodule.le_toSubmodule_homogeneousHull :
     p ≤ (Submodule.homogeneousHull 𝒜 ℳ p).toSubmodule := by
@@ -924,7 +953,6 @@ theorem Submodule.le_toSubmodule_homogeneousHull :
 
 theorem Ideal.le_toSubmodule_homogeneousHull : I ≤ (I.homogeneousHull 𝒜).toIdeal :=
   Submodule.le_toSubmodule_homogeneousHull 𝒜 𝒜 I
-#align ideal.le_to_ideal_homogeneous_hull Ideal.le_toSubmodule_homogeneousHull
 
 theorem Submodule.homogeneousHull_mono :
     Monotone (Submodule.homogeneousHull 𝒜 ℳ) := fun I J I_le_J => by
@@ -934,7 +962,6 @@ theorem Submodule.homogeneousHull_mono :
 
 theorem Ideal.homogeneousHull_mono : Monotone (Ideal.homogeneousHull 𝒜) :=
   Submodule.homogeneousHull_mono 𝒜 𝒜
-#align ideal.homogeneous_hull_mono Ideal.homogeneousHull_mono
 
 variable {p I 𝒜 ℳ}
 
@@ -948,7 +975,6 @@ theorem Submodule.IsHomogeneous.toSubmodule_homogeneousHull_eq_self (h : p.IsHom
 theorem Ideal.IsHomogeneous.toIdeal_homogeneousHull_eq_self (h : I.IsHomogeneous 𝒜) :
     (I.homogeneousHull 𝒜).toIdeal = I :=
   Submodule.IsHomogeneous.toSubmodule_homogeneousHull_eq_self h
-#align ideal.is_homogeneous.to_ideal_homogeneous_hull_eq_self Submodule.IsHomogeneous.toSubmodule_homogeneousHull_eq_self
 
 @[simp]
 theorem HomogeneousSubmodule.homogeneousHull_toSubmodule_eq_self (p : HomogeneousSubmodule A ℳ) :
@@ -959,7 +985,6 @@ theorem HomogeneousSubmodule.homogeneousHull_toSubmodule_eq_self (p : Homogeneou
 theorem HomogeneousIdeal.homogeneousHull_toIdeal_eq_self (I : HomogeneousIdeal 𝒜) :
     I.toIdeal.homogeneousHull 𝒜 = I :=
   HomogeneousSubmodule.homogeneousHull_toSubmodule_eq_self I
-#align homogeneous_ideal.homogeneous_hull_to_ideal_eq_self HomogeneousIdeal.homogeneousHull_toIdeal_eq_self
 
 variable (p I)
 
@@ -972,7 +997,6 @@ theorem Submodule.toSubmodule_homogeneousHull_eq_iSup :
 theorem Ideal.toIdeal_homogeneousHull_eq_iSup :
     (I.homogeneousHull 𝒜).toIdeal = ⨆ i, Ideal.span (GradedRing.proj 𝒜 i '' I) :=
   Submodule.toSubmodule_homogeneousHull_eq_iSup I
-#align ideal.to_ideal_homogeneous_hull_eq_supr Ideal.toIdeal_homogeneousHull_eq_iSup
 
 theorem Submodule.homogeneousHull_eq_iSup :
     p.homogeneousHull 𝒜 ℳ =
@@ -988,11 +1012,12 @@ theorem Ideal.homogeneousHull_eq_iSup :
         rintro _ ⟨x, -, rfl⟩
         apply SetLike.homogeneous_coe)⟩ :=
   Submodule.homogeneousHull_eq_iSup I
-#align ideal.homogeneous_hull_eq_supr Ideal.homogeneousHull_eq_iSup
 
 end HomogeneousHull
 
 section GaloisConnection
+
+set_option linter.unusedSectionVars false
 
 open HomogeneousSubmodule HomogeneousIdeal
 
@@ -1008,7 +1033,6 @@ theorem Submodule.homogeneousHull.gc :
 
 theorem Ideal.homogeneousHull.gc : GaloisConnection (Ideal.homogeneousHull 𝒜) toIdeal :=
   Submodule.homogeneousHull.gc 𝒜 𝒜
-#align ideal.homogeneous_hull.gc Submodule.homogeneousHull.gc
 
 
 /-- `Submodule.homogeneousHull 𝒜 ℳ` and `toSubmodule : HomogeneousSubmodule A ℳ → Submodule A M`
@@ -1023,7 +1047,6 @@ def Submodule.homogeneousHull.gi : GaloisInsertion (Submodule.homogeneousHull �
 -/
 def Ideal.homogeneousHull.gi : GaloisInsertion (Ideal.homogeneousHull 𝒜) toIdeal :=
   Submodule.homogeneousHull.gi 𝒜 𝒜
-#align ideal.homogeneous_hull.gi Ideal.homogeneousHull.gi
 
 theorem Submodule.homogeneousHull_eq_sInf (p : Submodule A M) :
     p.homogeneousHull 𝒜 ℳ = sInf { q : HomogeneousSubmodule A ℳ | p ≤ q.toSubmodule } :=
@@ -1032,7 +1055,6 @@ theorem Submodule.homogeneousHull_eq_sInf (p : Submodule A M) :
 theorem Ideal.homogeneousHull_eq_sInf (I : Ideal A) :
     I.homogeneousHull 𝒜 = sInf { J : HomogeneousIdeal 𝒜 | I ≤ J.toIdeal } :=
   Submodule.homogeneousHull_eq_sInf 𝒜 𝒜 I
-#align ideal.homogeneous_hull_eq_Inf Ideal.homogeneousHull_eq_sInf
 
 end GaloisConnection
 
@@ -1045,6 +1067,9 @@ variable [CanonicallyOrderedAddCommMonoid ιA]
 variable [SetLike σA A] [AddSubmonoidClass σA A] [GradedRing 𝒜]
 
 open GradedRing SetLike.GradedMonoid DirectSum
+
+
+set_option linter.unusedSectionVars false
 
 /-- For a graded ring `⨁ᵢ 𝒜ᵢ` graded by a `CanonicallyOrderedAddCommMonoid ι`, the irrelevant ideal
 refers to `⨁_{i>0} 𝒜ᵢ`, or equivalently `{a | a₀ = 0}`. This definition is used in `Proj`
@@ -1062,19 +1087,16 @@ def HomogeneousIdeal.irrelevant : HomogeneousIdeal 𝒜 :=
     by_cases h : i = 0
     · rw [h, hr, decompose_zero, zero_apply, ZeroMemClass.coe_zero]
     · rw [decompose_of_mem_ne 𝒜 (SetLike.coe_mem _) h]⟩
-#align homogeneous_ideal.irrelevant HomogeneousIdeal.irrelevant
 
 @[simp]
 theorem HomogeneousIdeal.mem_irrelevant_iff (a : A) :
     a ∈ HomogeneousIdeal.irrelevant 𝒜 ↔ proj 𝒜 0 a = 0 :=
   Iff.rfl
-#align homogeneous_ideal.mem_irrelevant_iff HomogeneousIdeal.mem_irrelevant_iff
 
 @[simp]
 theorem HomogeneousIdeal.toIdeal_irrelevant :
     (HomogeneousIdeal.irrelevant 𝒜).toIdeal = RingHom.ker (GradedRing.projZeroRingHom 𝒜) :=
   rfl
-#align homogeneous_ideal.to_ideal_irrelevant HomogeneousIdeal.toIdeal_irrelevant
 
 end IrrelevantIdeal
 

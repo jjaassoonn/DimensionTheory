@@ -11,7 +11,7 @@ package «DimensionTheory» where
   -- add any additional package configuration options here
 
 require mathlib from git
-  "https://github.com/leanprover-community/mathlib4.git"
+  "https://github.com/leanprover-community/mathlib4.git" @ "v4.11.0"
 
 @[default_target]
 lean_lib «DimensionTheory» where
@@ -27,4 +27,4 @@ require checkdecls from git "https://github.com/PatrickMassot/checkdecls.git"
 require «doc-gen4» from git
   "https://github.com/leanprover/doc-gen4" @ "main"
 
-require LeanCopilot from git "https://github.com/lean-dojo/LeanCopilot.git" @ "v1.2.2"
+require LeanCopilot from git "https://github.com/lean-dojo/LeanCopilot.git" @ "v1.6.0"

@@ -63,8 +63,11 @@ Module.compHom M ({
   map_add' := by intros; rfl
 } : R[S] →+* A)
 
+omit [IsNoetherianRing R] [DecidableEq A] in
 lemma Algebra.adjoin_smul_def (a : R[S]) (m : M) : a • m = (a : A) • m := rfl
 
+include hS in
+omit [IsNoetherianRing R] in
 lemma finite_adjoin_module_of_finite_module [Module.Finite A M] :
     Module.Finite R[insert s S] M :=
   let m : Module R[insert s S] M :=
@@ -98,9 +101,12 @@ then `f` represents the monomial `∏ᵢ aᵢ ^ nᵢ`
 def evalMonomial (f : A →₀ ℕ) : A :=
   ∏ a in f.support, a ^ (f a)
 
+omit [DecidableEq A] in
 @[simp] lemma evalMonomial_zero : evalMonomial (A := A) 0 = 1 := by
   simp [evalMonomial]
 
+include hS in
+omit [IsNoetherianRing R] in
 lemma top_eq_span_monomial :
     (⊤ : Submodule R A) =
     Submodule.span R
@@ -171,6 +177,8 @@ lemma top_eq_span_monomial :
 end Algebra.adjoin_module_finite_of_annihilating
 
 open Algebra.adjoin_module_finite_of_annihilating in
+include hS in
+omit [IsNoetherianRing R] in
 lemma Algebra.adjoin_module_finite_of_annihilating [Module.Finite A M]
     (ann : ∀ (m : M), s • m = 0) : Module.Finite R[S] M := by
   obtain ⟨S', hS'⟩ := (inferInstance : Module.Finite A M)

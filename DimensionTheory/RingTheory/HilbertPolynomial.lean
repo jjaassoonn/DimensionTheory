@@ -41,12 +41,14 @@ noncomputable def greatestFactorOneSubNotDvd : R[X] :=
 
 local notation "gFOSND" => greatestFactorOneSubNotDvd
 
+omit [NeZero (1 : R)] [NoZeroDivisors R] in
 theorem pow_rootMultiplicity_mul_greatestFactorOneSubNotDvd_eq :
     ((1 - X : R[X]) ^ p.rootMultiplicity 1) * greatestFactorOneSubNotDvd p hp = p := by
   rw [greatestFactorOneSubNotDvd, ← mul_assoc, ← mul_pow]
   simp only [mul_neg, mul_one, neg_sub, map_one]
   exact id (exists_eq_pow_rootMultiplicity_mul_and_not_dvd p hp 1).choose_spec.1.symm
 
+omit [NeZero (1 : R)] [NoZeroDivisors R] in
 theorem greatestFactorOneSubNotDvd_ne_zero :
     greatestFactorOneSubNotDvd p hp ≠ 0 := fun h0 => by
   let hpow := pow_rootMultiplicity_mul_greatestFactorOneSubNotDvd_eq p hp
@@ -136,8 +138,8 @@ large enough, its coefficient can be obtained by evaluating the Hilbert polynomi
 theorem coeff_mul_invOneSubPow_eq_hilbert_eval (p : ℤ[X]) (d n : ℕ) (hn : p.natDegree < n) :
     PowerSeries.coeff ℤ n (p * (@invOneSubPow ℤ _ d)) = (hilbert p d).eval (n : ℚ) := by
   rw [hilbert]; by_cases h : p = 0
-  · simp only [h, coe_zero, zero_mul, ↓reduceDite, eval_zero, Int.cast_eq_zero]; rfl
-  · simp only [h, ↓reduceDite, zsmul_eq_mul]
+  · simp only [h, coe_zero, zero_mul, map_zero, Int.cast_zero, ↓reduceDIte, eval_zero]
+  · simp only [h, ↓reduceDIte, zsmul_eq_mul]
     have coe_one_sub : (1 - X : ℤ[X]).ToPowerSeries = 1 - (PowerSeries.X : ℤ⟦X⟧) :=
       PowerSeries.ext_iff.2 fun i => by_cases (fun (hi : i = 0) => by
       simp only [hi, coeff_coe, coeff_sub, coeff_one_zero, coeff_X_zero, sub_zero,
@@ -242,12 +244,12 @@ This theorem tells us the specific degree of any non-zero Hilbert polynomial.
 theorem natDegree_hilbert (p : ℤ[X]) (d : ℕ) (hh : hilbert p d ≠ 0) :
     (hilbert p d).natDegree = d - p.rootMultiplicity 1 := by
   by_cases h : p = 0
-  · exfalso; rw [hilbert] at hh; simp only [h, ↓reduceDite, ne_eq, not_true_eq_false] at hh
+  · exfalso; rw [hilbert] at hh; simp only [h, ↓reduceDIte, ne_eq, not_true_eq_false] at hh
   · by_cases h1 : d + 1 ≤ p.rootMultiplicity 1
     · rw [hilbert] at hh
       simp only [h1, ↓reduceIte, dite_eq_ite, ite_self, ne_eq, not_true_eq_false] at hh
     · refine' natDegree_eq_of_le_of_coeff_ne_zero _ _
-      · rw [hilbert]; simp only [h, ↓reduceDite, h1, ↓reduceIte, zsmul_eq_mul]
+      · rw [hilbert]; simp only [h, ↓reduceDIte, h1, ↓reduceIte, zsmul_eq_mul]
         refine' @natDegree_sum_le_of_forall_le ℕ (Finset.range (natDegree (gFOSND p h) + 1)) ℚ _
           (d - p.rootMultiplicity 1) (fun x => (@Int.cast ℚ[X] _ ((gFOSND p h).coeff x)) *
           preHilbert (d - p.rootMultiplicity 1) x) _
@@ -270,7 +272,7 @@ theorem natDegree_hilbert (p : ℤ[X]) (d : ℕ) (hh : hilbert p d ≠ 0) :
                 exact le_trans (Finset.sum_le_sum this) <| by simp only [Finset.sum_const,
                   Finset.card_attach, Finset.card_range, smul_eq_mul, mul_one, le_refl]
       · rw [hilbert]
-        simp only [h, ↓reduceDite, h1, ↓reduceIte, zsmul_eq_mul, finset_sum_coeff,
+        simp only [h, ↓reduceDIte, h1, ↓reduceIte, zsmul_eq_mul, finset_sum_coeff,
           coeff_intCast_mul, ne_eq]
         simp_rw [preHilbert, coeff_smul]
         simp only [Finset.univ_eq_attach, map_natCast, smul_eq_mul]

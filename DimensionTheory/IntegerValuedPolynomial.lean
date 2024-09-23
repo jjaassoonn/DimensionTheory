@@ -636,8 +636,6 @@ lemma isEquivalent_leading_monomial (f : F[X]) [hf : IsIntegerValued f] :
           _ ~[atTop] fun x : ℤ => ((binomialPolynomial F f.natDegree).evalInt x : ℚ) := by
             symm; apply binomialPolynomial_eval_equivalent
 
-        done
-
   exact IsEquivalent.congr_left isequiv1 eq1.symm
 
 lemma isEquivalent_leading_monomial' (f : F[X]) [hf : IsIntegerValued f] :

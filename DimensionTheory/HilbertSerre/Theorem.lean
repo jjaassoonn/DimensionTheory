@@ -119,6 +119,7 @@ this power series is invertible, because its constant coefficient is one.
     rw [zero_pow, sub_zero]
     linarith [S.deg_pos i.2]
 
+omit noetherian_ring in
 lemma poles_val :
     S.poles.val =
     algebraMap (Polynomial ℤ) ℤ⟦X⟧ (∏ i in S.toFinset.attach, (1 - Polynomial.X ^ S.deg i.2)) := by
@@ -127,6 +128,7 @@ lemma poles_val :
   congr
   simp only [algebraMap_apply', Algebra.id.map_eq_id, Polynomial.coe_X, map_X]
 
+omit noetherian_ring in
 lemma poles_inv_eq' :
     (↑S.poles⁻¹ : ℤ⟦X⟧) =
     ∏ i in S.toFinset.attach, PowerSeries.invOfUnit (1 - PowerSeries.X ^ S.deg i.2) 1 := by
@@ -181,6 +183,7 @@ section base_case
 variable {𝒜}
 variable (card_generator : S.toFinset.card = 0)
 
+include card_generator in
 lemma eventually_eq_zero_of_empty_generatorSet :
     ∃ N : ℕ, ∀ n : ℕ, N < n → ∀ (x : ℳ n), x = 0 := by
   classical
@@ -266,6 +269,7 @@ lemma eventually_eq_zero_of_empty_generatorSet :
   rw [eq_comm, Nat.sub_eq_zero_iff_le] at r
   exact not_le_of_lt (hn' x (support_le hx)) r
 
+include card_generator in
 lemma eventually_subsingleton_of_empty_generatorSet :
     ∃ N : ℕ, ∀ n : ℕ, N < n → Subsingleton (ℳ n) := by
   obtain ⟨N, h⟩ := eventually_eq_zero_of_empty_generatorSet ℳ S card_generator
@@ -314,6 +318,7 @@ def KER : HomogeneousSubmodule A ℳ where
     rw [h, if_pos (by linarith), map_zero, GradedModule.proj_apply, Nat.add_sub_cancel] at this
     exact this.symm
 
+omit finite_module noetherian_ring in
 lemma mem_KER_iff (a : M) : a ∈ KER ℳ x deg_x ↔ x • a = 0 := Iff.rfl
 
 open Pointwise
@@ -383,6 +388,7 @@ def COKER.descComponent (n : ℕ) :
   map_smul' := by intros; ext; rfl
 
 -- `0 -> KERₘ -> ℳₙ` is exact
+omit finite_module noetherian_ring in
 lemma KER.componentEmb_injective (n : ℕ) : Function.Injective (KER.componentEmb ℳ x deg_x n) := by
   intros a b h
   ext
@@ -390,6 +396,7 @@ lemma KER.componentEmb_injective (n : ℕ) : Function.Injective (KER.componentEm
   exact h
 
 -- `KERₙ -> ℳₙ -> ℳ_{d + n}` is exact
+omit finite_module noetherian_ring in
 lemma exact_KERComponentEmb_smulBy (n : ℕ) :
     LinearMap.range (KER.componentEmb ℳ x deg_x n) = LinearMap.ker (smulBy ℳ x deg_x n) := by
   ext m
@@ -403,6 +410,7 @@ lemma exact_KERComponentEmb_smulBy (n : ℕ) :
     exact ⟨⟨⟨m, hm⟩, m.2⟩, rfl⟩
 
 -- `ℳₙ -> ℳ_{d + n} -> COKER_{d + n}` is exact
+omit finite_module noetherian_ring in
 lemma exact_smulBy_COKERDescComponent (n : ℕ) :
     LinearMap.range (smulBy ℳ x deg_x n) =
     LinearMap.ker (COKER.descComponent ℳ x deg_x (d + n)) := by
@@ -439,6 +447,7 @@ def reindex (i : ℕ) (ineq : d ≤ i) : (ℳ (d + (i - d))) ≃ₗ[(𝒜 0)] (�
   left_inv x := by ext; rfl
   right_inv x := by ext; rfl
 
+omit finite_module noetherian_ring in
 lemma exact_smulBy_COKERDescComponent' (n : ℕ) (ineq : d ≤ n) :
     LinearMap.range ((reindex ℳ n ineq).toLinearMap ∘ₗ (smulBy ℳ x deg_x (n - d))) =
     LinearMap.ker (COKER.descComponent ℳ x deg_x n) := by
@@ -450,8 +459,16 @@ lemma exact_smulBy_COKERDescComponent' (n : ℕ) (ineq : d ≤ n) :
     Submodule.top_toAddSubgroup] at h ⊢ <;>
   exact h
 
+omit finite_module noetherian_ring in
 lemma COKER.descComponent_surjective (n : ℕ) :
     Function.Surjective (COKER.descComponent ℳ x deg_x (d + n)) := by
+  rintro ⟨_, ⟨m, rfl⟩⟩
+  induction' m using Quotient.inductionOn' with m
+  exact ⟨m, rfl⟩
+
+omit finite_module noetherian_ring in
+lemma COKER.descComponent_surjective' (n : ℕ) :
+    Function.Surjective (COKER.descComponent ℳ x deg_x n) := by
   rintro ⟨_, ⟨m, rfl⟩⟩
   induction' m using Quotient.inductionOn' with m
   exact ⟨m, rfl⟩
@@ -528,56 +545,74 @@ lemma anExactSeq_complex (i : ℕ) (ineq : d ≤ i) : (anExactSeq ℳ x deg_x i 
       ComposableArrows.Precomp.map_one_succ, ComposableArrows.Precomp.map_zero_one,
       ComposableArrows.mk₁_map, ComposableArrows.Mk₁.map, comp_zero]
 
-set_option maxHeartbeats 500000 in
+set_option synthInstance.maxHeartbeats 40000 in
+lemma anExactSeq_exact₀ (i : ℕ) (ineq : d ≤ i) :
+    (anExactSeq ℳ x deg_x i ineq).sc (anExactSeq_complex ℳ x deg_x i ineq) 0 |>.Exact := by
+  rw [FGModuleCat.exact_iff]
+  simp only [Nat.reduceAdd, id_eq, Int.reduceNeg, Nat.cast_ofNat, Int.Nat.cast_ofNat_Int,
+  Int.reduceAdd, Int.reduceSub, Fin.mk_one, Fin.isValue, anExactSeq_obj,
+  ComposableArrows.Precomp.obj_one, ComposableArrows.precomp_obj, Fin.zero_eta,
+  ComposableArrows.Precomp.obj_zero, ComposableArrows.map', homOfLE_leOfHom, anExactSeq_map,
+  ComposableArrows.Precomp.map_zero_one, Fin.reduceFinMk]
+  rw [LinearMap.range_zero, eq_comm, LinearMap.ker_eq_bot]
+  exact KER.componentEmb_injective ℳ x deg_x _
+
+set_option synthInstance.maxHeartbeats 40000 in
+set_option maxHeartbeats 400000 in
+lemma anExactSeq_exact₁ (i : ℕ) (ineq : d ≤ i) :
+    (anExactSeq ℳ x deg_x i ineq).sc (anExactSeq_complex ℳ x deg_x i ineq) 1 |>.Exact := by
+  rw [FGModuleCat.exact_iff']
+  change Function.Exact (FGModuleCat.asHom (KER.componentEmb ℳ x deg_x (i - d)))
+    ((reindex ℳ i ineq).toFGModuleCatIso.hom ∘ₗ FGModuleCat.asHom (smulBy ℳ x deg_x (i - d)))
+  erw [Function.Injective.comp_exact_iff_exact]
+  · rw [LinearMap.exact_iff]
+    exact exact_KERComponentEmb_smulBy ℳ x deg_x _ |>.symm
+  · erw [← ConcreteCategory.mono_iff_injective_of_preservesPullback]
+    infer_instance
+
+set_option synthInstance.maxHeartbeats 40000 in
+set_option maxHeartbeats 400000 in
+lemma anExactSeq_exact₂ (i : ℕ) (ineq : d ≤ i) :
+    (anExactSeq ℳ x deg_x i ineq).sc (anExactSeq_complex ℳ x deg_x i ineq) 2 |>.Exact := by
+  rw [FGModuleCat.exact_iff']
+  change Function.Exact
+    ((reindex ℳ i ineq).toFGModuleCatIso.hom ∘ₗ FGModuleCat.asHom (smulBy ℳ x deg_x (i - d)))
+    (FGModuleCat.asHom (COKER.descComponent ℳ x deg_x i))
+  erw [LinearMap.exact_iff]
+  exact exact_smulBy_COKERDescComponent' ℳ x deg_x i ineq |>.symm
+
+set_option synthInstance.maxHeartbeats 40000 in
+set_option maxHeartbeats 800000 in
+lemma anExactSeq_exact₃ (i : ℕ) (ineq : d ≤ i) :
+    (anExactSeq ℳ x deg_x i ineq).sc (anExactSeq_complex ℳ x deg_x i ineq) 3 |>.Exact := by
+  rw [FGModuleCat.exact_iff]
+  simp only [anExactSeq, ComposableArrows.mk₅, LinearEquiv.toFGModuleCatIso_hom,
+    ComposableArrows.mk₄, ComposableArrows.mk₃, ComposableArrows.mk₂, Nat.reduceAdd, id_eq,
+    Int.reduceNeg, Nat.cast_ofNat, Int.reduceAdd, Int.reduceSub, Fin.reduceFinMk,
+    ComposableArrows.precomp_obj, Fin.isValue, ComposableArrows.map', homOfLE_leOfHom,
+    ComposableArrows.precomp_map, ComposableArrows.Precomp.map, Fin.mk_one, Fin.zero_eta,
+    ComposableArrows.mk₁_map, ComposableArrows.Mk₁.map]
+  rw [LinearMap.ker_zero, LinearMap.range_eq_top]
+  apply COKER.descComponent_surjective'
+
+set_option maxHeartbeats 1000000 in
 lemma anExactSeq_exact (i : ℕ) (ineq : d ≤ i) : (anExactSeq ℳ x deg_x i ineq).Exact := by
   letI := GradedRing.GradeZero.subring_isNoetherianRing_of_isNoetherianRing 𝒜
   fconstructor
   · apply anExactSeq_complex
   rintro j (hj : j + 2 ≤ 5)
-  refine exact_iff_shortComplex_exact (A := FGModuleCat (𝒜 0)) _ |>.mp ?_
   replace hj : j ≤ 3 := by omega
   interval_cases j
-  · simp only [Int.ofNat_eq_coe, Nat.cast_ofNat, Int.Nat.cast_ofNat_Int, id_eq, Fin.zero_eta,
-    anExactSeq_obj, ComposableArrows.Precomp.obj_zero, ComposableArrows.Precomp.obj_succ,
-    ComposableArrows.precomp_obj, Fin.mk_one, ComposableArrows.Precomp.obj_one,
-    ComposableArrows.map', anExactSeq_map, ComposableArrows.Precomp.map_zero_one',
-    ComposableArrows.Precomp.map_succ_succ, ComposableArrows.precomp_map,
-    ComposableArrows.Precomp.map_zero_one]
-
-    have : Mono (FGModuleCat.asHom (KER.componentEmb ℳ x deg_x (i - d))) :=
-      ConcreteCategory.mono_of_injective
-        (i := KER.componentEmb_injective ℳ x deg_x _)
-    apply exact_zero_mono
-  · change Exact (FGModuleCat.asHom (KER.componentEmb ℳ x deg_x (i - d)))
-      (FGModuleCat.asHom (smulBy ℳ x deg_x (i - d)) ≫ (reindex ℳ i ineq).toFGModuleCatIso.hom)
-    rw [exact_comp_iso, FGModuleCat.exact_iff]
-    exact exact_KERComponentEmb_smulBy ℳ x deg_x _
-  · change Exact
-      (FGModuleCat.asHom (smulBy ℳ x deg_x (i - d)) ≫ (reindex ℳ i ineq).toFGModuleCatIso.hom)
-      (FGModuleCat.asHom (COKER.descComponent ℳ x deg_x i))
-    rw [FGModuleCat.exact_iff]
-    change LinearMap.range ((reindex ℳ i ineq).toLinearMap ∘ₗ (smulBy ℳ x deg_x (i - d))) =
-      LinearMap.ker (COKER.descComponent ℳ x deg_x i)
-
-    exact exact_smulBy_COKERDescComponent' ℳ x deg_x i ineq
-  · simp only [Int.ofNat_eq_coe, Nat.cast_ofNat, Int.Nat.cast_ofNat_Int, id_eq, anExactSeq_obj,
-    ComposableArrows.Precomp.obj_succ, ComposableArrows.precomp_obj, Fin.mk_one,
-    ComposableArrows.Precomp.obj_one, Fin.zero_eta, ComposableArrows.Precomp.obj_zero,
-    ComposableArrows.mk₁_obj, ComposableArrows.Mk₁.obj, ComposableArrows.map', anExactSeq_map,
-    ComposableArrows.Precomp.map_succ_succ, ComposableArrows.precomp_map,
-    ComposableArrows.Precomp.map_one_succ, ComposableArrows.Precomp.map_zero_one,
-    ComposableArrows.mk₁_map, ComposableArrows.Mk₁.map]
-
-    have : Epi (FGModuleCat.asHom (COKER.descComponent ℳ x deg_x i)) := by
-      apply ConcreteCategory.epi_of_surjective
-      rw [show i = d + (i - d) by omega]
-      exact COKER.descComponent_surjective ℳ x deg_x _
-    apply exact_epi_zero
+  · apply anExactSeq_exact₀
+  · apply anExactSeq_exact₁
+  · apply anExactSeq_exact₂
+  · apply anExactSeq_exact₃
 
 example : true := rfl
 
-variable [(i : ℕ) → (x : (𝒜 i)) → Decidable (x ≠ 0)] [(a : A) → Decidable (a ∈ KER 𝒜 x deg_x)]
+-- variable [(a : A) → Decidable (a ∈ KER 𝒜 x deg_x)]
 
+-- omit [(i : ℕ) → (x : (𝒜 i)) → Decidable (x ≠ 0)] in
 lemma key_lemma :
     ∃ (p : Polynomial ℤ),
       (1 - PowerSeries.X ^ d) * μ.poincareSeries 𝒜 ℳ =
@@ -679,6 +714,7 @@ If `A = A₀[S, s]`, define `A'` as `A₀[S]`
 abbrev A' : HomogeneousSubring 𝒜 := induction.constructions.adjoinHomogeneous S' fun _ h ↦
   ⟨S.deg (hS' ▸ Finset.mem_insert_of_mem h), S.mem_deg _⟩
 
+omit noetherian_ring in
 lemma mem_A' (a : A) : a ∈ A' S x S' hS' ↔ a ∈ Algebra.adjoin (𝒜 0) S' := Iff.rfl
 
 instance noetherian_A' : IsNoetherianRing (A' S x S' hS') :=
@@ -753,11 +789,13 @@ def A'ZeroToAZero : 𝒜' S x S' hS' 0 →+* 𝒜 0 where
   map_zero' := by ext; rfl
   map_add' := by intros; ext; rfl
 
+omit noetherian_ring [(a : A) → Decidable (a ∈ A' S x S' hS')] in
 lemma A'ZeroToAZero_comp_AZeroToA'Zero :
     (A'ZeroToAZero S x S' hS').comp (AZeroToA'Zero S x S' hS') = RingHom.id (𝒜 0) := by
   ext ⟨x, hx⟩
   simp
 
+omit noetherian_ring [(a : A) → Decidable (a ∈ A' S x S' hS')] in
 lemma AZeroToA'Zero_comp_A'ZeroToAZero :
     (AZeroToA'Zero S x S' hS').comp (A'ZeroToAZero S x S' hS') = RingHom.id (𝒜' S x S' hS' 0) := by
   ext ⟨⟨x, hx1⟩, hx2⟩
@@ -849,6 +887,7 @@ lemma eqKER :
       hom_inv_id := by ext; rfl
       inv_hom_id := by ext; rfl }
 
+omit [(i : ℕ) → (x : (ℳ i)) → Decidable (x ≠ 0)] in
 lemma eqCOKER :
     (μ' μ S x S' hS').poincareSeries (𝒜' S x S' hS') (COKER.den ℳ x deg_x).quotientGrading =
     μ.poincareSeries 𝒜 (COKER.den ℳ x deg_x).quotientGrading := by
@@ -876,6 +915,7 @@ variable (N : ℕ) (ih : statement'.{u} N)
 
 open induction.constructions
 
+include ih in
 lemma induction : statement'.{u} (N + 1) := by
   classical
   intro A M _ _ _ _ _ 𝒜 ℳ _ _ _ μ S cardS

@@ -7,6 +7,7 @@ Authors: Jujian Zhang
 import Mathlib.Algebra.Category.FGModuleCat.Basic
 import Mathlib.Algebra.Category.ModuleCat.EpiMono
 import Mathlib.Algebra.Category.ModuleCat.Limits
+import Mathlib.Algebra.Category.ModuleCat.Colimits
 import Mathlib.Algebra.Category.ModuleCat.Products
 import Mathlib.CategoryTheory.Limits.Constructions.LimitsOfProductsAndEqualizers
 
@@ -108,8 +109,8 @@ def _root_.RingEquiv.toFGModuleCatEquivalence : FGModuleCat R ≌ FGModuleCat S 
           rw [m'_def, m_def, e.symm_apply_apply]
           rfl }
       naturality := by intros; ext; rfl }
-    hom_inv_id := by intros; ext; rfl
-    inv_hom_id := by intros; ext; rfl }
+    hom_inv_id := by ext; rfl
+    inv_hom_id := by ext; rfl }
   counitIso :=
   { hom :=
     { app := fun X ↦
@@ -133,8 +134,8 @@ def _root_.RingEquiv.toFGModuleCatEquivalence : FGModuleCat R ≌ FGModuleCat S 
           intro r x
           exact (congr_arg (· • x) <| e.apply_symm_apply r).symm }
       naturality := by intros; ext; rfl }
-    hom_inv_id := by intros; ext; rfl
-    inv_hom_id := by intros; ext; rfl }
+    hom_inv_id := by ext; rfl
+    inv_hom_id := by ext; rfl }
   functor_unitIso_comp := by intros; ext; rfl
 
 

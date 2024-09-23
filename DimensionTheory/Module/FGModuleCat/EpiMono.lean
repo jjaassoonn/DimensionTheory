@@ -32,6 +32,7 @@ theorem ker_eq_bot_of_mono [Mono f] : LinearMap.ker f = ⊥ :=
       rintro ⟨x, hx⟩
       exact LinearMap.congr_fun h ⟨x, hx⟩
 
+omit [IsNoetherianRing R] in
 theorem range_eq_top_of_epi [Epi f] : LinearMap.range f = ⊤ :=
   LinearMap.range_eq_top_of_cancel fun u v h =>
     cancel_epi (Z := .of R (Y ⧸ LinearMap.range f)) f |>.1 <| ConcreteCategory.hom_ext _ _ <| by
@@ -44,10 +45,12 @@ theorem mono_iff_ker_eq_bot : Mono f ↔ LinearMap.ker f = ⊥ :=
 theorem mono_iff_injective : Mono f ↔ Function.Injective f := by
   rw [mono_iff_ker_eq_bot, LinearMap.ker_eq_bot]
 
+omit [IsNoetherianRing R] in
 theorem epi_iff_range_eq_top : Epi f ↔ LinearMap.range f = ⊤ :=
   ⟨fun _ => range_eq_top_of_epi _, fun hf =>
     ConcreteCategory.epi_of_surjective _ <| LinearMap.range_eq_top (f := (f : X →ₗ[R] Y)) |>.1 hf⟩
 
+omit [IsNoetherianRing R] in
 theorem epi_iff_surjective : Epi f ↔ Function.Surjective f := by
   rw [epi_iff_range_eq_top, LinearMap.range_eq_top]
 

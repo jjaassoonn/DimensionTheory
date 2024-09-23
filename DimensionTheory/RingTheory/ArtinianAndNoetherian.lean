@@ -13,7 +13,9 @@ import DimensionTheory.missing_lemmas.AboutSheafConditions
 import Mathlib.AlgebraicGeometry.PrimeSpectrum.Basic
 import Mathlib.AlgebraicGeometry.StructureSheaf
 import Mathlib.RingTheory.Artinian
+import Mathlib.RingTheory.LocalRing.ResidueField.Basic
 import Mathlib.Topology.Sheaves.SheafCondition.EqualizerProducts
+import Mathlib.Topology.Separation
 import Mathlib.Algebra.Category.Ring.Constructions
 
 /-!
@@ -42,10 +44,10 @@ variable [dim0 : Fact <| ringKrullDim R = 0] [Finite (PrimeSpectrum R)]
 
 instance t1_space_of_dim_zero : T1Space (PrimeSpectrum R) where
   t1 p := PrimeSpectrum.isClosed_singleton_iff_isMaximal _ |>.mpr <|
-    p.IsPrime.isMaximal_of_dim_zero dim0.out
+    p.isPrime.isMaximal_of_dim_zero dim0.out
 
-instance discrete_of_dim_zero : DiscreteTopology (PrimeSpectrum R) := discrete_of_t1_of_finite
-
+instance discrete_of_dim_zero : DiscreteTopology (PrimeSpectrum R) :=
+  Finite.instDiscreteTopology
 
 variable {R}
 
@@ -298,6 +300,7 @@ variable [maximalIdeal_nilpotent : Fact <| IsNilpotent <| LocalRing.maximalIdeal
 local notation "𝓂" => LocalRing.maximalIdeal (R := R)
 local notation "κ" => LocalRing.ResidueField (R := R)
 
+omit [Nontrivial R] in
 /--
 Maximal ideal of an artinian local ring is nilpotent.
 -/
@@ -307,6 +310,8 @@ lemma exists_K : ∃ K : ℕ, 𝓂 ^ K = 0 := maximalIdeal_nilpotent.out
 Let `K` be the smallest number such that `𝓂 ^ K = 0`
 -/
 def K : ℕ := exists_K R |>.choose
+
+omit [Nontrivial R] in
 lemma K_spec : 𝓂 ^ K R = 0 := exists_K R |>.choose_spec
 
 /--
@@ -322,9 +327,11 @@ def series : RelSeries ((· ≤ ·) : Ideal R → Ideal R → Prop) where
     apply Nat.sub_le_sub_left
     norm_num
 
+omit [Nontrivial R] in
 @[simp] lemma series_head : (series R).head = 0 := show 𝓂 ^ (K R - 0) = 0 from by
   simp [K_spec]
 
+omit [Nontrivial R] in
 @[simp] lemma series_last : (series R).last = ⊤ := show 𝓂 ^ (K R - K R) = ⊤ from by
   simp
 
@@ -450,19 +457,9 @@ The `R ⧸ 𝓂`-submodules of `𝓂ⁿ ⧸ 𝓂ⁿ⁺¹` are exactly the same a
 -/
 @[simps!]
 def qfSubmoduleAgree' (i : Fin (K R)) :
-    Submodule κ ((series R).qf i)ᵒᵈ ≃o
-    Submodule R ((series R).qf i)ᵒᵈ :=
- OrderIso.trans
- { toFun := OrderDual.ofDual
-   invFun := OrderDual.toDual
-   left_inv := by intros p; rfl
-   right_inv := by intros p; rfl
-   map_rel_iff' := by intros; rfl } <| (qfSubmoduleAgree R i).trans
-  { toFun := OrderDual.ofDual
-    invFun := OrderDual.toDual
-    left_inv := by intros p; rfl
-    right_inv := by intros p; rfl
-    map_rel_iff' := by intros; rfl }
+    (Submodule κ ((series R).qf i))ᵒᵈ ≃o
+    (Submodule R ((series R).qf i))ᵒᵈ :=
+  OrderIso.dual <| qfSubmoduleAgree R i
 
 instance qf_artinian_R [IsArtinianRing R] (i : Fin (K R)) : IsArtinian R ((series R).qf i) := by
   change IsArtinian R (_ ⧸ _)
@@ -473,6 +470,7 @@ instance qf_noetherian_R [IsNoetherianRing R] (i : Fin (K R)) :
   change IsNoetherian R (_ ⧸ _)
   infer_instance
 
+omit [Nontrivial R] in
 lemma qf_artinian_κR_iff (i : Fin (K R)) :
     IsArtinian κ ((series R).qf i) ↔ IsArtinian R ((series R).qf i) := by
   rw [← monotone_stabilizes_iff_artinian, ← monotone_stabilizes_iff_artinian]
@@ -498,6 +496,7 @@ lemma qf_artinian_κR_iff (i : Fin (K R)) :
     specialize hn m hm
     exact (qfSubmoduleAgree' R i).injective hn
 
+omit [Nontrivial R] in
 lemma qf_noetherian_κR_iff (i : Fin (K R)) :
     IsNoetherian κ ((series R).qf i) ↔ IsNoetherian R ((series R).qf i) := by
   rw [← monotone_stabilizes_iff_noetherian, ← monotone_stabilizes_iff_noetherian]
@@ -641,7 +640,7 @@ instance : IsArtinianRing R := by
     have i2 (i : PrimeSpectrum R) : Fact (ringKrullDim (Localization.AtPrime i.asIdeal) = 0) := by
       fconstructor
       have : ringKrullDim (Localization.AtPrime i.asIdeal) ≤ ringKrullDim R :=
-        krullDim.le_of_strictMono (fun p ↦
+        krullDim_le_of_strictMono (fun p ↦
           ⟨IsLocalization.orderEmbedding i.asIdeal.primeCompl (Localization.AtPrime i.asIdeal) p.1,
             ?_⟩) ?_
       pick_goal 2
@@ -660,9 +659,9 @@ instance : IsArtinianRing R := by
           rw [Localization.mk_mul]; simp
         have hx3 : Localization.mk a 1 ∈ q.asIdeal := by
           rw [eq1] at hx1
-          refine q.IsPrime.mem_or_mem hx1 |>.resolve_left ?_
+          refine q.isPrime.mem_or_mem hx1 |>.resolve_left ?_
           intro r
-          refine q.IsPrime.1 (Ideal.eq_top_iff_one _ |>.mpr ?_)
+          refine q.isPrime.1 (Ideal.eq_top_iff_one _ |>.mpr ?_)
           have eq2 : (Localization.mk 1 b : Localization.AtPrime i.asIdeal) *
             (Localization.mk b 1 : Localization.AtPrime i.asIdeal) =
             (1 : Localization.AtPrime i.asIdeal) := by rw [Localization.mk_mul]; simp
@@ -672,12 +671,12 @@ instance : IsArtinianRing R := by
         simp only [SetLike.mem_coe, Ideal.mem_comap]
         · exact hx3
         · rw [eq1] at hx2
-          have := p.IsPrime.mul_mem_iff_mem_or_mem.not.mp hx2
+          have := p.isPrime.mul_mem_iff_mem_or_mem.not.mp hx2
           push_neg at this
           exact this.2
 
       rw [dim0.out] at this
-      refine le_antisymm this krullDim.nonneg_of_Nonempty
+      refine le_antisymm this krullDim_nonneg_of_nonempty
 
     refine @isArtinianRing_of_ringEquiv (e := equivProdLocalization.symm) inferInstance
 

@@ -46,11 +46,12 @@ lemma homogeneous_of_mem_homogeneousComponents [DecidableEq ιM] [Decomposition 
 
 section same_indexing_set
 
+set_option linter.unusedSectionVars false
+
 variable {σA σM : Type*} (𝒜 : ℕ → σA) (ℳ : ℕ → σM)
 variable [AddCommMonoid M] [Module A M] [SetLike σA A] [SetLike σM M]
 variable [AddSubmonoidClass σA A] [AddSubmonoidClass σM M]
 variable [GradedRing 𝒜] [DirectSum.Decomposition ℳ] [SetLike.GradedSMul 𝒜 ℳ]
-
 
 lemma proj_smul_mem_right {i j : ℕ} (a : A) (m : M) (hm : m ∈ ℳ i) :
     GradedModule.proj ℳ j (a • m) =

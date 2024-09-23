@@ -16,13 +16,15 @@ especially about `dedup` and `nodup`
 
 namespace List
 
-variable {α β : Type*} [DecidableEq α]
+variable {α β : Type*}
 
 lemma map_ne_nil_of_ne_nil (l : List α) (h : l ≠ List.nil)
     (f : α → β) : l.map f ≠ List.nil := by
   cases l with | nil => ?_ | cons x l => ?_
   · cases h rfl
   · dsimp; exact List.cons_ne_nil _ _
+
+variable [DecidableEq α]
 
 lemma dedup_length_lt_of_not_nodup (l : List α) (h : ¬ l.Nodup) :
     l.dedup.length < l.length := by
@@ -47,7 +49,7 @@ lemma Nodup.get_not_mem_take {α : Type*} {l : List α}
   · intro n hn
     induction' n with n
     · simp
-    · simp only [List.length_cons, List.get_cons_succ, List.take_cons_succ, Bool.not_eq_true,
+    · simp only [List.length_cons, List.get_cons_succ, List.take_succ_cons, Bool.not_eq_true,
         List.mem_cons, not_or] at hn ⊢
       refine ⟨?_, ih (List.nodup_cons.mp hl).2 _ <| Nat.succ_lt_succ_iff.mp hn⟩
       rintro eq1

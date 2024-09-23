@@ -10,6 +10,7 @@ import Mathlib.Algebra.Polynomial.Roots
 import Mathlib.Order.Interval.Set.Infinite
 import Mathlib.Logic.Function.Iterate
 import Mathlib.Order.Filter.AtTopBot
+import Mathlib.LinearAlgebra.Basis.Basic
 
 import DimensionTheory.missing_lemmas.Polynomial
 import DimensionTheory.missing_lemmas.Factorial
@@ -130,6 +131,7 @@ lemma apply_mul (p q : F[X]) : Δ (p * q) = Δ p * (q.comp (X + 1)) + p * Δ q :
   simp only [eval_eq, eval_mul, eval_add, eval_comp, eval_X, eval_one, Set.mem_setOf_eq]
   ring
 
+omit [CharZero F] in
 lemma coeff_natDegree_sub_one (p : F[X]) :
     (Δ p).coeff (p.natDegree - 1) = p.natDegree • p.leadingCoeff := by
   if h : p.natDegree = 0
@@ -151,11 +153,11 @@ lemma coeff_natDegree_sub_one (p : F[X]) :
         rw [Nat.choose_eq_zero_of_lt hi, Nat.cast_zero, mul_zero])
       (by
         intro h
-        simp only [mem_support_iff, ne_eq, Decidable.not_not] at h
+        simp only [mem_support_iff, ne_eq, not_not] at h
         rw [h, zero_mul])
       (by
         intro h
-        simp only [mem_support_iff, ne_eq, Decidable.not_not] at h
+        simp only [mem_support_iff, ne_eq, not_not] at h
         rw [h, zero_mul])]
     simp only [Nat.choose_self, Nat.cast_one, mul_one, coeff_natDegree, add_sub_cancel_left,
       nsmul_eq_mul]
@@ -287,12 +289,13 @@ noncomputable def binomialPolynomial (k : ℕ) : F[X] :=
 
 namespace binomialPolynomial
 
-@[simp]
-lemma zeroth : binomialPolynomial F 0 = 1 := by simp [binomialPolynomial]
+omit [CharZero F] in
+@[simp] lemma zeroth : binomialPolynomial F 0 = 1 := by simp [binomialPolynomial]
 
-@[simp]
-lemma first : binomialPolynomial F 1 = X := by simp [binomialPolynomial]
+omit [CharZero F] in
+@[simp] lemma first : binomialPolynomial F 1 = X := by simp [binomialPolynomial]
 
+omit [CharZero F] in
 lemma succ (k : ℕ) :
     binomialPolynomial F (k + 1) =
     (k + 1 : F)⁻¹ • (binomialPolynomial F k * (X - (C k : F[X]))) := by
@@ -363,6 +366,7 @@ lemma eval_int_of_le (k : ℕ) (n : ℤ) (h : k ≤ n) :
   rw [eval_of_le F k n]
   norm_cast at h
 
+omit [CharZero F] in
 lemma eval_of_gt (k n : ℕ) (h : k > n) :
     eval (n : F) (binomialPolynomial F k) = 0 := by
   delta binomialPolynomial
@@ -386,7 +390,7 @@ lemma eval_neg_nat (k n : ℕ) :
     Finset.prod_congr rfl fun _ _ => by ring]
   rw [← Finset.prod_mul_pow_card, Finset.card_range]
   rw [show ((n + k - 1).choose k : F) = (k ! : F)⁻¹ * (k ! * (n + k - 1).choose k) by
-    rw [← mul_assoc, inv_mul_cancel, one_mul]
+    rw [← mul_assoc, inv_mul_cancel₀, one_mul]
     exact_mod_cast Nat.factorial_ne_zero _,
     show (k ! * (n + k - 1).choose k : F) = ((k ! * (n + k - 1).choose k : ℕ) : F) by simp,
     ← Nat.ascFactorial_eq_factorial_mul_choose', Nat.ascFactorial_eq_prod_range]
@@ -431,6 +435,7 @@ lemma stdDiff_succ (k : ℕ) :
   rw [sub_eq_iff_eq_add]
   norm_cast
 
+omit [CharZero F] in
 lemma stdDiff_zero : Δ (binomialPolynomial F 0) = 0 := by simp
 
 lemma stdDiff_eq (k : ℕ) :
@@ -449,12 +454,14 @@ In Serre's Local algebra book, this is eₖ(P), where we write the polynomial as
 -/
 noncomputable abbrev coeff' (p : F[X]) (k : ℕ) : F := (Δ^[k] p).eval 0
 
-@[simp]
-lemma coeff'_zero (p : F[X]) : coeff' p 0 = p.eval 0 := by simp [coeff']
+omit [CharZero F] in
+@[simp] lemma coeff'_zero (p : F[X]) : coeff' p 0 = p.eval 0 := by simp [coeff']
 
+omit [CharZero F] in
 lemma coeff'_add (p q : F[X]) (k : ℕ) :
     coeff' (p + q) k = coeff' p k + coeff' q k := by simp [coeff']
 
+omit [CharZero F] in
 lemma coeff'_smul (p : F[X]) (r : F) (k : ℕ) :
     coeff' (r • p) k = r * coeff' p k := by
   induction k generalizing p with
@@ -502,7 +509,7 @@ lemma basis_apply (k : ℕ) : basis F k = binomialPolynomial F k := by simp [bas
 /-- antiderivative: the inverse operator to `Δ`, defined by sending `X choose k` to
 `X.choose (k + 1)`.-/
 noncomputable def antideriv : F[X] →ₗ[F] F[X] :=
-(Finsupp.total _ _ _ $ fun n => binomialPolynomial F (n + 1)) ∘ₗ (basis F).repr.toLinearMap
+(Finsupp.linearCombination _ fun n => binomialPolynomial F (n + 1)) ∘ₗ (basis F).repr.toLinearMap
 
 lemma antideriv_eq_succ (k : ℕ) :
     antideriv (binomialPolynomial F k) =
@@ -511,7 +518,7 @@ lemma antideriv_eq_succ (k : ℕ) :
   simp only [LinearMap.coe_comp, LinearEquiv.coe_coe, Function.comp_apply]
   have := (basis F).repr_self k
   rw [basis_apply] at this
-  simp only [this, Finsupp.total_single, one_smul]
+  simp only [this, Finsupp.linearCombination_single, one_smul]
 
 lemma antideriv_eq (p : F[X]) :
     antideriv p =

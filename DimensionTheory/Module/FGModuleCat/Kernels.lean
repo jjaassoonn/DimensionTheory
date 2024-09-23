@@ -62,16 +62,15 @@ def cokernelIsColimit : IsColimit (cokernelCocone f) :=
 end
 
 /-- The category of R-modules has kernels, given by the inclusion of the kernel submodule. -/
-theorem hasKernels_fgModuleCat : HasKernels (FGModuleCat R) :=
+instance hasKernels_fgModuleCat : HasKernels (FGModuleCat R) :=
   ⟨fun f => HasLimit.mk ⟨_, kernelIsLimit f⟩⟩
 
+omit [IsNoetherianRing R] in
 /-- The category of R-modules has cokernels, given by the projection onto the quotient. -/
-theorem hasCokernels_fgModuleCat : HasCokernels (FGModuleCat R) :=
+instance hasCokernels_fgModuleCat : HasCokernels (FGModuleCat R) :=
   ⟨fun f => HasColimit.mk ⟨_, cokernelIsColimit f⟩⟩
 
 open FGModuleCat
-
-attribute [local instance] hasKernels_fgModuleCat
 
 attribute [local instance] hasCokernels_fgModuleCat
 
@@ -106,17 +105,20 @@ noncomputable def cokernelIsoRangeQuotient {G H : FGModuleCat R} (f : G ⟶ H) :
     cokernel f ≅ FGModuleCat.of R (H ⧸ LinearMap.range f) :=
   colimit.isoColimitCocone ⟨_, cokernelIsColimit f⟩
 
+omit [IsNoetherianRing R] in
 -- We now show this isomorphism commutes with the projection of target to the cokernel.
 @[simp, elementwise]
 theorem cokernel_π_cokernelIsoRangeQuotient_hom :
     cokernel.π f ≫ (cokernelIsoRangeQuotient f).hom = f.range.mkQ := by
   convert colimit.isoColimitCocone_ι_hom (F := parallelPair f 0) _ _
 
+omit [IsNoetherianRing R] in
 @[simp, elementwise]
 theorem range_mkQ_cokernelIsoRangeQuotient_inv :
     asHom f.range.mkQ ≫ (cokernelIsoRangeQuotient f).inv = cokernel.π f :=
   colimit.isoColimitCocone_ι_inv ⟨_, cokernelIsColimit f⟩ WalkingParallelPair.one
 
+omit [IsNoetherianRing R] in
 theorem cokernel_π_ext {M N : FGModuleCat R} (f : M ⟶ N) {x y : N} (m : M) (w : x = y + f m) :
     cokernel.π f x = cokernel.π f y := by
   subst w

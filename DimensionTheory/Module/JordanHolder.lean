@@ -62,19 +62,20 @@ def interList : List (Submodule R N) :=
 lemma interList_length : (s.interList N).length = s.length + 1 :=
 by rw [interList, List.length_map, RelSeries.length_toList]
 
+open List in
 lemma interList_get_eq_aux (i : ℕ) (hi : i < s.length + 1) :
-    (s.interList N).get ⟨i, by rw [interList_length]; linarith⟩ =
+    (s.interList N)[i]'(by rw [interList_length]; linarith) =
     Submodule.comap N.subtype (N ⊓ s ⟨i, by linarith⟩) := by
   delta interList
-  rw [List.get_map]
+  rw [List.getElem_map]
   congr 2
   exact List.get_ofFn _ _
 
 private def interList_get (i : Fin s.length) : Submodule R N :=
-  (s.interList N).get (i.castLE <| by rw [interList_length]; linarith)
+  (s.interList N)[i]'(by rw [interList_length]; linarith [i.2])
 
 private def interList_get_succ (i : Fin s.length) : Submodule R N :=
-  (s.interList N).get (i.succ.castLE <| by rw [interList_length])
+  (s.interList N)[i.succ]'(by simp [interList_length])
 
 lemma interList_get_eq (i : Fin s.length) :
     s.interList_get N i =
@@ -275,7 +276,7 @@ lemma eq_interList_get_of_head_eq_bot_and_interList_nodup (s0 : s.head = ⊥)
     erw [ih']
     rw [eq_comm, inf_eq_right]
     rintro _ ⟨y, hy, rfl⟩
-    simp only [Fin.cast_mk, SetLike.mem_coe] at hy
+    simp only [Fin.cast_mk, List.get_eq_getElem, SetLike.mem_coe] at hy
     rw [s.interList_get_eq_aux N i ((lt_add_one _).trans hi), Submodule.mem_comap] at hy
     exact hy.1
 
@@ -293,8 +294,8 @@ lemma eq_interList_get_of_head_eq_bot_and_interList_nodup (s0 : s.head = ⊥)
 
   rw [← ih''] at le1
   obtain (H|H) := covby2.eq_or_eq le1 inf_le_right
-  · have eq2 : (s.interList N).get ⟨i + 1, by rw [s.interList_length]; exact hi⟩ =
-      (s.interList N).get ⟨i, by rw [s.interList_length]; exact (lt_add_one _).trans hi⟩ := by
+  · have eq2 : (s.interList N)[i+1]'(by rw [s.interList_length]; exact hi) =
+      (s.interList N)[i]'(by rw [s.interList_length]; exact (lt_add_one _).trans hi) := by
       refine le_antisymm ?_ h1.le
       rw [s.interList_get_eq_aux N _ hi, s.interList_get_eq_aux N _ ((lt_add_one _).trans hi)]
       refine Submodule.comap_mono ?_
@@ -305,8 +306,8 @@ lemma eq_interList_get_of_head_eq_bot_and_interList_nodup (s0 : s.head = ⊥)
     norm_num at this
   · rw [← H]
     ext1 x
-    simp only [Fin.cast_mk, Submodule.mem_map, Submodule.coeSubtype, Subtype.exists,
-      exists_and_right, exists_eq_right]
+    simp only [Submodule.mem_inf, Fin.cast_mk, List.get_eq_getElem, Submodule.mem_map,
+      Submodule.coeSubtype, Subtype.exists, exists_and_right, exists_eq_right]
     rw [s.interList_get_eq_aux N _ hi]
     fconstructor
     · rintro ⟨hx1, hx2⟩
@@ -317,6 +318,9 @@ lemma eq_top_of_interList_nodup (s0 : s.head = ⊥) (slast : s.last = ⊤)
     (hinter : (s.interList N).Nodup) :  N = ⊤ := by
   classical
   have eq0 := s.eq_interList_get_of_head_eq_bot_and_interList_nodup N s0 hinter (Fin.last _)
+  simp only [Fin.cast_last, Submodule.comap_inf, Nat.reduceAdd, List.get_eq_getElem, Fin.val_last,
+    Submodule.comap_subtype_self, le_top, inf_of_le_right, List.length_map,
+    List.length_ofFn_go] at eq0
   rw [show s (Fin.last _) = _ from slast, interList_get_eq_aux (hi := by simp)] at eq0
   simp only [Fin.coe_cast, Fin.val_last, Submodule.comap_inf, Submodule.comap_subtype_self,
     _root_.le_top, inf_of_le_right] at eq0
@@ -333,28 +337,36 @@ lemma interList_not_nodup_of_lt_top (s0 : s.head = ⊥) (slast : s.last = ⊤)
 
 /-- after removing duplication from `s ⊓ N`, it becomes a composition series. -/
 @[simps!]
-noncomputable def ofInterList :
+noncomputable def ofInterList
+    [DecidableEq (Submodule R N)] [DecidableEq (Submodule R M)] :
   CompositionSeries (Submodule R N) :=
-let _ : DecidableEq (Submodule R N) := Classical.decEq _
 RelSeries.fromListChain' (s.interList N).dedup (List.dedup_ne_nil_of_ne_nil _ $
   List.map_ne_nil_of_ne_nil _ s.toList_ne_nil _) $ List.dedup_chain'_covby_of_chain'_wcovby _ $
   interList_chain'_wcovby s N
 
-lemma ofInterList_head_eq_bot_of_head_eq_bot (s0 : s.head = ⊥) :
-    (s.ofInterList N).head = ⊥ := by
-  classical
-  change List.get _ ⟨0, _⟩ = _
+lemma ofInterList_head_eq_bot_of_head_eq_bot
+    [DecidableEq (Submodule R N)] [DecidableEq (Submodule R M)]
+    (s0 : s.head = ⊥) : (s.ofInterList N).head = ⊥ := by
+  change ((s.interList N).dedup)[0]'_ = _
   have := List.dedup_head?_of_chain'_wcovby _ (s.interList_chain'_wcovby N)
   rw [← List.get?_zero, ← List.get?_zero] at this
-  simpa [List.get_eq_get?, this] using interList_head_eq_bot_of_head_eq_bot (s0 := s0) _
+  simp only [List.get?_eq_getElem?] at this
+  rw [List.getElem?_eq_getElem, List.getElem?_eq_getElem] at this
+  simp only [Option.some.injEq] at this
+  rw [this]
+  exact interList_head_eq_bot_of_head_eq_bot (s0 := s0) _
 
-lemma ofInterList_last_eq_top_of_last_eq_top (slast : s.last = ⊤) :
+
+lemma ofInterList_last_eq_top_of_last_eq_top (slast : s.last = ⊤)
+    [DecidableEq (Submodule R N)] [DecidableEq (Submodule R M)] :
     (s.ofInterList N).last = ⊤ := by
   classical
+
   change List.get _ ⟨List.length _ - 1, _⟩ = _
+  -- dsimp
   rw [List.get_length_sub_one, List.dedup_getLast_eq_getLast_of_chain'_wcovby (l_ne_nil :=
     show (s.interList N) ≠ [] from List.map_ne_nil_of_ne_nil _ s.toList_ne_nil _)
-    (l_chain := interList_chain'_wcovby s N), List.getLast_eq_get]
+    (l_chain := interList_chain'_wcovby s N), List.getLast_eq_getElem]
   simp only [s.interList_length]
   exact s.interList_last_eq_top_of_last_eq_top N slast
 
