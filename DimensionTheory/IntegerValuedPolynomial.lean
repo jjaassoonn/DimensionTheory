@@ -654,7 +654,119 @@ lemma coeff_natDegree_pos_iff_eval_eventually_pos
     0 < f.coeffInt (f.natDegree) ↔
     ∀ᶠ (n : ℤ) in atTop, 0 < (f.evalInt n) := by
   constructor
-  · sorry
-  · sorry
+  · intro H
+    have : _ =o[_] _ := isEquivalent_leading_monomial f
+    rw [Asymptotics.IsLittleO_def] at this
+    specialize this (c := 1/2) (by simp)
+    rw [Asymptotics.IsBigOWith_def] at this
+    simp only [zsmul_eq_mul, Pi.sub_apply, norm_mul, Int.norm_cast_rat, eventually_atTop,
+      ge_iff_le] at this ⊢
+    obtain ⟨a, ha⟩ := this
+    refine ⟨max f.natDegree a, fun b hb => ?_⟩
+    specialize ha b (by aesop)
+    lift b to ℕ
+    · simp only [max_le_iff] at hb
+      omega
+    simp only [one_div] at ha
+    change |_| ≤ 2⁻¹ * (|_| * |_|) at ha
+    simp only [Rat.cast_sub, Rat.cast_intCast, Rat.cast_mul] at ha
+    rw [abs_le, abs_of_nonneg, abs_of_nonneg] at ha
+    pick_goal 2
+    · norm_cast
+      have eq : ((binomialPolynomial F f.natDegree).evalInt b : F) =
+          (b.choose f.natDegree : F) := by
+
+        rw [evalInt_spec]
+        rw [show ((b : ℤ) : F) = (b : F) by aesop, binomialPolynomial.eval_of_le F]
+        simp only [max_le_iff, Nat.cast_le] at hb
+        exact hb.1
+      norm_cast at eq
+      rw [eq]
+      norm_cast
+      exact Nat.zero_le (b.choose f.natDegree)
+    pick_goal 2
+    · norm_cast; omega
+    obtain ⟨ha, -⟩ := ha
+    simp only [neg_le_sub_iff_le_add] at ha
+    rw [← sub_le_iff_le_add, inv_mul_eq_div, sub_half, div_le_iff₀] at ha
+    pick_goal 2
+    · exact zero_lt_two
+    norm_cast at ha
+    suffices 0 < f.evalInt b * 2 by omega
+    refine lt_of_lt_of_le ?_ ha
+    apply mul_pos
+    · exact H
+    norm_cast
+    have eq : ((binomialPolynomial F f.natDegree).evalInt b : F) =
+        (b.choose f.natDegree : F) := by
+
+      rw [evalInt_spec]
+      rw [show ((b : ℤ) : F) = (b : F) by aesop, binomialPolynomial.eval_of_le F]
+      simp only [max_le_iff, Nat.cast_le] at hb
+      exact hb.1
+    norm_cast at eq
+    rw [eq]
+    norm_cast
+    apply Nat.choose_pos
+    simp only [max_le_iff, Nat.cast_le] at hb
+    exact hb.1
+  · intro h
+    simp only [eventually_atTop, ge_iff_le] at h
+    obtain ⟨N, hN⟩ := h
+    have : _ =o[_] _ := isEquivalent_leading_monomial f
+    rw [Asymptotics.IsLittleO_def] at this
+    specialize this (c := 1) (by simp)
+    rw [Asymptotics.IsBigOWith_def] at this
+    simp only [zsmul_eq_mul, Pi.sub_apply, one_div, norm_mul, Int.norm_cast_rat, eventually_atTop,
+      ge_iff_le, gt_iff_lt] at this ⊢
+    obtain ⟨M, hM⟩ := this
+    specialize hN (max f.natDegree <| max M N) (by simp)
+    specialize hM (max f.natDegree <| max M N) (by simp)
+    change |_| ≤ 1 * (|_| * |_|) at hM
+    simp only [Rat.cast_sub, Rat.cast_intCast, Rat.cast_mul, one_mul] at hM
+    rw [abs_le] at hM
+    obtain ⟨-, hM⟩ := hM
+    simp only [tsub_le_iff_right] at hM
+    by_contra! ineq
+    norm_cast at hM
+    rw [abs_of_nonpos ineq, abs_of_nonneg] at hM
+    pick_goal 2
+    · norm_cast
+      have eq : ((binomialPolynomial F f.natDegree).evalInt (max f.natDegree <| max M N) : F) =
+          (max f.natDegree <| (max M N).toNat).choose f.natDegree := by
+
+
+        rw [show (max f.natDegree <| max M N : ℤ) = (max f.natDegree <| (max M N).toNat : ℕ) by
+          simp only [Nat.cast_max]
+          by_cases h : f.natDegree ≤ (max M N)
+          · rw [max_eq_right]
+            rw [max_eq_right (a := (f.natDegree : ℤ))]
+            rw [Int.toNat_of_nonneg]
+            · refine le_trans ?_ h
+              norm_cast
+              exact Nat.zero_le f.natDegree
+            · rwa [Int.toNat_of_nonneg]
+              refine le_trans ?_ h
+              norm_cast
+              exact Nat.zero_le f.natDegree
+            · assumption
+          simp only [le_max_iff, not_or, not_le] at h
+          rw [max_eq_left, max_eq_left (a := (f.natDegree : ℤ))]
+          · norm_cast
+            rw [Int.toNat_le]
+            simp only [max_le_iff]
+            omega
+          · omega]
+        rw [evalInt_spec]
+        rw [show (((max f.natDegree <| (max M N).toNat : ℕ) : ℤ) : F) =
+            ((max f.natDegree <| (max M N).toNat : ℕ) : F) by norm_cast]
+        rw [binomialPolynomial.eval_of_le F]
+        exact Nat.le_max_left _ _
+      norm_cast at eq
+      rw [eq]
+      norm_cast
+      exact Nat.zero_le _
+    simp only [neg_mul, neg_add_cancel] at hM
+    linarith
 
 end Polynomial
