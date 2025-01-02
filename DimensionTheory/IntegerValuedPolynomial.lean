@@ -53,7 +53,7 @@ lemma isIntegerValued_def' (p : R[X]) :
 
 lemma IsIntegerValued.delta_mem_span_of_mem_span
     (p : F[X]) (hp : p ∈ Submodule.span ℤ (Set.range <| binomialPolynomial F)) :
-    Δ p ∈ Submodule.span ℤ (Set.range <| binomialPolynomial F) := by
+    Δᵖ p ∈ Submodule.span ℤ (Set.range <| binomialPolynomial F) := by
   rw [mem_span_set] at hp
   obtain ⟨c, hc, (rfl : ∑ _ ∈ _, _ • _ = _)⟩ := hp
   rw [map_sum]
@@ -69,7 +69,7 @@ lemma IsIntegerValued.delta_mem_span_of_mem_span
 
 lemma IsIntegerValued.delta_pow_mem_span_of_mem_span
     (p : F[X]) (hp : p ∈ Submodule.span ℤ (Set.range <| binomialPolynomial F)) (k : ℕ) :
-    (Δ^[k] p) ∈ Submodule.span ℤ (Set.range <| binomialPolynomial F) := by
+    (Δᵖ^[k] p) ∈ Submodule.span ℤ (Set.range <| binomialPolynomial F) := by
   induction k with
   | zero => simpa
   | succ k ih =>
@@ -111,12 +111,12 @@ lemma IsIntegerValued.eval_of_mem_span
 
 lemma IsIntegerValued.eval_add_one_of_delta_mem_span
     (p : F[X])
-    (delta_p_mem : Δ p ∈ Submodule.span ℤ (Set.range <| binomialPolynomial F))
+    (delta_p_mem : Δᵖ p ∈ Submodule.span ℤ (Set.range <| binomialPolynomial F))
     (n : ℤ) :
     p.eval (n : F) ∈ (algebraMap ℤ F).range ↔ p.eval (n + 1 : F) ∈ (algebraMap ℤ F).range := by
-  have h1 : (Δ p).eval (n : F) ∈ (algebraMap ℤ F).range :=
+  have h1 : (Δᵖ p).eval (n : F) ∈ (algebraMap ℤ F).range :=
     IsIntegerValued.eval_of_mem_span _ delta_p_mem n
-  have eq1 : p.eval (n + 1 : F) - p.eval (n : F) = (Δ p).eval (n : F) := by simp
+  have eq1 : p.eval (n + 1 : F) - p.eval (n : F) = (Δᵖ p).eval (n : F) := by simp
   rw [sub_eq_iff_eq_add] at eq1
   rw [eq1]
   fconstructor
@@ -128,7 +128,7 @@ lemma IsIntegerValued.eval_add_one_of_delta_mem_span
 
 lemma IsIntegerValued.eval_add_of_delta_mem_span
     (p : F[X])
-    (delta_p_mem : Δ p ∈ Submodule.span ℤ (Set.range <| binomialPolynomial F))
+    (delta_p_mem : Δᵖ p ∈ Submodule.span ℤ (Set.range <| binomialPolynomial F))
     (n : ℤ) (k : ℕ) :
     p.eval (n : F) ∈ (algebraMap ℤ F).range ↔ p.eval (n + k : F) ∈ (algebraMap ℤ F).range := by
   induction k with
@@ -144,13 +144,13 @@ lemma IsIntegerValued.eval_add_of_delta_mem_span
 
 lemma IsIntegerValued.eval_sub_one_of_delta_mem_span
     (p : F[X])
-    (delta_p_mem : Δ p ∈ Submodule.span ℤ (Set.range <| binomialPolynomial F))
+    (delta_p_mem : Δᵖ p ∈ Submodule.span ℤ (Set.range <| binomialPolynomial F))
     (n : ℤ) :
     p.eval (n : F) ∈ (algebraMap ℤ F).range ↔ p.eval (n - 1 : F) ∈ (algebraMap ℤ F).range := by
-  have h1 : (Δ p).eval (n - 1 : F) ∈ (algebraMap ℤ F).range := by
+  have h1 : (Δᵖ p).eval (n - 1 : F) ∈ (algebraMap ℤ F).range := by
     convert IsIntegerValued.eval_of_mem_span _ delta_p_mem (n - 1)
     simp
-  have eq1 : p.eval (n : F) - p.eval (n - 1 : F) = (Δ p).eval (n - 1 : F) := by simp
+  have eq1 : p.eval (n : F) - p.eval (n - 1 : F) = (Δᵖ p).eval (n - 1 : F) := by simp
   rw [sub_eq_iff_eq_add] at eq1
   rw [eq1]
   fconstructor
@@ -162,7 +162,7 @@ lemma IsIntegerValued.eval_sub_one_of_delta_mem_span
 
 lemma IsIntegerValued.eval_sub_of_delta_mem_span
     (p : F[X])
-    (delta_p_mem : Δ p ∈ Submodule.span ℤ (Set.range <| binomialPolynomial F))
+    (delta_p_mem : Δᵖ p ∈ Submodule.span ℤ (Set.range <| binomialPolynomial F))
     (n : ℤ) (k : ℕ) :
     p.eval (n : F) ∈ (algebraMap ℤ F).range ↔ p.eval (n - k : F) ∈ (algebraMap ℤ F).range := by
   induction k with
@@ -179,7 +179,7 @@ lemma IsIntegerValued.eval_sub_of_delta_mem_span
 
 lemma IsIntegerValued.exists_iff_forall_of_delta_mem_span
     (p : F[X])
-    (delta_p_mem : Δ p ∈ Submodule.span ℤ (Set.range <| binomialPolynomial F)) :
+    (delta_p_mem : Δᵖ p ∈ Submodule.span ℤ (Set.range <| binomialPolynomial F)) :
     (∀ (n : ℤ), p.eval (n : F) ∈ (algebraMap ℤ F).range) ↔
     (∃ (n : ℤ), p.eval (n : F) ∈ (algebraMap ℤ F).range) := by
   constructor
@@ -202,7 +202,7 @@ lemma IsIntegerValued.exists_iff_forall_of_delta_mem_span
 
 lemma IsIntegerValued.mem_span_iff_delta_mem_span_and_integer_point (p : F[X]) :
     p ∈ Submodule.span ℤ (Set.range <| binomialPolynomial F) ↔
-    Δ p ∈ Submodule.span ℤ (Set.range <| binomialPolynomial F) ∧
+    Δᵖ p ∈ Submodule.span ℤ (Set.range <| binomialPolynomial F) ∧
         ∃ (n : ℤ), (p.eval n : F) ∈ (algebraMap ℤ F).range := by
   constructor
   · exact fun hp => ⟨IsIntegerValued.delta_mem_span_of_mem_span p hp, 0,
@@ -220,24 +220,24 @@ lemma IsIntegerValued.mem_span_iff_delta_mem_span_and_integer_point (p : F[X]) :
       rintro ⟨h1, h2⟩
       rw [← IsIntegerValued.exists_iff_forall_of_delta_mem_span p h1] at h2
       have eq_p := binomialPolynomial.eq_sum_range p
-      have eq_delta_p := binomialPolynomial.eq_sum_range (Δ p)
-      replace eq_delta_p := calc Δ p
+      have eq_delta_p := binomialPolynomial.eq_sum_range (Δᵖ p)
+      replace eq_delta_p := calc Δᵖ p
           _ = _ := eq_delta_p
           _ = ∑ k ∈ Finset.range p.natDegree, _ := Finset.sum_congr (by
             rw [stdDiff.natDegree_eq]
             congr
             refine Nat.succ_pred_eq_of_pos $ show 0 < p.natDegree by omega) fun _ _ ↦ rfl
-          _ = ∑ k ∈ Finset.range p.natDegree, eval 0 (Δ^[k+1] p) • binomialPolynomial F k :=
+          _ = ∑ k ∈ Finset.range p.natDegree, eval 0 (Δᵖ^[k+1] p) • binomialPolynomial F k :=
               Finset.sum_congr rfl fun k _ => by simp
       rw [Finset.sum_range_succ] at eq_p
-      have eq1 := calc p - Δ p
+      have eq1 := calc p - Δᵖ p
           _ = (∑ _ ∈ _, _ + _) - (∑ _ ∈ _, _) := congr_arg₂ (· - ·) eq_p eq_delta_p
       rw [add_sub_right_comm, ← Finset.sum_sub_distrib] at eq1
       simp_rw [← sub_smul, ← eval_sub] at eq1
       rw [sub_eq_iff_eq_add] at eq1
       rw [eq1]
       refine Submodule.add_mem _ (Submodule.add_mem _ (Submodule.sum_mem _ fun k hk => ?_) ?_) h1
-      · suffices mem : eval 0 ((Δ^[k] p) - Δ^[k + 1] p) ∈ (algebraMap ℤ F).range by
+      · suffices mem : eval 0 ((Δᵖ^[k] p) - Δᵖ^[k + 1] p) ∈ (algebraMap ℤ F).range by
           rcases mem with ⟨j, hj⟩
           rw [← hj, Polynomial.smul_eq_C_mul]
           convert_to j • binomialPolynomial F k ∈ _
@@ -253,14 +253,14 @@ lemma IsIntegerValued.mem_span_iff_delta_mem_span_and_integer_point (p : F[X]) :
             simpa using h2 0
           | succ k =>
             rw [Function.iterate_succ, Function.comp_apply]
-            have h2 := IsIntegerValued.delta_pow_mem_span_of_mem_span (Δ p) h1 k
+            have h2 := IsIntegerValued.delta_pow_mem_span_of_mem_span (Δᵖ p) h1 k
             replace h2 := IsIntegerValued.eval_of_mem_span _ h2 0
             simpa using h2
         · rw [Function.iterate_succ, Function.comp_apply]
-          have h2 := IsIntegerValued.delta_pow_mem_span_of_mem_span (Δ p) h1 k
+          have h2 := IsIntegerValued.delta_pow_mem_span_of_mem_span (Δᵖ p) h1 k
           replace h2 := IsIntegerValued.eval_of_mem_span _ h2 0
           simpa using h2
-      · suffices mem : eval 0 (Δ^[p.natDegree] p) ∈ (algebraMap ℤ F).range by
+      · suffices mem : eval 0 (Δᵖ^[p.natDegree] p) ∈ (algebraMap ℤ F).range by
           rcases mem with ⟨j, hj⟩
           rw [← hj, Polynomial.smul_eq_C_mul]
           convert_to j • binomialPolynomial F p.natDegree ∈ _
@@ -270,7 +270,7 @@ lemma IsIntegerValued.mem_span_iff_delta_mem_span_and_integer_point (p : F[X]) :
         | zero => simpa using h2 0
         | succ k =>
           rw [Function.iterate_succ, Function.comp_apply]
-          have h2 := IsIntegerValued.delta_pow_mem_span_of_mem_span (Δ p) h1 k
+          have h2 := IsIntegerValued.delta_pow_mem_span_of_mem_span (Δᵖ p) h1 k
           replace h2 := IsIntegerValued.eval_of_mem_span _ h2 0
           simpa using h2
 
@@ -295,7 +295,7 @@ lemma IsIntegerValued.mem_span {p : F[X]} (iv : IsIntegerValued p) :
     · exact Submodule.smul_mem _ _ $ Submodule.subset_span ⟨0, rfl⟩
   · intro n ih p iv p_deg
     simp only [Nat.succ_eq_add_one] at p_deg
-    specialize ih (Δ p) (by
+    specialize ih (Δᵖ p) (by
       rw [isIntegerValued_def'] at iv ⊢
       obtain ⟨N, hN⟩ := iv
       refine ⟨N, fun n hn => ?_⟩
@@ -318,7 +318,7 @@ lemma IsIntegerValued.tfae (p : F[X]) :
       p ∈ Submodule.span ℤ (Set.range <| binomialPolynomial F),
       ∀ (n : ℤ), (p.eval n : F) ∈ (algebraMap ℤ F).range,
       IsIntegerValued p,
-      IsIntegerValued Δ p ∧
+      IsIntegerValued Δᵖ p ∧
         ∃ (n : ℤ), (p.eval n : F) ∈ (algebraMap ℤ F).range
     ] := by
 
@@ -391,12 +391,12 @@ instance IsIntegerValued.neg {p : F[X]} [hp : IsIntegerValued p] :
   exact Subring.neg_mem _ (hp n)
 
 instance IsIntegerValued.stdDiff {p : F[X]} [hp : IsIntegerValued p] :
-    IsIntegerValued (Δ p) := by
+    IsIntegerValued (Δᵖ p) := by
   have := IsIntegerValued.tfae p |>.out 2 3 |>.mp hp
   exact this.1
 
 instance IsIntegerValued.stdDiff_pow {p : F[X]} [hp : IsIntegerValued p] (n : ℕ) :
-    IsIntegerValued (Δ^[n] p) := by
+    IsIntegerValued (Δᵖ^[n] p) := by
   induction n with
   | zero => simpa
   | succ n ih =>
@@ -404,8 +404,8 @@ instance IsIntegerValued.stdDiff_pow {p : F[X]} [hp : IsIntegerValued p] (n : �
     exact ih.stdDiff
 
 instance IsIntegerValued.antideriv {p : F[X]} [hp : IsIntegerValued p] :
-    IsIntegerValued (∫ p) := by
-  have := IsIntegerValued.tfae (∫ p) |>.out 2 3
+    IsIntegerValued (∫ᵖ p) := by
+  have := IsIntegerValued.tfae (∫ᵖ p) |>.out 2 3
   rw [this]
   rw [binomialPolynomial.stdDiff_antideriv]
   refine ⟨hp, 0, ?_⟩
@@ -441,7 +441,7 @@ noncomputable def coeffInt {f : F[X]} [IsIntegerValued f] (i : ℕ) : ℤ :=
   IsIntegerValued.coeff'_in_int f i |>.choose
 
 lemma coeffInt_spec {f : F[X]} [IsIntegerValued f] (i : ℕ) :
-    (f.coeffInt i : F) = (Δ^[i] f).eval 0 :=
+    (f.coeffInt i : F) = (Δᵖ^[i] f).eval 0 :=
   IsIntegerValued.coeff'_in_int f i |>.choose_spec
 
 lemma eq_sum_range (f : F[X]) [IsIntegerValued f]:

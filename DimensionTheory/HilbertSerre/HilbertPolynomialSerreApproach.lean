@@ -89,7 +89,7 @@ def quotiented : HomogeneousIdeal S.grading := (S.aeval S_deg).ker
 
 
 omit [IsArtinianRing (𝒜 0)] in
-lemma surjective_avel : Function.Surjective (S.aeval S_deg) := fun a => by
+lemma surjective_aeval : Function.Surjective (S.aeval S_deg) := fun a => by
   have : a ∈ (⊤ : Subalgebra (𝒜 0) A) := ⟨⟩
   rw [← S.span_eq] at this
   refine Algebra.adjoin_induction this ?_ ?_ ?_ ?_
@@ -108,7 +108,7 @@ lemma surjective_avel : Function.Surjective (S.aeval S_deg) := fun a => by
 
 def quotientEquiv :
     (S.poly ⧸ (S.quotiented S_deg).toIdeal) ≃ₐ[𝒜 0] A :=
-  Ideal.quotientKerAlgEquivOfSurjective <| S.surjective_avel S_deg
+  Ideal.quotientKerAlgEquivOfSurjective <| S.surjective_aeval S_deg
 
 instance : IsNoetherianRing (𝒜 0) := inferInstance
 

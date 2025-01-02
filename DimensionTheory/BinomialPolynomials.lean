@@ -52,14 +52,15 @@ def stdDiffFunc {α β : Type*} [Add α] [One α] [Sub β] (f : α → β) : α 
   fun x ↦ f (x + 1) - f (x)
 
 @[inherit_doc]
-scoped[Polynomial] prefix:max "Δ" => stdDiff
+scoped[Polynomial] prefix:max "Δᵖ" => stdDiff
+
 @[inherit_doc]
-scoped[Function] prefix:max "fΔ" => stdDiffFunc
+scoped[Function] prefix:max "Δᶠ" => stdDiffFunc
 
 /--iterated standard difference-/
-scoped[Polynomial] notation "Δ^[ " n " ] " p => stdDiff^[n] p
+scoped[Polynomial] notation "Δᵖ^[ " n " ] " p => stdDiff^[n] p
 /--iterated standard difference-/
-scoped[Function] notation "fΔ^[ " n " ] " f => stdDiffFunc^[n] f
+scoped[Function] notation "Δᶠ^[ " n " ] " f => stdDiffFunc^[n] f
 
 namespace stdDiffFunc
 
@@ -67,7 +68,7 @@ open Function
 
 lemma eventually_constant_of_stdDiffFunc_eventually_eq_zero_nat
     {α : Type*} [AddGroup α] (f : ℕ → α)
-    (hf : ∀ᶠ (m : ℕ) in atTop, fΔ f m = 0) :
+    (hf : ∀ᶠ (m : ℕ) in atTop, Δᶠ f m = 0) :
     ∃ e : α, ∀ᶠ (m : ℕ) in atTop, f m = e := by
   simp only [eventually_atTop, ge_iff_le] at hf ⊢
   obtain ⟨n, hn⟩ := hf
@@ -84,7 +85,7 @@ lemma eventually_constant_of_stdDiffFunc_eventually_eq_zero_nat
 
 lemma eventually_constant_of_stdDiffFunc_eventually_eq_zero_int
     {α : Type*} [AddGroup α] (f : ℤ → α)
-    (hf : ∀ᶠ (m : ℤ) in atTop, fΔ f m = 0) :
+    (hf : ∀ᶠ (m : ℤ) in atTop, Δᶠ f m = 0) :
     ∃ e : α, ∀ᶠ (m : ℤ) in atTop, f m = e := by
   simp only [eventually_atTop, ge_iff_le] at hf ⊢
   obtain ⟨n, hn⟩ := hf
@@ -107,24 +108,24 @@ end stdDiffFunc
 namespace stdDiff
 
 @[simp]
-lemma eval_eq (p : R[X]) (x : R) : (Δ p).eval x = p.eval (x + 1) - p.eval x := by simp [stdDiff]
+lemma eval_eq (p : R[X]) (x : R) : (Δᵖ p).eval x = p.eval (x + 1) - p.eval x := by simp [stdDiff]
 
 @[simp]
-lemma apply_X : Δ (X : R[X]) = 1 := by simp [stdDiff]
+lemma apply_X : Δᵖ (X : R[X]) = 1 := by simp [stdDiff]
 
 @[simp]
-lemma apply_C (r : R) : Δ (C r) = 0 := by simp [stdDiff]
+lemma apply_C (r : R) : Δᵖ (C r) = 0 := by simp [stdDiff]
 
-lemma pow_apply_C (r : R) (k : ℕ) (hk : 0 < k) : (Δ^[k] (C r)) = 0 := by
+lemma pow_apply_C (r : R) (k : ℕ) (hk : 0 < k) : (Δᵖ^[k] (C r)) = 0 := by
   induction k <;> simp_all
 
 @[simp]
-lemma apply_constant : Δ (1 : R[X]) = 0 := by simp [stdDiff]
+lemma apply_constant : Δᵖ (1 : R[X]) = 0 := by simp [stdDiff]
 
-lemma apply_smul (p : R[X]) (r : R) : Δ (r • p) = r • Δ p := by
+lemma apply_smul (p : R[X]) (r : R) : Δᵖ (r • p) = r • Δᵖ p := by
   ext; simp [mul_sub, stdDiff]
 
-lemma apply_mul (p q : F[X]) : Δ (p * q) = Δ p * (q.comp (X + 1)) + p * Δ q := by
+lemma apply_mul (p q : F[X]) : Δᵖ (p * q) = Δᵖ p * (q.comp (X + 1)) + p * Δᵖ q := by
   apply eq_of_infinite_eval_eq
   apply Set.infinite_of_injective_forall_mem (α := ℕ) (hi := CharZero.cast_injective)
   intro x
@@ -133,7 +134,7 @@ lemma apply_mul (p q : F[X]) : Δ (p * q) = Δ p * (q.comp (X + 1)) + p * Δ q :
 
 omit [CharZero F] in
 lemma coeff_natDegree_sub_one (p : F[X]) :
-    (Δ p).coeff (p.natDegree - 1) = p.natDegree • p.leadingCoeff := by
+    (Δᵖ p).coeff (p.natDegree - 1) = p.natDegree • p.leadingCoeff := by
   if h : p.natDegree = 0
   then
     rw [natDegree_eq_zero] at h
@@ -166,7 +167,7 @@ lemma coeff_natDegree_sub_one (p : F[X]) :
     rw [Nat.choose_symm, Nat.choose_one_right]
     omega
 
-lemma coeff_natDegree (p : F[X]) : (Δ p).coeff p.natDegree = 0 := by
+lemma coeff_natDegree (p : F[X]) : (Δᵖ p).coeff p.natDegree = 0 := by
   have deq1 : (X + 1 : F[X]).natDegree = 1 := by
     rw [show (X + 1 : F[X]) = X + C 1 by simp, natDegree_X_add_C]
   have ceq0 : (X + 1 : F[X]).leadingCoeff = 1 := show coeff _ _ = _ by
@@ -178,7 +179,7 @@ lemma coeff_natDegree (p : F[X]) : (Δ p).coeff p.natDegree = 0 := by
   simp [stdDiff, ceq1]
 
 lemma coeff_eq_zero_of_natDegree_le (p : F[X]) (n : ℕ) (hn : p.natDegree ≤ n) :
-    (Δ p).coeff n = 0 := by
+    (Δᵖ p).coeff n = 0 := by
   rw [le_iff_eq_or_lt] at hn
   rcases hn with rfl | hn
   · apply coeff_natDegree
@@ -195,7 +196,7 @@ lemma coeff_eq_zero_of_natDegree_le (p : F[X]) (n : ℕ) (hn : p.natDegree ≤ n
 variable {F} in
 -- if `p` has degree `n`, then `Δ p` has degree `n - 1`. This is because the coefficient of `X^n` in
 -- `Δ p` is `0` and the coefficient of `X^(n - 1)` is `p.natDegree * leadingCoeff p`.
-lemma natDegree_eq (p : F[X]) : (Δ p).natDegree = p.natDegree - 1 := by
+lemma natDegree_eq (p : F[X]) : (Δᵖ p).natDegree = p.natDegree - 1 := by
   if p_ne_zero : p = 0
   then
       subst p_ne_zero
@@ -218,7 +219,7 @@ lemma natDegree_eq (p : F[X]) : (Δ p).natDegree = p.natDegree - 1 := by
     tauto
 
 variable {F} in
-lemma pow_natDegree_eq (p : F[X]) (k : ℕ) : (Δ^[k] p).natDegree = p.natDegree - k := by
+lemma pow_natDegree_eq (p : F[X]) (k : ℕ) : (Δᵖ^[k] p).natDegree = p.natDegree - k := by
   induction k with
   | zero => simp
   | succ n ih =>
@@ -226,7 +227,7 @@ lemma pow_natDegree_eq (p : F[X]) (k : ℕ) : (Δ^[k] p).natDegree = p.natDegree
     omega
 
 variable {F} in
-lemma eventually_eq_zero (p : F[X]) : ∀ᶠ (k : ℕ) in atTop, (Δ^[k] p) = 0 := by
+lemma eventually_eq_zero (p : F[X]) : ∀ᶠ (k : ℕ) in atTop, (Δᵖ^[k] p) = 0 := by
   simp only [eventually_atTop, ge_iff_le]
   refine ⟨p.natDegree + 1, fun m hm => ?_⟩
   apply eq_of_infinite_eval_eq
@@ -234,7 +235,7 @@ lemma eventually_eq_zero (p : F[X]) : ∀ᶠ (k : ℕ) in atTop, (Δ^[k] p) = 0 
     (fun _ _ _ _ h => by exact_mod_cast h) Set.infinite_univ
   rintro _ ⟨n, -, rfl⟩
   simp only [eval_zero, Set.mem_setOf_eq]
-  have eq0 : (Δ^[p.natDegree] p).natDegree = 0 := by rw [pow_natDegree_eq]; omega
+  have eq0 : (Δᵖ^[p.natDegree] p).natDegree = 0 := by rw [pow_natDegree_eq]; omega
   rw [natDegree_eq_zero] at eq0
   obtain ⟨f, hf⟩ := eq0
   rw [show m = (m - p.natDegree) + p.natDegree by omega]
@@ -247,12 +248,12 @@ In a field `F` of characteristic zero, let `p` be a polynomial in `F[X]`.
 Then `p(n) = ∑ k ∈ {0, ..., p.natDegree}, (Δᵏp)(0) * (n choose k)`.
 -/
 lemma eval_eq_sum (p : F[X]) (n : ℕ) :
-    ∑ k in Finset.range (p.natDegree + 1), (Δ^[k] p).eval 0 * (n.choose k : F)  =
+    ∑ k in Finset.range (p.natDegree + 1), (Δᵖ^[k] p).eval 0 * (n.choose k : F)  =
     p.eval (n : F) := by
   induction n generalizing p with
   | zero =>
     simp only [Nat.cast_zero]
-    rw [show eval 0 p = eval 0 (Δ^[0] p) * (Nat.choose 0 0 : F) by simp]
+    rw [show eval 0 p = eval 0 (Δᵖ^[0] p) * (Nat.choose 0 0 : F) by simp]
     apply Finset.sum_eq_single 0
     · intro k hk1 hk2
       simp only [Finset.mem_range, ne_eq] at hk1 hk2
@@ -260,7 +261,7 @@ lemma eval_eq_sum (p : F[X]) (n : ℕ) :
       omega
     · simp
   | succ n ih =>
-    have eq1 : eval (n + 1 : F) p = eval (n : F) (Δ p) + eval (n : F) p := by simp
+    have eq1 : eval (n + 1 : F) p = eval (n : F) (Δᵖ p) + eval (n : F) p := by simp
     rw [Nat.cast_add, Nat.cast_one, eq1, ← ih, ← ih, natDegree_eq p]
     if h : p.natDegree = 0
     then
@@ -418,7 +419,7 @@ lemma eval_nat (n k : ℕ) :
 
 @[simp]
 lemma stdDiff_succ (k : ℕ) :
-    Δ (binomialPolynomial F (k + 1)) = binomialPolynomial F k := by
+    Δᵖ (binomialPolynomial F (k + 1)) = binomialPolynomial F k := by
   apply eq_of_infinite_eval_eq
   apply Set.infinite_of_injective_forall_mem (α := Set.Ici (k + 2))
     (f := (fun (n : ℕ) ↦ (n : F)) ∘ Subtype.val)
@@ -436,10 +437,10 @@ lemma stdDiff_succ (k : ℕ) :
   norm_cast
 
 omit [CharZero F] in
-lemma stdDiff_zero : Δ (binomialPolynomial F 0) = 0 := by simp
+lemma stdDiff_zero : Δᵖ (binomialPolynomial F 0) = 0 := by simp
 
 lemma stdDiff_eq (k : ℕ) :
-    Δ (binomialPolynomial F k) =
+    Δᵖ (binomialPolynomial F k) =
     if k = 0
     then 0
     else binomialPolynomial F (k - 1) := by
@@ -452,7 +453,7 @@ variable {F}
 In Serre's Local algebra book, this is eₖ(P), where we write the polynomial as
 ∑ eₖ (X choose k). It can be calculated by Δᵏp (0).
 -/
-noncomputable abbrev coeff' (p : F[X]) (k : ℕ) : F := (Δ^[k] p).eval 0
+noncomputable abbrev coeff' (p : F[X]) (k : ℕ) : F := (Δᵖ^[k] p).eval 0
 
 omit [CharZero F] in
 @[simp] lemma coeff'_zero (p : F[X]) : coeff' p 0 = p.eval 0 := by simp [coeff']
@@ -471,7 +472,7 @@ lemma coeff'_smul (p : F[X]) (r : F) (k : ℕ) :
     rw [ih]
 
 lemma eq_sum_range (p : F[X]) : p =
-    ∑ k in Finset.range (p.natDegree + 1), (Δ^[k] p).eval 0 • binomialPolynomial F k := by
+    ∑ k in Finset.range (p.natDegree + 1), (Δᵖ^[k] p).eval 0 • binomialPolynomial F k := by
   apply eq_of_infinite_eval_eq
   apply Set.infinite_of_injective_forall_mem (α := Set.Ici (p.natDegree + 2))
     (f := (fun (n : ℕ) ↦ (n : F)) ∘ Subtype.val)
@@ -480,8 +481,8 @@ lemma eq_sum_range (p : F[X]) : p =
   simp only [Set.mem_Ici] at hn
   simp only [Function.comp_apply, eval_finset_sum, eval_smul, smul_eq_mul, Set.mem_setOf_eq]
   have eq :
-      ∑ k ∈ Finset.range (p.natDegree + 1), (Δ^[k] p).eval 0 * eval (↑n) (binomialPolynomial F k) =
-      ∑ k ∈ Finset.range (p.natDegree + 1), (Δ^[k] p).eval 0 * (n.choose k : F) := by
+      ∑ k ∈ Finset.range (p.natDegree + 1), (Δᵖ^[k] p).eval 0 * eval (↑n) (binomialPolynomial F k) =
+      ∑ k ∈ Finset.range (p.natDegree + 1), (Δᵖ^[k] p).eval 0 * (n.choose k : F) := by
     refine Finset.sum_congr rfl fun k hk => ?_
     rw [eval_of_le]
     simp only [Finset.mem_range] at hk
@@ -522,15 +523,15 @@ lemma antideriv_eq_succ (k : ℕ) :
 
 lemma antideriv_eq (p : F[X]) :
     antideriv p =
-    ∑ k in Finset.range (p.natDegree + 1), (Δ^[k] p).eval 0 • binomialPolynomial F (k + 1) := by
+    ∑ k in Finset.range (p.natDegree + 1), (Δᵖ^[k] p).eval 0 • binomialPolynomial F (k + 1) := by
   conv_lhs => rw [eq_sum_range p, map_sum]
   refine Finset.sum_congr rfl fun k _ => ?_
   simp only [LinearMapClass.map_smul, antideriv_eq_succ]
 
 @[inherit_doc]
-scoped [Polynomial] prefix:max "∫" => binomialPolynomial.antideriv
+scoped [Polynomial] prefix:max "∫ᵖ" => binomialPolynomial.antideriv
 
-lemma antideriv_stdDiff (p : F[X]) : ∫ (Δ p) = p - (C $ p.eval 0) := by
+lemma antideriv_stdDiff (p : F[X]) : ∫ᵖ (Δᵖ p) = p - (C $ p.eval 0) := by
   conv_lhs => rw [eq_sum_range p]
   rw [map_sum, map_sum, Finset.sum_range_succ', map_smul, map_smul, stdDiff_zero, map_zero,
     smul_zero, add_zero]
@@ -541,7 +542,7 @@ lemma antideriv_stdDiff (p : F[X]) : ∫ (Δ p) = p - (C $ p.eval 0) := by
   rw [add_sub_assoc, show eval 0 p • 1 - C (eval 0 p) = 0 by
     rw [Algebra.smul_def, mul_one, sub_eq_zero]; rfl, add_zero]
 
-lemma stdDiff_antideriv (p : F[X]) : Δ (∫ p) = p := by
+lemma stdDiff_antideriv (p : F[X]) : Δᵖ (∫ᵖ p) = p := by
   conv_lhs => rw [eq_sum_range p]
   rw [map_sum, map_sum, Finset.sum_range_succ', map_smul, map_smul]
   simp_rw [map_smul, antideriv_eq_succ, stdDiff_succ]
@@ -586,7 +587,7 @@ namespace stdDiff
 variable {F}
 
 lemma natDegree_pow (p : F[X]) (k : ℕ) (hk : k ≤ p.natDegree) :
-    (Δ^[k] p).natDegree = p.natDegree - k := by
+    (Δᵖ^[k] p).natDegree = p.natDegree - k := by
   induction k with
   | zero => simp
   | succ k ih =>
