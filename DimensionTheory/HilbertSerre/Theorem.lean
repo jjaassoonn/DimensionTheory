@@ -160,7 +160,7 @@ abbrev statement : Prop := ∃ (p : Polynomial ℤ), μ.poincareSeries 𝒜 ℳ 
 statement of Hilber-Serre theorem. Only this form is used in induction.
 (Implementation details)
 -/
-abbrev statement' (N : ℕ) : Prop :=
+abbrev statement' (s : ℕ) : Prop :=
     ∀ (A M : Type u)
       [CommRing A] [AddCommGroup M] [Module A M]  [IsNoetherianRing A] [Module.Finite A M]
 
@@ -170,7 +170,7 @@ abbrev statement' (N : ℕ) : Prop :=
       (μ : (FGModuleCat (𝒜 0)) ⟹+ ℤ)
 
       (S : generatingSetOverBaseRing 𝒜)
-      (_ : S.toFinset.card = N),
+      (_ : S.toFinset.card = s),
 
     ∃ (p : Polynomial ℤ),
       μ.poincareSeries 𝒜 ℳ = p • S.poles ⁻¹

@@ -12,8 +12,8 @@ import Mathlib.CategoryTheory.Abelian.Exact
 /-!
 # Additive Functions from an abelian Category
 
-If `T` is an commutative additive group and `𝒞` an abelian category, then an additive function with
-value in `T` is a function `μ : 𝒞 → T` such that whenever `0 → A → B → C → 0` is short exact,
+If `G` is an commutative additive group and `𝒞` an abelian category, then an additive function with
+value in `G` is a function `μ : 𝒞 → G` such that whenever `0 → A → B → C → 0` is short exact,
 we have `μ(B) = μ(A) + μ(C)`.
 
 ## Main results
@@ -31,7 +31,7 @@ open CategoryTheory CategoryTheory.Limits
 universe u u' v v' w
 
 variable (𝒞 : Type u) [Category.{v} 𝒞] (𝒟 : Type u') [Category.{v'} 𝒟]
-variable (T : Type w) [AddCommGroup T]
+variable (G : Type w) [AddCommGroup G]
 variable [Abelian 𝒞] [Abelian 𝒟]
 
 open ZeroObject
@@ -45,15 +45,15 @@ structure AdditiveFunction :=
 A function `λ : 𝒞 → ℤ` is additive precisely when `λ B = λ A + λ C` for every short exact sequence
 `s := 0 --> A --> B --> C --> 0`.
 -/
-toFun : 𝒞 → T
+toFun : 𝒞 → G
 /--
 A function `λ : 𝒞 → ℤ` is additive precisely when `λ B = λ A + λ C` for every short exact sequence
 `s := 0 --> A --> B --> C --> 0`.
 -/
-additive (s : ShortComplex 𝒞) (e : s.ShortExact) : toFun s.X₁ + toFun s.X₃ = toFun s.X₂
+additive (s : ShortComplex 𝒞) (hs : s.ShortExact) : toFun s.X₁ + toFun s.X₃ = toFun s.X₂
 
 @[inherit_doc]
-notation C "⟹+" T => AdditiveFunction C T
+notation 𝒞 "⟹+" G => AdditiveFunction 𝒞 G
 
 
 -- @[inherit_doc]
@@ -61,17 +61,17 @@ notation C "⟹+" T => AdditiveFunction C T
 
 namespace AdditiveFunction
 
-variable {𝒞 T}
-variable (μ : 𝒞 ⟹+ T)
+variable {𝒞 G}
+variable (μ : 𝒞 ⟹+ G)
 
-private lemma ext' {α β : 𝒞 ⟹+ T} (h : α.toFun = β.toFun) : α = β := by
+private lemma ext' {α β : 𝒞 ⟹+ G} (h : α.toFun = β.toFun) : α = β := by
   cases α; cases β; rwa [mk.injEq]
 
-instance : DFunLike (AdditiveFunction 𝒞 T) 𝒞 (fun _ ↦ T) where
+instance : DFunLike (AdditiveFunction 𝒞 G) 𝒞 (fun _ ↦ G) where
   coe μ := μ.toFun
   coe_injective' _ _ h := AdditiveFunction.ext' h
 
-@[ext] lemma ext {α β : 𝒞 ⟹+ T} (h : ∀ x, α x = β x) : α = β := by
+@[ext] lemma ext {α β : 𝒞 ⟹+ G} (h : ∀ x, α x = β x) : α = β := by
   apply ext'; ext; apply h
 
 lemma map_zero : μ 0 = 0 := by
@@ -384,7 +384,7 @@ end ComposableArrows
 
 section AddCommGroup
 
-instance add : Add (𝒞 ⟹+ T) where
+instance add : Add (𝒞 ⟹+ G) where
   add α β :=
   { toFun := α + β
     additive := fun s hs ↦ by
@@ -394,9 +394,9 @@ instance add : Add (𝒞 ⟹+ T) where
       rw [← eq0]
       abel }
 
-@[simp] lemma add_apply (α β : 𝒞 ⟹+ T) (x) : (α + β) x = α x + β x := rfl
+@[simp] lemma add_apply (α β : 𝒞 ⟹+ G) (x) : (α + β) x = α x + β x := rfl
 
-instance neg : Neg (𝒞 ⟹+ T) where
+instance neg : Neg (𝒞 ⟹+ G) where
   neg μ :=
   { toFun := - μ
     additive := fun s hs ↦ by
@@ -405,23 +405,23 @@ instance neg : Neg (𝒞 ⟹+ T) where
       rw [← eq0]
       abel }
 
-@[simp] lemma neg_apply (μ : 𝒞 ⟹+ T) (x) : (-μ) x = - (μ x) := rfl
+@[simp] lemma neg_apply (μ : 𝒞 ⟹+ G) (x) : (-μ) x = - (μ x) := rfl
 
-instance zero : Zero (𝒞 ⟹+ T) where
+instance zero : Zero (𝒞 ⟹+ G) where
   zero :=
   { toFun := 0
     additive := fun _ _ ↦ show 0 + 0 = 0 by simp }
 
-@[simp] lemma zero_apply (x) : (0 : 𝒞 ⟹+ T) x = 0 := rfl
+@[simp] lemma zero_apply (x) : (0 : 𝒞 ⟹+ G) x = 0 := rfl
 
-instance addSemigroup : AddSemigroup (𝒞 ⟹+ T) where
+instance addSemigroup : AddSemigroup (𝒞 ⟹+ G) where
   add_assoc α β γ := ext fun x ↦ by simp [add_assoc]
 
-instance addZeroClass : AddZeroClass (𝒞 ⟹+ T) where
+instance addZeroClass : AddZeroClass (𝒞 ⟹+ G) where
   zero_add _ := ext fun _ ↦ by simp
   add_zero _ := ext fun _ ↦ by simp
 
-instance addMonoid : AddMonoid (𝒞 ⟹+ T) where
+instance addMonoid : AddMonoid (𝒞 ⟹+ G) where
   __ := addSemigroup
   __ := addZeroClass
   nsmul := nsmulRec
@@ -429,11 +429,11 @@ instance addMonoid : AddMonoid (𝒞 ⟹+ T) where
   nsmul_succ _ _ := by simp only [nsmulRec]
 
 
-instance addCommMonoid : AddCommMonoid (𝒞 ⟹+ T) where
+instance addCommMonoid : AddCommMonoid (𝒞 ⟹+ G) where
   __ := addMonoid
   add_comm _ _ := ext fun _ ↦ by simp [add_comm]
 
-instance : AddCommGroup (𝒞 ⟹+ T) where
+instance : AddCommGroup (𝒞 ⟹+ G) where
   __ := addCommMonoid
   neg_add_cancel _ := ext fun _ ↦ by simp
   zsmul := zsmulRec
@@ -449,7 +449,7 @@ variable (e : 𝒞 ≌ 𝒟)
 pushforward of an additive function along a category equivalence
 -/
 @[simps]
-def pushforward : 𝒟 ⟹+ T where
+def pushforward : 𝒟 ⟹+ G where
   toFun x := μ (e.inverse.obj x)
   additive _ h := μ.additive _ (h.map_of_exact e.inverse)
 

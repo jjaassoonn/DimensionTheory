@@ -58,7 +58,7 @@ abbrev aeval : GradedRingHom S.grading 𝒜 where
       MonoidHom.toOneHom_coe, MonoidHom.coe_coe, RingHom.coe_coe] at hp ⊢
     rw [MvPolynomial.mem_homogeneousSubmodule] at hp
     rw [MvPolynomial.aeval_def, MvPolynomial.eval₂_eq]
-    refine AddSubgroup.sum_mem _ fun x hx => ?_
+    refine AddSubgroup.sum_mem _ fun x _ => ?_
     by_cases coeff_eq : MvPolynomial.coeff x p = 0
     · rw [coeff_eq]
       simp only [map_zero, zero_mul]
