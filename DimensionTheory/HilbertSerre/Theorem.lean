@@ -161,19 +161,14 @@ statement of Hilber-Serre theorem. Only this form is used in induction.
 (Implementation details)
 -/
 abbrev statement' (s : ℕ) : Prop :=
-    ∀ (A M : Type u)
-      [CommRing A] [AddCommGroup M] [Module A M]  [IsNoetherianRing A] [Module.Finite A M]
-
-      (𝒜 : ℕ → AddSubgroup A) (ℳ : ℕ → AddSubgroup M)
-      [GradedRing 𝒜] [DirectSum.Decomposition ℳ] [SetLike.GradedSMul 𝒜 ℳ]
-
-      (μ : (FGModuleCat (𝒜 0)) ⟹+ ℤ)
-
-      (S : generatingSetOverBaseRing 𝒜)
-      (_ : S.toFinset.card = s),
-
-    ∃ (p : Polynomial ℤ),
-      μ.poincareSeries 𝒜 ℳ = p • S.poles ⁻¹
+  ∀ (A M : Type u)
+  [CommRing A] [IsNoetherianRing A]
+  [AddCommGroup M] [Module A M] [Module.Finite A M]
+  (𝒜 : ℕ → AddSubgroup A) (ℳ : ℕ → AddSubgroup M)
+  [GradedRing 𝒜] [DirectSum.Decomposition ℳ] [SetLike.GradedSMul 𝒜 ℳ]
+  (μ : (FGModuleCat (𝒜 0)) ⟹+ ℤ)
+  (S : generatingSetOverBaseRing 𝒜) (_ : S.toFinset.card = s),
+  ∃ (p : Polynomial ℤ), μ.poincareSeries 𝒜 ℳ = p • S.poles ⁻¹
 
 lemma statement'_imp_statement (h : ∀ n, statement'.{u} n) : statement 𝒜 ℳ μ S :=
   h S.toFinset.card A M 𝒜 ℳ μ S rfl
@@ -1048,13 +1043,13 @@ lemma induction : statement'.{u} (N + 1) := by
 
 end induction_case
 
-lemma proof' : ∀ n, statement'.{u} n := by
-  intro n
-  induction' n with n ih
+lemma proof' : ∀ s, statement'.{u} s := by
+  intro s
+  induction' s with s ih
   · apply proof.base_case
-  · exact induction n ih
+  · exact induction s ih
 
-lemma _root_.hilbert_serre : ∃ (p : Polynomial ℤ), μ.poincareSeries 𝒜 ℳ = p • S.poles⁻¹ :=
+theorem _root_.hilbert_serre : ∃ (p : Polynomial ℤ), μ.poincareSeries 𝒜 ℳ = p • S.poles⁻¹ :=
   statement'_imp_statement 𝒜 ℳ μ S proof'.{u}
 
 end HilbertSerre
