@@ -31,10 +31,11 @@ This file inherits all the above settings. With an additional assumption
 -/
 
 universe u
-variable {A M : Type u} [CommRing A] [AddCommGroup M] [Module A M]
-variable [noetherian_ring : IsNoetherianRing A] [finite_module : Module.Finite A M]
-variable (𝒜 : ℕ → AddSubgroup A) [GradedRing 𝒜]
-variable (ℳ : ℕ → AddSubgroup M) [SetLike.GradedSMul 𝒜 ℳ] [DirectSum.Decomposition ℳ]
+variable {A M : Type u}
+variable [CommRing A] [noetherian_ring : IsNoetherianRing A]
+variable [AddCommGroup M] [Module A M] [finite_module : Module.Finite A M]
+variable (𝒜 : ℕ → AddSubgroup A) (ℳ : ℕ → AddSubgroup M)
+variable [GradedRing 𝒜] [DirectSum.Decomposition ℳ] [SetLike.GradedSMul 𝒜 ℳ]
 variable (μ : (FGModuleCat (𝒜 0)) ⟹+ ℤ)
 variable (S : generatingSetOverBaseRing 𝒜) (hS : ∀ i : S.toFinset, S.deg i.2 = 1)
 

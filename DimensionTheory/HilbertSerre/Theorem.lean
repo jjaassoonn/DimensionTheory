@@ -20,10 +20,10 @@ import Mathlib.RingTheory.PowerSeries.Trunc
 
 universe u
 variable {A M : Type u}
-variable [CommRing A] [AddCommGroup M] [Module A M]
-variable [finite_module : Module.Finite A M] [noetherian_ring : IsNoetherianRing A]
-variable (𝒜 : ℕ → AddSubgroup A) [GradedRing 𝒜]
-variable (ℳ : ℕ → AddSubgroup M) [SetLike.GradedSMul 𝒜 ℳ] [DirectSum.Decomposition ℳ]
+variable [CommRing A] [noetherian_ring : IsNoetherianRing A]
+variable [AddCommGroup M] [Module A M] [finite_module : Module.Finite A M]
+variable (𝒜 : ℕ → AddSubgroup A) (ℳ : ℕ → AddSubgroup M)
+variable [GradedRing 𝒜] [DirectSum.Decomposition ℳ] [SetLike.GradedSMul 𝒜 ℳ]
 
 open GradedRing.finite_algebra_over_degree_zero_subring
 open GradedModule.finite_module_over_degree_zero_subring
