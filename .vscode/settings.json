@@ -10,5 +10,6 @@
     "Subalgebra",
     "Succ",
     "surjective"
-  ]
+  ],
+  "editor.rulers": [100]
 }

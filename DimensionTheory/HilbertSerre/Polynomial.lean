@@ -78,8 +78,7 @@ The Hilbert polynomial, i.e. the polynomial such that for any `n : ℕ` which
 is big enough, the value of `μ` at `ℳ n` is equal to its value at `n`.
 -/
 noncomputable def hilbertPolynomial : ℚ[X] :=
-  if S.toFinset.card = 0 then 0
-  else hilbert (numeratorPolynomial 𝒜 ℳ μ S) (S.toFinset.card - 1)
+  (numeratorPolynomial 𝒜 ℳ μ S).hilbert S.toFinset.card
 
 include hS in
 /--
@@ -94,31 +93,10 @@ theorem AdditiveFunction_eq_hilbertPolynomial_eval
     rw [poincareSeries, coeff_mk], hilbertPolynomial,
     ← numeratorPolynomial_mul_inv_poles_eq_poincareSeries 𝒜 ℳ μ S,
     poles_eq_one_sub_pow_of_deg_eq_one 𝒜 S hS]
-  by_cases hS1 : S.toFinset.card = 0
-  · simp only [hS1, pow_zero, inv_one, Units.val_one, mul_one, coeff_coe, ↓reduceIte, eval_zero,
-      Int.cast_eq_zero]
-    rw [Finset.card_eq_zero] at hS1; exact coeff_eq_zero_of_natDegree_lt hn
-  · simp only [hS1, ↓reduceIte]
-    rw [← inv_pow, (Nat.succ_pred hS1).symm]
-    convert coeff_mul_invOneSubPow_eq_hilbert_eval (numeratorPolynomial 𝒜 ℳ μ S)
-      (S.toFinset.card - 1) n hn using 4
-    pick_goal 2
-    · apply Nat.succ_pred_eq_of_pos; omega
-    rw [invOneSubPow_eq_inv_one_sub_pow]
-    simp only [Units.inv_mk, Nat.pred_eq_sub_one, Nat.succ_eq_add_one, Units.val_pow_eq_pow_val,
-      Units.mkOfMulEqOne]
-    congr 1
-    let s : ℤ⟦X⟧ˣ := ⟨1 - PowerSeries.X, (1 - PowerSeries.X : ℤ⟦X⟧).invOfUnit 1,
-      mul_invOfUnit (1 - PowerSeries.X : ℤ⟦X⟧) 1 (by simp),
-      by rw [mul_comm]; exact mul_invOfUnit (1 - PowerSeries.X : ℤ⟦X⟧) 1 (by simp)⟩
-    change (s.inv : ℤ⟦X⟧) = _
-    apply s.inv_eq_of_mul_eq_one_left
-    simp only
-    have := invOneSubPow_inv_eq_one_sub_pow (S := ℤ) 0
-    simp only [Units.inv_eq_val_inv, zero_add, pow_one] at this
-    rw [← this]
-    simp only [invOneSubPow, zero_add, Nat.choose_zero_right, Nat.cast_one, pow_one, Units.inv_mk]
-    exact mk_one_mul_one_sub_eq_one
+  convert coeff_mul_invOneSubPow_eq_hilbert_eval (numeratorPolynomial 𝒜 ℳ μ S)
+    S.toFinset.card n hn using 4
+  rw [invOneSubPow_eq_inv_one_sub_pow, inv_pow]
+  exact Units.inv_unique rfl
 
 include hS in
 /--
@@ -145,11 +123,7 @@ This theorem tells us the specific degree of any non-zero Hilbert polynomial.
 -/
 theorem natDegree_hilbertPolynomial (hhP : hilbertPolynomial 𝒜 ℳ μ S ≠ 0) :
     (hilbertPolynomial 𝒜 ℳ μ S).natDegree =
-    S.toFinset.card - 1 - (numeratorPolynomial 𝒜 ℳ μ S).rootMultiplicity 1 := by
-  rw [hilbertPolynomial] at hhP
-  by_cases hS1 : S.toFinset.card = 0
-  · exfalso; simp only [hS1, ↓reduceIte, ne_eq, not_true_eq_false] at hhP
-  · rw [hilbertPolynomial]; rw [if_neg hS1] at hhP ⊢
-    exact natDegree_hilbert (numeratorPolynomial 𝒜 ℳ μ S) (S.toFinset.card - 1) hhP
+    S.toFinset.card - (numeratorPolynomial 𝒜 ℳ μ S).rootMultiplicity 1 - 1 :=
+  natDegree_hilbert (numeratorPolynomial 𝒜 ℳ μ S) S.toFinset.card hhP
 
 end HilbertSerre
