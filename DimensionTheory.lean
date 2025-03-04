@@ -30,6 +30,7 @@ import DimensionTheory.missing_lemmas.GradedModule
 import DimensionTheory.missing_lemmas.GradedRing
 import DimensionTheory.missing_lemmas.Ideal
 import DimensionTheory.missing_lemmas.Int
+import DimensionTheory.missing_lemmas.InvOneSubPow
 import DimensionTheory.missing_lemmas.List
 import DimensionTheory.missing_lemmas.Noetherian
 import DimensionTheory.missing_lemmas.PUnit

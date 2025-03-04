@@ -5,8 +5,8 @@ Authors: Fangming Li, Jujian Zhang
 -/
 
 import DimensionTheory.missing_lemmas.Factorial
+import DimensionTheory.missing_lemmas.InvOneSubPow
 
-import Mathlib.RingTheory.PowerSeries.WellKnown
 import Mathlib.RingTheory.PowerSeries.Inverse
 import Mathlib.Algebra.Polynomial.RingDivision
 import Mathlib.Algebra.Polynomial.Div
