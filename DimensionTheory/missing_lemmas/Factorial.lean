@@ -7,6 +7,7 @@ Authors: Jujian Zhang
 import Mathlib.Data.Nat.Factorial.BigOperators
 import Mathlib.Analysis.Asymptotics.AsymptoticEquivalent
 import Mathlib.Topology.Algebra.Order.Field
+import Mathlib.Tactic.Group
 
 import DimensionTheory.missing_lemmas.Int
 
@@ -16,13 +17,6 @@ import DimensionTheory.missing_lemmas.Int
 -/
 
 open BigOperators Nat
-
-theorem Nat.ascFactorial_eq_prod_range (n k : ℕ) :
-    n.ascFactorial k = ∏ i in Finset.range k, (n + i) := by
-  induction k with
-  | zero => rfl
-  | succ k ih =>
-    rw [ascFactorial_succ, ih, Finset.prod_range_succ, mul_comm]
 
 theorem Nat.right_factorial_dvd_ascFactorial (n k : ℕ) :
     k ! ∣ n.ascFactorial k := by
@@ -35,7 +29,7 @@ theorem Nat.choose_isEquivalent (k : ℕ) :
     (fun (n : ℕ) => (n.choose k : ℚ)) ~[atTop]
     (fun (n : ℕ) => (n ^ k / k ! : ℚ)) := by
   rw [isEquivalent_iff_exists_eq_mul]
-  refine ⟨fun n => ∏ i in Finset.range k, ((n - i) / n : ℚ), ?_, ?_⟩
+  refine ⟨fun n => ∏ i ∈ Finset.range k, ((n - i) / n : ℚ), ?_, ?_⟩
 
   · rw [show (1 : ℚ) = ∏ i ∈ Finset.range k, 1 by simp]
     apply tendsto_finset_prod
@@ -51,7 +45,7 @@ theorem Nat.choose_isEquivalent (k : ℕ) :
       obtain ⟨m, hm⟩ := exists_nat_gt (i / c)
       refine ⟨m, fun k hk => ?_⟩
       simp only [norm, Rat.cast_natCast, abs_cast]
-      rw [div_lt_iff (hc := hc), mul_comm] at hm
+      rw [div_lt_iff₀ (hc := hc), mul_comm] at hm
       apply_fun ((↑) : ℕ → ℝ) at hk using mono_cast (α := ℝ)
       refine le_of_lt $ lt_of_lt_of_le hm ?_
       apply mul_le_mul (le_refl (c : ℝ)) hk <;> norm_cast <;> linarith

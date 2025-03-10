@@ -5,9 +5,10 @@ Authors: Jujian Zhang
 -/
 
 
-import Mathlib.LinearAlgebra.Quotient
+import Mathlib.LinearAlgebra.Quotient.Basic
 import Mathlib.CategoryTheory.ConcreteCategory.EpiMono
 import Mathlib.Algebra.Category.FGModuleCat.Basic
+import Mathlib.RingTheory.Noetherian.Basic
 
 /-!
 # Monomorphisms in finitely generated modules over a Noetherian ring
@@ -26,32 +27,42 @@ variable {R : Type u} [Ring R] [IsNoetherianRing R] {X Y : FGModuleCat R} (f : X
 
 variable {M : Type u} [AddCommGroup M] [Module R M] [Module.Finite R M]
 
-theorem ker_eq_bot_of_mono [Mono f] : LinearMap.ker f = ⊥ :=
-  LinearMap.ker_eq_bot_of_cancel fun u v h =>
-    cancel_mono (Z := .of R (LinearMap.ker f)) f |>.1 <| ConcreteCategory.hom_ext _ _ <| by
-      rintro ⟨x, hx⟩
-      exact LinearMap.congr_fun h ⟨x, hx⟩
+instance : Module.Finite R X.obj := X.2
+
+instance : Module.Finite R (LinearMap.ker (ModuleCat.Hom.hom f)) := by
+  rw [Module.Finite.iff_fg]
+  apply (config := {allowSynthFailures := true}) IsNoetherian.noetherian
+
+theorem ker_eq_bot_of_mono [Mono f] : LinearMap.ker f.hom = ⊥ :=
+  LinearMap.ker_eq_bot_of_cancel fun u v h => by
+    have := cancel_mono (Z := FGModuleCat.of R (LinearMap.ker f.hom)) f
+      (g := FGModuleCat.ofHom u)
+      (h := FGModuleCat.ofHom v) |>.1 <| ConcreteCategory.hom_ext _ _ <| by
+        rintro ⟨x, hx⟩
+        exact LinearMap.congr_fun h ⟨x, hx⟩
+    exact congr($(this).hom)
 
 omit [IsNoetherianRing R] in
-theorem range_eq_top_of_epi [Epi f] : LinearMap.range f = ⊤ :=
-  LinearMap.range_eq_top_of_cancel fun u v h =>
-    cancel_epi (Z := .of R (Y ⧸ LinearMap.range f)) f |>.1 <| ConcreteCategory.hom_ext _ _ <| by
+theorem range_eq_top_of_epi [Epi f] : LinearMap.range f.hom = ⊤ :=
+  LinearMap.range_eq_top_of_cancel fun u v h => by
+    have := cancel_epi (Z := .of R (Y ⧸ LinearMap.range f.hom)) f |>.1 <| ConcreteCategory.hom_ext _ _ <| by
       intro x; exact LinearMap.congr_fun h x
+    exact congr($(this).hom)
 
-theorem mono_iff_ker_eq_bot : Mono f ↔ LinearMap.ker f = ⊥ :=
+theorem mono_iff_ker_eq_bot : Mono f ↔ LinearMap.ker f.hom = ⊥ :=
   ⟨fun hf => ker_eq_bot_of_mono _, fun hf =>
     ConcreteCategory.mono_of_injective _ <| by convert LinearMap.ker_eq_bot.1 hf⟩
 
-theorem mono_iff_injective : Mono f ↔ Function.Injective f := by
+theorem mono_iff_injective : Mono f ↔ Function.Injective f.hom := by
   rw [mono_iff_ker_eq_bot, LinearMap.ker_eq_bot]
 
 omit [IsNoetherianRing R] in
-theorem epi_iff_range_eq_top : Epi f ↔ LinearMap.range f = ⊤ :=
+theorem epi_iff_range_eq_top : Epi f ↔ LinearMap.range f.hom = ⊤ :=
   ⟨fun _ => range_eq_top_of_epi _, fun hf =>
-    ConcreteCategory.epi_of_surjective _ <| LinearMap.range_eq_top (f := (f : X →ₗ[R] Y)) |>.1 hf⟩
+    ConcreteCategory.epi_of_surjective _ <| LinearMap.range_eq_top (f := f.hom) |>.1 hf⟩
 
 omit [IsNoetherianRing R] in
-theorem epi_iff_surjective : Epi f ↔ Function.Surjective f := by
+theorem epi_iff_surjective : Epi f ↔ Function.Surjective f.hom := by
   rw [epi_iff_range_eq_top, LinearMap.range_eq_top]
 
 /-- If the zero morphism is an epi then the codomain is trivial. -/

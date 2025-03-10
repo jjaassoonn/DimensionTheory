@@ -24,7 +24,7 @@ lemma Sheaf.sections_on_disjoint_opens_iso_product (F : Sheaf.{v', v, u} C X)
     {ι : Type v'} (U : ι → Opens X) (hU : ∀ i j, i ≠ j → U i ⊓ U j = ⊥) :
     Nonempty <| F.presheaf.obj (op <| iSup U) ≅ ∏ᶜ fun i : ι ↦ F.presheaf.obj (op <| U i) := by
   refine (F.presheaf.isSheaf_iff_isSheafEqualizerProducts |>.mp F.2 U).map
-    fun (H : IsLimit <| Fork.ofι _ _) ↦ @CategoryTheory.asIso (f := _) <|
+    fun (H : IsLimit <| Fork.ofι _ _) ↦ @CategoryTheory.asIso _ _ _ _ _ <|
       Limits.isIso_limit_cone_parallelPair_of_eq ?_ H
   delta leftRes rightRes; congr; ext ⟨i, j⟩
   by_cases eq1 : i = j

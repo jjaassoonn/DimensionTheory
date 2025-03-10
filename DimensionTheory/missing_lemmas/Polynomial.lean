@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 
-import Mathlib.LinearAlgebra.LinearIndependent
-import Mathlib.Algebra.Polynomial.Degree.Definitions
+import Mathlib.LinearAlgebra.Dimension.Basic
+import Mathlib.LinearAlgebra.LinearIndependent.Lemmas
+import Mathlib.Algebra.Polynomial.Degree.Operations
 
 /-!
 # Some missing lemmas on polynomials
@@ -83,17 +84,12 @@ lemma Polynomial.finset_linearIndependent_of_natDegree_distinct'
       have s_eq : s = insert p (s.erase p) := by
         simp_all only [ne_eq, Finset.forall_mem_not_eq', Finset.mem_image, Finset.insert_erase, M]
       have le1 : s.erase p ≤ s := Finset.erase_subset _ _
-      suffices LinearIndependent R (fun (i : (insert p (s.erase p) : Finset (R[X]))) => i.1) by
+      change LinearIndepOn R id (s : Set R[X])
+      suffices LinearIndepOn R id (insert p (s.erase p) : Set R[X]) by
         convert this
-      convert @linearIndependent_insert R R[X] _ _ _ (s.erase p) p (by simp) |>.mpr ?_
-      · change _ ↔ _ ∈ (_ : Set R[X])
-        simp only [Finset.mem_insert, Finset.mem_erase, ne_eq, Finset.coe_erase, Set.mem_diff,
-          Finset.mem_coe, Set.mem_singleton_iff, Set.mem_setOf_eq]
-        tauto
-      · change _ ↔ _ ∈ (_ : Set R[X])
-        simp only [Finset.mem_insert, Finset.mem_erase, ne_eq, Finset.coe_erase,
-          Set.insert_diff_singleton, Set.mem_insert_iff, Finset.mem_coe]
-        tauto
+        conv_lhs => rw [s_eq]
+        simp
+      refine linearIndepOn_insert (K := R) (V := R[X]) (s := s.erase p) (a := p) (by simp) (f := id) |>.mpr ?_
       constructor
       · have := ih (s.erase p) (Finset.erase_ssubset hp1) (fun _ h => ne_zero _ <| le1 h)
           (fun _ _ h1 h2 => degree_distinct _ _ (le1 h1) (le1 h2))
@@ -116,6 +112,7 @@ lemma Polynomial.finset_linearIndependent_of_natDegree_distinct'
         · simp only [bot_eq_zero']
           rw [hp2]
           omega
+      simp only [id_eq, Set.image_id', Finset.coe_erase, M] at r H' ⊢
       exact lt_irrefl _ <| H' p r
 
 lemma Polynomial.finset_linearIndependent_of_natDegree_distinct

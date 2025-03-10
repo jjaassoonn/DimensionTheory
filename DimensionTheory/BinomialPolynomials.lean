@@ -4,12 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 
-import Mathlib.Algebra.Polynomial.Eval
+import Mathlib.Algebra.Polynomial.Eval.SMul
 import Mathlib.Data.Nat.Factorial.BigOperators
 import Mathlib.Algebra.Polynomial.Roots
 import Mathlib.Order.Interval.Set.Infinite
 import Mathlib.Logic.Function.Iterate
-import Mathlib.Order.Filter.AtTopBot
+import Mathlib.Order.Filter.AtTopBot.Basic
 import Mathlib.LinearAlgebra.Basis.Basic
 
 import DimensionTheory.missing_lemmas.Polynomial
@@ -167,6 +167,7 @@ lemma coeff_natDegree_sub_one (p : F[X]) :
     rw [Nat.choose_symm, Nat.choose_one_right]
     omega
 
+omit [CharZero F] in
 lemma coeff_natDegree (p : F[X]) : (Δᵖ p).coeff p.natDegree = 0 := by
   have deq1 : (X + 1 : F[X]).natDegree = 1 := by
     rw [show (X + 1 : F[X]) = X + C 1 by simp, natDegree_X_add_C]
@@ -178,6 +179,7 @@ lemma coeff_natDegree (p : F[X]) : (Δᵖ p).coeff p.natDegree = 0 := by
   rw [deq1, mul_one, ceq0, one_pow, mul_one] at ceq1
   simp [stdDiff, ceq1]
 
+omit [CharZero F] in
 lemma coeff_eq_zero_of_natDegree_le (p : F[X]) (n : ℕ) (hn : p.natDegree ≤ n) :
     (Δᵖ p).coeff n = 0 := by
   rw [le_iff_eq_or_lt] at hn

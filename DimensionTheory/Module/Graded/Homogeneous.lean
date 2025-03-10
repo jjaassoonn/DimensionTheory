@@ -5,12 +5,11 @@ Authors: Jujian Zhang, Eric Wieser
 -/
 import DimensionTheory.missing_lemmas.GradedModule
 
-import Mathlib.RingTheory.Ideal.Basic
 import Mathlib.RingTheory.Ideal.Operations
-import Mathlib.LinearAlgebra.Finsupp
+import Mathlib.RingTheory.Ideal.Maps
+import Mathlib.RingTheory.Finiteness.Basic
 import Mathlib.RingTheory.GradedAlgebra.Basic
-import Mathlib.RingTheory.Finiteness
-import Mathlib.LinearAlgebra.Quotient
+import Mathlib.LinearAlgebra.Quotient.Basic
 
 /-!
 # Homogeneous submodules of a graded module
@@ -76,7 +75,7 @@ def Subring.IsHomogeneous (A' : Subring AA) : Prop :=
 
 /-- We collect all homogeneous subring into a type
 -/
-structure HomogeneousSubring extends Subring AA :=
+structure HomogeneousSubring extends Subring AA where
   is_homogeneous' : toSubring.IsHomogeneous 𝒜𝒜
 
 /-- An `p : Submodule A M` is homogeneous if for every `m ∈ p`, all homogeneous components
@@ -194,13 +193,13 @@ variable (p : Submodule A M) (I : Ideal A) (R : Subring AA)
 /-- For any `p : Submodule A M`, not necessarily homogeneous, `p.homogeneousCore' ℳ`
 is the largest homogeneous `A`-submodule contained in `p`, as an `A`-submodule. -/
 def Submodule.homogeneousCore' (I : Submodule A M) : Submodule A M :=
-  Submodule.span A ((↑) '' (((↑) : Subtype (Homogeneous ℳ) → M) ⁻¹' I))
+  Submodule.span A ((↑) '' (((↑) : Subtype (IsHomogeneousElem ℳ) → M) ⁻¹' I))
 
 /-- For any subring `A'`, not necessarily homogeneous, `A.homogeneousCore' 𝒜` is the largest
 homogeneous subring contained in `A'` as a subring.
 -/
 def Subring.homogeneousCore' (R : Subring AA) : Subring AA :=
-  Subring.closure ((↑) '' (((↑) : Subtype (Homogeneous 𝒜𝒜) → AA) ⁻¹' R))
+  Subring.closure ((↑) '' (((↑) : Subtype (IsHomogeneousElem 𝒜𝒜) → AA) ⁻¹' R))
 
 /-- For any `I : Ideal A`, not necessarily homogeneous, `I.homogeneousCore' 𝒜`
 is the largest homogeneous ideal of `A` contained in `I`, as an ideal. -/
@@ -272,7 +271,7 @@ theorem Subring.isHomogeneous_iff_subset_iInter :
 set_option linter.unusedSectionVars false in
 include 𝒜 in
 theorem Submodule.smul_homogeneous_element_mem_of_mem {p : Submodule A M} (r : A) (x : M)
-    (hx₁ : Homogeneous ℳ x) (hx₂ : x ∈ p) (j : ιM) : GradedModule.proj ℳ j (r • x) ∈ p := by
+    (hx₁ : IsHomogeneousElem ℳ x) (hx₂ : x ∈ p) (j : ιM) : GradedModule.proj ℳ j (r • x) ∈ p := by
   classical
   rw [← DirectSum.sum_support_decompose 𝒜 r, Finset.sum_smul, map_sum]
   apply Submodule.sum_mem
@@ -287,12 +286,12 @@ theorem Submodule.smul_homogeneous_element_mem_of_mem {p : Submodule A M} (r : A
 
 set_option linter.unusedSectionVars false in
 theorem Ideal.mul_homogeneous_element_mem_of_mem {I : Ideal A} (r x : A)
-    (hx₁ : Homogeneous 𝒜 x) (hx₂ : x ∈ I) (j : ιA) : GradedRing.proj 𝒜 j (r * x) ∈ I :=
+    (hx₁ : IsHomogeneousElem 𝒜 x) (hx₂ : x ∈ I) (j : ιA) : GradedRing.proj 𝒜 j (r * x) ∈ I :=
   Submodule.smul_homogeneous_element_mem_of_mem 𝒜 𝒜 r x hx₁ hx₂ j
 
 set_option linter.unusedSectionVars false in
 include 𝒜 in
-theorem Submodule.homogeneous_span (s : Set M) (h : ∀ x ∈ s, Homogeneous ℳ x) :
+theorem Submodule.homogeneous_span (s : Set M) (h : ∀ x ∈ s, IsHomogeneousElem ℳ x) :
     (Submodule.span A s).IsHomogeneous ℳ := by
   rintro i r hr
   rw [mem_span_set] at hr
@@ -305,15 +304,15 @@ theorem Submodule.homogeneous_span (s : Set M) (h : ∀ x ∈ s, Homogeneous ℳ
   · exact Submodule.subset_span (hc hz1)
 
 set_option linter.unusedSectionVars false in
-theorem Ideal.homogeneous_span (s : Set A) (h : ∀ x ∈ s, Homogeneous 𝒜 x) :
+theorem Ideal.homogeneous_span (s : Set A) (h : ∀ x ∈ s, IsHomogeneousElem 𝒜 x) :
     (Ideal.span s).IsHomogeneous 𝒜 :=
   Submodule.homogeneous_span 𝒜 𝒜 s h
 
-theorem Subring.homogeneous_closure (s : Set AA) (h : ∀ x ∈ s, Homogeneous 𝒜𝒜 x) :
+theorem Subring.homogeneous_closure (s : Set AA) (h : ∀ x ∈ s, IsHomogeneousElem 𝒜𝒜 x) :
     (Subring.closure s).IsHomogeneous 𝒜𝒜 := by
   intro i x hx
   revert i
-  refine Subring.closure_induction hx ?_ ?_ ?_ ?_ ?_ ?_
+  refine Subring.closure_induction (hx := hx) ?_ ?_ ?_ ?_ ?_ ?_
   · intro x hx i
     obtain ⟨j, hj⟩ := h _ hx
     by_cases h : i = j
@@ -337,13 +336,13 @@ theorem Subring.homogeneous_closure (s : Set AA) (h : ∀ x ∈ s, Homogeneous �
       · exact (closure s).zero_mem
       rw [show (1 : AA) = ((1 : ℤ) : AA) by simp]
       apply SetLike.intCast_mem_graded
-  · intro x y hx hy i
+  · intro x y _ _ hx hy i
     simp only [decompose_add, add_apply, AddMemClass.coe_add]
     exact (closure s).add_mem (hx i) (hy i)
-  · intro x h i
+  · intro x _ h i
     simp only [decompose_neg]
     exact (closure s).neg_mem (h i)
-  · intro a b ha hb i
+  · intro a b _ _ ha hb i
     classical
     rw [← sum_support_decompose 𝒜𝒜 a, ← sum_support_decompose 𝒜𝒜 b, Finset.sum_mul]
     simp_rw [Finset.mul_sum]
@@ -391,7 +390,7 @@ theorem Ideal.toIdeal_homogeneousCore_le : (I.homogeneousCore 𝒜).toIdeal ≤ 
 variable {ℳ I}
 
 set_option linter.unusedSectionVars false in
-theorem Submodule.mem_homogeneousCore_of_homogeneous_of_mem {x : M} (h : Homogeneous ℳ x)
+theorem Submodule.mem_homogeneousCore_of_homogeneous_of_mem {x : M} (h : IsHomogeneousElem ℳ x)
     (hmem : x ∈ p) : x ∈ p.homogeneousCore 𝒜 ℳ :=
   Submodule.subset_span ⟨⟨x, h⟩, hmem, rfl⟩
 
@@ -399,7 +398,7 @@ variable {𝒜}
 
 set_option linter.unusedSectionVars false in
 theorem Ideal.mem_homogeneousCore_of_homogeneous_of_mem
-    {x : A} (h : Homogeneous 𝒜 x) (hmem : x ∈ I) :
+    {x : A} (h : IsHomogeneousElem 𝒜 x) (hmem : x ∈ I) :
     x ∈ I.homogeneousCore 𝒜 :=
   Submodule.mem_homogeneousCore_of_homogeneous_of_mem 𝒜 I h hmem
 
@@ -410,7 +409,7 @@ theorem Submodule.IsHomogeneous.toSubmodule_homogeneousCore_eq_self (h : p.IsHom
   intro x hx
   classical
   rw [← DirectSum.sum_support_decompose ℳ x]
-  exact Submodule.sum_mem _ fun j _ => Submodule.subset_span ⟨⟨_, homogeneous_coe _⟩, h _ hx, rfl⟩
+  exact Submodule.sum_mem _ fun j _ => Submodule.subset_span ⟨⟨_, isHomogeneousElem_coe _⟩, h _ hx, rfl⟩
 
 set_option linter.unusedSectionVars false in
 theorem Ideal.IsHomogeneous.toIdeal_homogeneousCore_eq_self (h : I.IsHomogeneous 𝒜) :
@@ -446,7 +445,7 @@ theorem Ideal.IsHomogeneous.iff_eq : I.IsHomogeneous 𝒜 ↔ (I.homogeneousCore
 include 𝒜 in
 set_option linter.unusedSectionVars false in
 theorem Submodule.IsHomogeneous.iff_exists :
-    p.IsHomogeneous ℳ ↔ ∃ S : Set {x // Homogeneous ℳ x}, p = Submodule.span A ((↑) '' S) := by
+    p.IsHomogeneous ℳ ↔ ∃ S : Set {x // IsHomogeneousElem ℳ x}, p = Submodule.span A ((↑) '' S) := by
   rw [Submodule.IsHomogeneous.iff_eq 𝒜, eq_comm]
   exact ((Set.image_preimage.compose (Submodule.gi _ _).gc).exists_eq_l _).symm
 
@@ -599,10 +598,10 @@ instance : Bot (HomogeneousSubmodule A ℳ) :=
   ⟨⟨⊥, Submodule.IsHomogeneous.bot ℳ⟩⟩
 
 set_option synthInstance.checkSynthOrder false in
-instance sup : Sup (HomogeneousSubmodule A ℳ) :=
+instance sup : Max (HomogeneousSubmodule A ℳ) :=
   ⟨fun I J => ⟨I.toSubmodule ⊔ J.toSubmodule, I.isHomogeneous.sup (𝒜 := 𝒜) J.isHomogeneous⟩⟩
 
-instance : Inf (HomogeneousSubmodule A ℳ) :=
+instance : Min (HomogeneousSubmodule A ℳ) :=
   ⟨fun I J => ⟨_, I.isHomogeneous.inf J.isHomogeneous⟩⟩
 
 set_option synthInstance.checkSynthOrder false in
@@ -715,9 +714,9 @@ instance : Top (HomogeneousIdeal 𝒜) := inferInstanceAs <| Top <| HomogeneousS
 
 instance : Bot (HomogeneousIdeal 𝒜) := inferInstanceAs <| Bot <| HomogeneousSubmodule A 𝒜
 
-instance : Sup (HomogeneousIdeal 𝒜) := inferInstanceAs <| Sup <| HomogeneousSubmodule A 𝒜
+instance : Max (HomogeneousIdeal 𝒜) := inferInstanceAs <| Max <| HomogeneousSubmodule A 𝒜
 
-instance : Inf (HomogeneousIdeal 𝒜) := inferInstanceAs <| Inf <| HomogeneousSubmodule A 𝒜
+instance : Min (HomogeneousIdeal 𝒜) := inferInstanceAs <| Min <| HomogeneousSubmodule A 𝒜
 
 instance : SupSet (HomogeneousIdeal 𝒜) := inferInstanceAs <| SupSet <| HomogeneousSubmodule A 𝒜
 
@@ -934,7 +933,7 @@ def Submodule.homogeneousHull : HomogeneousSubmodule A ℳ :=
   ⟨Submodule.span A { r : M | ∃ (i : ιM) (x : p), (DirectSum.decompose ℳ (x : M) i : M) = r }, by
     refine' Submodule.homogeneous_span 𝒜 ℳ _ fun x hx => _
     obtain ⟨i, x, rfl⟩ := hx
-    apply SetLike.homogeneous_coe⟩
+    apply SetLike.isHomogeneousElem_coe⟩
 
 /-- For any `I : Ideal A`, not necessarily homogeneous, `I.homogeneousHull 𝒜` is the smallest
 homogeneous ideal containing `I`. -/
@@ -1002,7 +1001,7 @@ theorem Submodule.homogeneousHull_eq_iSup :
     p.homogeneousHull 𝒜 ℳ =
       ⨆ i, ⟨Submodule.span A (GradedModule.proj ℳ i '' p), Submodule.homogeneous_span 𝒜 ℳ _ (by
         rintro _ ⟨x, -, rfl⟩
-        apply SetLike.homogeneous_coe)⟩ := by
+        apply SetLike.isHomogeneousElem_coe)⟩ := by
   ext1
   rw [Submodule.toSubmodule_homogeneousHull_eq_iSup, toSubmodule_iSup]
 
@@ -1010,7 +1009,7 @@ theorem Ideal.homogeneousHull_eq_iSup :
     I.homogeneousHull 𝒜 =
       ⨆ i, ⟨Ideal.span (GradedRing.proj 𝒜 i '' I), Ideal.homogeneous_span 𝒜 _ (by
         rintro _ ⟨x, -, rfl⟩
-        apply SetLike.homogeneous_coe)⟩ :=
+        apply SetLike.isHomogeneousElem_coe)⟩ :=
   Submodule.homogeneousHull_eq_iSup I
 
 end HomogeneousHull
@@ -1062,7 +1061,7 @@ section IrrelevantIdeal
 
 variable [Semiring A]
 
-variable [CanonicallyOrderedAddCommMonoid ιA]
+variable [OrderedAddCommMonoid ιA] [CanonicallyOrderedAdd ιA]
 
 variable [SetLike σA A] [AddSubmonoidClass σA A] [GradedRing 𝒜]
 
@@ -1112,7 +1111,7 @@ A module is homogeneously finitely generated if and only if it can be generated 
 non-zero homogeneous elements
 -/
 def Submodule.homogeneously_FG (p : Submodule A M) : Prop :=
-  ∃ (s : Finset M), (∀ m ∈ s, Homogeneous ℳ m ∧ m ≠ 0) ∧ p = Submodule.span A s
+  ∃ (s : Finset M), (∀ m ∈ s, IsHomogeneousElem ℳ m ∧ m ≠ 0) ∧ p = Submodule.span A s
 
 /--
 An ideal is homogeneously finitely generated if and only if it can be generated by a finite set of

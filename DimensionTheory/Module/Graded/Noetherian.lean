@@ -7,10 +7,10 @@ import DimensionTheory.Module.Graded.Homogeneous
 import DimensionTheory.missing_lemmas.GradeZeroModule
 import DimensionTheory.missing_lemmas.GradedRing
 
-import Mathlib.RingTheory.Noetherian
+import Mathlib.RingTheory.Noetherian.Basic
 import Mathlib.RingTheory.FiniteType
 import Mathlib.RingTheory.Adjoin.Basic
-import Mathlib.RingTheory.Finiteness
+import Mathlib.RingTheory.Finiteness.Basic
 import Mathlib.Algebra.Module.GradedModule
 import Mathlib.Algebra.Group.Subgroup.Finite
 
@@ -30,7 +30,7 @@ section Ring
 
 variable {ι A σ : Type*}
 variable [Ring A] [IsNoetherianRing A]
-variable [DecidableEq ι] [CanonicallyOrderedAddCommMonoid ι]
+variable [DecidableEq ι] [OrderedAddCommMonoid ι] [CanonicallyOrderedAdd ι]
 variable [SetLike σ A] [AddSubgroupClass σ A]
 variable (𝒜 : ι → σ) [GradedRing 𝒜]
 
@@ -63,7 +63,7 @@ structure HomogeneousGeneratingSetOf (I : Ideal A) where
   /--the underlying set of a finite homogeneous generating set -/
   toFinset : Finset A
   /--every element is homogeneous -/
-  homogeneous' : ∀ {a : A}, a ∈ toFinset → Homogeneous 𝒜 a
+  homogeneous' : ∀ {a : A}, a ∈ toFinset → IsHomogeneousElem 𝒜 a
   /--every element is not zero-/
   ne_zero' : ∀ {a : A}, a ∈ toFinset → a ≠ 0
   /--the set spans the ideal-/
@@ -72,13 +72,13 @@ structure HomogeneousGeneratingSetOf (I : Ideal A) where
 namespace HomogeneousGeneratingSetOf
 
 instance (I : Ideal A) : Membership A (HomogeneousGeneratingSetOf 𝒜 I) where
-  mem a S := a ∈ S.toFinset
+  mem S a := a ∈ S.toFinset
 
 variable {𝒜}
 variable {I : Ideal A} (S : HomogeneousGeneratingSetOf 𝒜 I)
 
 omit noetherian_ring [GradedRing 𝒜] in
-lemma homogeneous {a : A} (h : a ∈ S) : Homogeneous 𝒜 a := S.homogeneous' h
+lemma homogeneous {a : A} (h : a ∈ S) : IsHomogeneousElem 𝒜 a := S.homogeneous' h
 
 omit noetherian_ring [GradedRing 𝒜] in
 lemma ne_zero {a : A} (h : a ∈ S) : a ≠ 0 := S.ne_zero' h
@@ -299,7 +299,7 @@ variable (S : HomogeneousGeneratingSetOf 𝒜 (HomogeneousIdeal.irrelevant 𝒜)
 omit noetherian_ring in
 lemma evalMonomial_homogeneous
     (f : A →₀ ℕ) (hf : f.support ⊆ S.toFinset) :
-    Homogeneous 𝒜 (evalMonomial f) := by
+    IsHomogeneousElem 𝒜 (evalMonomial f) := by
   exact ⟨degreeMonomial _ _,
     evalMonomial_mem
       (deg := fun _ h ↦ S.deg (hf h))
@@ -316,7 +316,7 @@ lemma top_eq_span_monomial :
   rintro x -
   have hx : x ∈ (⊤ : Subalgebra (𝒜 0) A) := ⟨⟩
   rw [← HomogeneousGeneratingSetOf.irrelevant.adjoin_eq_top] at hx
-  refine Algebra.adjoin_induction hx ?_ ?_ ?_ ?_
+  refine Algebra.adjoin_induction (hx := hx) ?_ ?_ ?_ ?_
   · intro x hx
     refine Submodule.subset_span ⟨Finsupp.single x 1,
       Finsupp.support_single_subset.trans (by simpa), ?_⟩
@@ -328,11 +328,11 @@ lemma top_eq_span_monomial :
     change (r : A) ∈ Submodule.span (𝒜 0) _
     rw [show (r : A) = (r : A) • (1 : A) by rw [smul_eq_mul, mul_one]]
     exact Submodule.smul_mem _ _ <| Submodule.subset_span ⟨0, by simp, by simp [evalMonomial]⟩
-  · intro a b ha hb
+  · intro a b _ _ ha hb
     exact Submodule.add_mem _ ha hb
-  · intro a b ha hb
-    apply Submodule.span_induction₂ ha hb
-    · rintro _ ⟨f, hf, rfl⟩ _ ⟨g, hg, rfl⟩
+  · intro a b _ _ ha hb
+    apply Submodule.span_induction₂ (ha := ha) (hb := hb)
+    · rintro _ _ ⟨f, hf, rfl⟩ ⟨g, hg, rfl⟩
       refine Submodule.subset_span ⟨(f + g : A →₀ ℕ), ?_, ?_⟩
       · exact Finsupp.support_add (g₁ := f) (g₂ := g) |>.trans <|
           sup_le (α := Finset A) hf hg
@@ -355,23 +355,23 @@ lemma top_eq_span_monomial :
 
         simp_rw [pow_add]
         rw [Finset.prod_mul_distrib]
-    · intro y
+    · intro y _
       rw [zero_mul]
       exact Submodule.zero_mem _
-    · intro x
+    · intro x _
       rw [mul_zero]
       exact Submodule.zero_mem _
-    · intro x₁ x₂ y hx₁ hx₂
+    · intro x₁ x₂ y _ _ _ hx₁ hx₂
       rw [add_mul]
       exact Submodule.add_mem _ hx₁ hx₂
-    · intro x y₁ y₂ hy₁ hy₂
+    · intro x y₁ y₂ _ _ _ hy₁ hy₂
       rw [mul_add]
       exact Submodule.add_mem _ hy₁ hy₂
-    · intro r x y h
+    · intro r x y _ _ h
       change ((r : A) * x) * y ∈ _
       rw [mul_assoc, ← smul_eq_mul]
       exact Submodule.smul_mem _ _ h
-    · intro r x y h
+    · intro r x y _ _ h
       change x * ((r : A) * y) ∈ _
       rw [show x * (r * y) = r * (x * y) by ring, ← smul_eq_mul]
       exact Submodule.smul_mem _ _ h
@@ -401,7 +401,7 @@ lemma Finset.single_le_sum' {ι : Type*}
 omit noetherian_ring in
 lemma monomial_finite_of_bounded_degree (k : ℕ) :
     {p | ∃ (hp1 : p.support ⊆ S.toFinset),
-      (degreeMonomial p fun a ha ↦ S.deg (hp1 ha)) ≤ k}.Finite := by
+      (degreeMonomial p fun _ ha ↦ S.deg (hp1 ha)) ≤ k}.Finite := by
   let SMonomials := {p | ∃ (hp1 : p.support ⊆ S.toFinset),
     (degreeMonomial p fun a ha ↦ S.deg (hp1 ha)) ≤ k}
   let e : (s : SMonomials) → (S.toFinset → Finset.range (k + 1)) :=
@@ -471,7 +471,7 @@ that spans `p`.
 structure HomogeneousGeneratingSetOf (p : Submodule A M) where
   /--the underlying set of a finite homogeneous generating set -/
   toFinset : Finset M
-  homogeneous' : ∀ {m : M}, m ∈ toFinset → Homogeneous ℳ m
+  homogeneous' : ∀ {m : M}, m ∈ toFinset → IsHomogeneousElem ℳ m
   /--every element is not zero-/
   ne_zero' : ∀ {m : M}, m ∈ toFinset → m ≠ 0
   /--the set spans the ideal-/
@@ -480,13 +480,13 @@ structure HomogeneousGeneratingSetOf (p : Submodule A M) where
 namespace HomogeneousGeneratingSetOf
 
 instance (p : Submodule A M) : Membership M (HomogeneousGeneratingSetOf ℳ p) where
-  mem m S := m ∈ S.toFinset
+  mem S m := m ∈ S.toFinset
 
 variable {ℳ}
 variable {p : Submodule A M} (S : HomogeneousGeneratingSetOf ℳ p)
 
 omit finite_module noetherian_ring [DirectSum.Decomposition ℳ] in
-lemma homogeneous {a : M} (h : a ∈ S) : Homogeneous ℳ a := S.homogeneous' h
+lemma homogeneous {a : M} (h : a ∈ S) : IsHomogeneousElem ℳ a := S.homogeneous' h
 
 omit finite_module noetherian_ring [DirectSum.Decomposition ℳ] in
 lemma ne_zero {a : M} (h : a ∈ S) : a ≠ 0 := S.ne_zero' h
@@ -503,7 +503,7 @@ variable (A ℳ) in
 /-- An arbitrary chosen finite generating set for the top submodule. -/
 noncomputable def Top :
     HomogeneousGeneratingSetOf ℳ (⊤ : Submodule A M) :=
-  let H := Submodule.fg_iff_homogeneously_fg (A := A) (ℳ := ℳ) (p := ⊤) |>.mp finite_module.out
+  let H := Submodule.fg_iff_homogeneously_fg (A := A) (ℳ := ℳ) (p := ⊤) |>.mp finite_module.fg_top
   { toFinset := H.choose
     homogeneous' := fun h ↦ H.choose_spec.1 _ h |>.1
     ne_zero' := fun h ↦ H.choose_spec.1 _ h |>.2
@@ -558,7 +558,7 @@ lemma kth_degree_eq_span (k : ℕ) :
     Submodule.span (𝒜 0)
       {x : ℳ k |
         ∃ (ω : M) (_ : ω ∈ TM.toFinset) (p : A →₀ ℕ) (hp1 : p.support ⊆ T.toFinset),
-          degreeMonomial p (fun a ha ↦ T.deg (hp1 ha)) ≤ k ∧
+          degreeMonomial p (fun _ ha ↦ T.deg (hp1 ha)) ≤ k ∧
           (x : M) = evalMonomial p • ω } := by
   refine le_antisymm ?_ le_top
   rintro ⟨x, hx⟩ -
@@ -742,7 +742,7 @@ lemma kth_degree_eq_span (k : ℕ) :
             simp only [Finset.filter_congr_decidable, Finset.mem_filter, Finset.mem_attach,
               true_and] at mem
             rw [mem, vadd_eq_add, Nat.sub_add_cancel]
-            simpa using i.2⟩ : ℳ k) := by
+            simpa [-Finset.coe_mem] using i.2⟩ : ℳ k) := by
     ext
     refine eq0.trans ?_
     rw [AddSubgroup.val_finset_sum]

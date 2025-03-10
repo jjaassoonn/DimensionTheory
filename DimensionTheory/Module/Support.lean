@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 
-import Mathlib.Algebra.Module.LocalizedModule
-import Mathlib.AlgebraicGeometry.PrimeSpectrum.Basic
+import Mathlib.Algebra.Module.LocalizedModule.Basic
+import Mathlib.RingTheory.Spectrum.Prime.Basic
 import Mathlib.Algebra.Exact
 
 import DimensionTheory.missing_lemmas.Ideal
@@ -109,16 +109,16 @@ lemma mem_iff_of_finite [fin : Module.Finite R M] {𝔭 : PrimeSpectrum R} :
       obtain ⟨_, _, h⟩ := H
       exact (x _).2 h
 
-lemma eq_union_of_exact
-    {M' M M'' : Type*}
-    [AddCommGroup M'] [AddCommGroup M] [AddCommGroup M'']
-    [Module R M'] [Module R M] [Module R M'']
-    [Module.Finite R M'] [Module.Finite R M] [Module.Finite R M'']
-    (f : M' →ₗ[R] M) (g : M →ₗ[R] M'')
-    (inj : Function.Injective f)
-    (ex : Function.Exact f g)
-    (surj : Function.Surjective g) :
-    Supp(R, M) = Supp(R, M') ∪ Supp(R, M'') := by
-  sorry
+-- lemma eq_union_of_exact
+--     {M' M M'' : Type*}
+--     [AddCommGroup M'] [AddCommGroup M] [AddCommGroup M'']
+--     [Module R M'] [Module R M] [Module R M'']
+--     [Module.Finite R M'] [Module.Finite R M] [Module.Finite R M'']
+--     (f : M' →ₗ[R] M) (g : M →ₗ[R] M'')
+--     (inj : Function.Injective f)
+--     (ex : Function.Exact f g)
+--     (surj : Function.Surjective g) :
+--     Supp(R, M) = Supp(R, M') ∪ Supp(R, M'') := by
+--   sorry
 
 end Module.Supp

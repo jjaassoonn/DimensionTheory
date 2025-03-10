@@ -40,7 +40,7 @@ def homogeneousComponents [DecidableEq ιM] [Decomposition 𝓜] [DecidableEq M]
     (decompose 𝓜 a).support.image (decompose 𝓜 a ·)
 
 lemma homogeneous_of_mem_homogeneousComponents [DecidableEq ιM] [Decomposition 𝓜] [DecidableEq M]
-    {a b : M} (hb : b ∈ homogeneousComponents 𝓜 a) : SetLike.Homogeneous 𝓜 b := by
+    {a b : M} (hb : b ∈ homogeneousComponents 𝓜 a) : SetLike.IsHomogeneousElem 𝓜 b := by
   change b ∈ (decompose 𝓜 a).support.image _ at hb
   aesop
 
@@ -63,7 +63,7 @@ lemma proj_smul_mem_right {i j : ℕ} (a : A) (m : M) (hm : m ∈ ℳ i) :
   rw [← DirectSum.sum_support_decompose ℳ (a • m), map_sum, Finset.sum_eq_single j,
     proj_apply, decompose_of_mem_same (hx := SetLike.coe_mem _)]
   pick_goal 2
-  · intro n _ hne; rw [proj_apply, decompose_of_mem_ne (hx := SetLike.coe_mem _) hne]
+  · intro n _ hne; rw [proj_apply, decompose_of_mem_ne (ℳ := ℳ) (hx := SetLike.coe_mem _) hne]
   pick_goal 2
   · intro hj
     simpa using hj
@@ -76,7 +76,7 @@ lemma proj_smul_mem_right {i j : ℕ} (a : A) (m : M) (hm : m ∈ ℳ i) :
     Finset.sum_smul, DirectSum.decompose_sum]
   simp_rw [Finset.smul_sum]
   have eq1 (k : ℕ) :
-    ∑ j in (decompose ℳ m).support,
+    ∑ j ∈ (decompose ℳ m).support,
       (decompose 𝒜 (decompose 𝒜 a k)) • decompose ℳ (decompose ℳ m j) =
     decompose 𝒜 (decompose 𝒜 a k) • decompose ℳ m := by
     rw [Finset.sum_eq_single i, decompose_of_mem_same ℳ hm]
@@ -112,7 +112,7 @@ lemma proj_smul_mem_right {i j : ℕ} (a : A) (m : M) (hm : m ∈ ℳ i) :
     simp only [not_le] at h
     rw [if_neg]
     · rfl
-    · linarith
+    · omega
 
 lemma proj_smul_mem_left {i j : ℕ} (a : A) (m : M) (ha : a ∈ 𝒜 i) :
     GradedModule.proj ℳ j (a • m) =
@@ -128,7 +128,7 @@ lemma proj_smul_mem_left {i j : ℕ} (a : A) (m : M) (ha : a ∈ 𝒜 i) :
   rw [← DirectSum.sum_support_decompose ℳ (a • m), map_sum, Finset.sum_eq_single j,
     proj_apply, decompose_of_mem_same (hx := SetLike.coe_mem _)]
   pick_goal 2
-  · intro n _ hne; rw [proj_apply, decompose_of_mem_ne (hx := SetLike.coe_mem _) hne]
+  · intro n _ hne; rw [proj_apply, decompose_of_mem_ne (ℳ := ℳ) (hx := SetLike.coe_mem _) hne]
   pick_goal 2
   · intro hj
     simpa using hj
@@ -143,26 +143,26 @@ lemma proj_smul_mem_left {i j : ℕ} (a : A) (m : M) (ha : a ∈ 𝒜 i) :
   simp_rw [Finset.smul_sum]
 
   rw [calc _
-    _ = ((∑ i in (decompose 𝒜 a).support, ∑ j in (decompose ℳ m).support,
+    _ = ((∑ i ∈ (decompose 𝒜 a).support, ∑ j ∈ (decompose ℳ m).support,
           decompose 𝒜 (decompose 𝒜 a i) • decompose ℳ (decompose ℳ m j)) j : M) := rfl
-    _ = ((∑ ik in (decompose 𝒜 a).support ×ˢ (decompose ℳ m).support,
+    _ = ((∑ ik ∈ (decompose 𝒜 a).support ×ˢ (decompose ℳ m).support,
           decompose 𝒜 (decompose 𝒜 a ik.1) • decompose ℳ (decompose ℳ m ik.2)) j : M) := by
         rw [Finset.sum_product]
-    _ = (∑ ik in (decompose 𝒜 a).support ×ˢ (decompose ℳ m).support,
+    _ = (∑ ik ∈ (decompose 𝒜 a).support ×ˢ (decompose ℳ m).support,
           ((decompose 𝒜 (decompose 𝒜 a ik.1) • decompose ℳ (decompose ℳ m ik.2)) j) : ℳ j) := by
         congr 1
         exact DFinsupp.finset_sum_apply _ _ _
-    _ = ∑ ik in (decompose 𝒜 a).support ×ˢ (decompose ℳ m).support,
+    _ = ∑ ik ∈ (decompose 𝒜 a).support ×ˢ (decompose ℳ m).support,
           ((decompose 𝒜 (decompose 𝒜 a ik.1) • decompose ℳ (decompose ℳ m ik.2)) j : M) := by
         norm_cast
-    _ = ∑ ik in (decompose 𝒜 a).support ×ˢ (decompose ℳ m).support,
+    _ = ∑ ik ∈ (decompose 𝒜 a).support ×ˢ (decompose ℳ m).support,
           ((of (fun i ↦ ℳ i) (ik.1 + ik.2)
             ⟨(decompose 𝒜 a ik.1 : A) • (decompose ℳ m ik.2 : M), _⟩) j : M) := by
         refine Finset.sum_congr rfl fun ik _ ↦ ?_
         simp only [decompose_coe, Gmodule.smul_def, Gmodule.smulAddMonoidHom_apply_of_of,
           vadd_eq_add, SetLike.coe_eq_coe]
         rfl
-    _ = ∑ ik in (decompose 𝒜 a).support ×ˢ (decompose ℳ m).support,
+    _ = ∑ ik ∈ (decompose 𝒜 a).support ×ˢ (decompose ℳ m).support,
           if ik.1 + ik.2 = j
           then (decompose 𝒜 a ik.1 : A) • (decompose ℳ m ik.2 : M)
           else 0 := by
@@ -198,10 +198,10 @@ lemma proj_smul_mem_left {i j : ℕ} (a : A) (m : M) (ha : a ∈ 𝒜 i) :
       exact Subtype.ext hj
     · simp only [not_le] at ineq
       exfalso
-      linarith only [(h.2 : i + j' = j), ineq]
+      omega
 
   split_ifs with ineq
-  · trans ∑ ik in {(i, j - i)}, (decompose 𝒜 a ik.1 : A) • (decompose ℳ m ik.2 : M)
+  · trans ∑ ik ∈ {(i, j - i)}, (decompose 𝒜 a ik.1 : A) • (decompose ℳ m ik.2 : M)
     · refine Finset.sum_congr ?_ fun _ _ ↦ rfl
       rw [Finset.eq_singleton_iff_unique_mem, Finset.mem_filter, Finset.mem_product]
       refine ⟨⟨⟨hi, hj⟩, show i + (j - i) = j from Nat.add_sub_of_le ineq⟩, ?_⟩
@@ -224,7 +224,7 @@ lemma proj_smul_mem_left {i j : ℕ} (a : A) (m : M) (ha : a ∈ 𝒜 i) :
     have hii' : i = i' := by
       by_contra hii'; exact h.1.1 <| Subtype.ext <| DirectSum.decompose_of_mem_ne 𝒜 ha hii'
     subst hii'
-    linarith only [(h.2 : i + j' = j), ineq]
+    omega
 
 end same_indexing_set
 

@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fangming Li, Jujian Zhang
 -/
 
-import Mathlib.AlgebraicGeometry.PrimeSpectrum.Noetherian
+import Mathlib.RingTheory.Spectrum.Prime.Noetherian
 import Mathlib.RingTheory.Ideal.Basic
-import Mathlib.RingTheory.Artinian
+import Mathlib.RingTheory.Artinian.Ring
 import Mathlib.Topology.KrullDimension
 import Mathlib.RingTheory.Localization.Ideal
 import Mathlib.Topology.NoetherianSpace
@@ -25,21 +25,21 @@ inclusion.
   krull dimension of `R_𝔭`
 -/
 
-/--
-The ring theoretic Krull dimension is the Krull dimension of prime spectrum ordered by inclusion.
--/
-noncomputable abbrev ringKrullDim (R : Type _) [CommRing R] : WithBot (WithTop ℕ) :=
-  krullDim (PrimeSpectrum R)
+-- /--
+-- The ring theoretic Krull dimension is the Krull dimension of prime spectrum ordered by inclusion.
+-- -/
+-- noncomputable abbrev ringKrullDim (R : Type _) [CommRing R] : WithBot (WithTop ℕ) :=
+--   krullDim (PrimeSpectrum R)
 
 namespace ringKrullDim
 
-open PrimeSpectrum OrderDual in
+open PrimeSpectrum OrderDual Order in
 lemma eq_topologicalKrullDim (R : Type*) [CommRing R] :
     ringKrullDim R = topologicalKrullDim (PrimeSpectrum R) :=
   Eq.symm <| krullDim_orderDual.symm.trans <| krullDim_eq_of_orderIso <| OrderIso.symm
   { toFun := fun p ↦ ⟨zeroLocus p.asIdeal,
       isIrreducible_zeroLocus_iff _ |>.mpr <| by simpa only [p.isPrime.radical] using p.isPrime,
-      isClosed_zeroLocus p.asIdeal⟩
+      isClosed_zeroLocus ..⟩
     invFun := (fun s ↦ ⟨vanishingIdeal s.1, isIrreducible_iff_vanishingIdeal_isPrime.mp s.2⟩)
     left_inv := fun p ↦ PrimeSpectrum.ext <|
       by simp [PrimeSpectrum.vanishingIdeal_zeroLocus_eq_radical, p.isPrime.radical]
@@ -52,6 +52,8 @@ lemma eq_topologicalKrullDim (R : Type*) [CommRing R] :
       intro p q
       change zeroLocus _ ≤ zeroLocus _ ↔ _
       simp [zeroLocus_subset_zeroLocus_iff, q.isPrime.radical] }
+
+open Order
 
 /--
 If `R ⟶ S` is a surjective ring homomorphism, then `ringKrullDim S ≤ ringKrullDim R`.
@@ -115,7 +117,8 @@ lemma _root_.Ideal.IsPrime.isMaximal_of_dim_zero
   have : 1 ≤ ringKrullDim R :=
     le_iSup (α := WithBot (WithTop ℕ)) (f := fun x : LTSeries _ ↦ x.length) x
   rw [dim0] at this
-  norm_num at this
+  norm_cast at this
+
 
 lemma _root_.Ideal.IsPrime.isMinimal_of_dim_zero
     {I : Ideal R} (h : I.IsPrime) (dim0 : ringKrullDim R = 0) :
@@ -137,7 +140,7 @@ lemma _root_.Ideal.IsPrime.isMinimal_of_dim_zero
   have : 1 ≤ ringKrullDim R :=
     le_iSup (α := WithBot (WithTop ℕ)) (f := fun x : LTSeries _ ↦ x.length) x
   rw [dim0] at this
-  norm_num at this
+  norm_cast at this
 
 lemma Ideal.eq_of_le (p q : Ideal R) [hp : p.IsPrime] [hq : q.IsPrime] (hpq : p ≤ q)
     (dim_0 : ringKrullDim R = 0) : p = q :=
@@ -162,7 +165,7 @@ lemma zero_dimensional_of_isMaximal_eq_mem_minimalPrimes [Nontrivial R]
         linarith
       replace ineq1 : (x 0).asIdeal < (x 1).asIdeal := ineq1
       rw [← x_0_eq, hy0.eq_of_le (x 1).isPrime.1 ineq1.1] at ineq1
-      exact lt_irrefl _ ineq1) krullDim_nonneg_of_nonempty
+      exact lt_irrefl _ ineq1) krullDim_nonneg
 
 end dimension_0
 
@@ -172,24 +175,27 @@ variable (R : Type _) [CommRing R] [Nontrivial R]
 
 lemma eq_zero_of_isArtinianRing [IsArtinianRing R] : ringKrullDim R = 0 := by
   rw [ringKrullDim, krullDim_eq_iSup_height]
-  suffices ∀ (a : PrimeSpectrum R), height (PrimeSpectrum R) a = 0 by
-    simp_rw [this]; rw [iSup_const]
+  suffices ∀ (a : PrimeSpectrum R), height a = 0 by
+    simp_rw [this]; rw [iSup_const]; rfl
   · intro p
-    refine le_antisymm (iSup_le fun x ↦ ?_) krullDim_nonneg_of_nonempty
-    erw [WithBot.coe_le_coe, WithTop.coe_le_coe]
+    refine le_antisymm (iSup_le fun x ↦ ?_) (zero_le (height p))
+    simp only [nonpos_iff_eq_zero, ENat.iSup_eq_zero, Nat.cast_eq_zero]
+    intro H
+
     by_contra! r
+    replace r : 0 < x.length := by omega
+    simp only [ne_eq] at r
     have : x 0 < x 1 := by
       let hx := x.step ⟨0, r⟩
-      rw [show (Fin.castSucc { val := 0, isLt := r }) = 0 by exact rfl,
-        show (Fin.succ { val := 0, isLt := r }) = 1 by
-        rw [show (Fin.succ { val := 0, isLt := r }) = 0 + 1 by
-        exact Fin.ext $ Eq.symm (Fin.val_add_one_of_lt r)];
-        exact Fin.zero_add 1] at hx
-      exact hx
-    haveI H0 : (x 0).1.asIdeal.IsMaximal := inferInstance
+      simp only [Fin.castSucc_mk, Fin.zero_eta, Fin.succ_mk, zero_add] at hx
+      convert hx using 2
+      ext
+      simpa
+    haveI H0 : (x 0).asIdeal.IsMaximal := inferInstance
     exact ne_of_lt this (show x 0 = x 1 by
-      rw [Subtype.ext_iff_val, PrimeSpectrum.ext_iff];
-      exact H0.eq_of_le (x 1).1.isPrime.1 (le_of_lt this))
+      rw [PrimeSpectrum.ext_iff];
+      exact H0.eq_of_le (x 1).isPrime.1 (le_of_lt this))
+
 
 variable {R} in
 /--
@@ -274,19 +280,20 @@ lemma PID_eq_one_of_not_isField (R : Type _) [CommRing R] [IsPrincipalIdealRing 
 
 end PID
 
-/--
-https://stacks.math.columbia.edu/tag/00KG
--/
-lemma eq_iSup_height_maximal_ideals (R : Type _) [CommRing R] : ringKrullDim R =
-    ⨆ (p : PrimeSpectrum R) (_ : p.asIdeal.IsMaximal), height (PrimeSpectrum R) p := by
-  refine' krullDim_eq_iSup_height.trans $ le_antisymm ?_ ?_
-  · exact iSup_le $ fun p ↦ by
-      rcases (p.asIdeal.exists_le_maximal p.isPrime.1) with ⟨q, ⟨h1, h2⟩⟩
-      refine' le_trans ?_ (le_sSup ⟨⟨q, Ideal.IsMaximal.isPrime h1⟩, iSup_pos h1⟩)
-      exact height_mono h2
-  · rw [show (⨆ (a : PrimeSpectrum R), height (PrimeSpectrum R) a) = ⨆ (a : PrimeSpectrum R)
-      (_ : true), height (PrimeSpectrum R) a by simp only [iSup_pos]]
-    exact iSup_le_iSup_of_subset $ fun _ _ ↦ rfl
+-- in mathlib already
+-- /--
+-- https://stacks.math.columbia.edu/tag/00KG
+-- -/
+-- lemma eq_iSup_height_maximal_ideals (R : Type _) [CommRing R] : ringKrullDim R =
+--     ⨆ (p : PrimeSpectrum R) (_ : p.asIdeal.IsMaximal), height p := by
+--   refine' krullDim_eq_iSup_height.trans $ le_antisymm ?_ ?_
+--   · exact iSup_le $ fun p ↦ by
+--       rcases (p.asIdeal.exists_le_maximal p.isPrime.1) with ⟨q, ⟨h1, h2⟩⟩
+--       refine' le_trans ?_ (le_sSup ⟨⟨q, Ideal.IsMaximal.isPrime h1⟩, iSup_pos h1⟩)
+--       exact height_mono h2
+--   · rw [show (⨆ (a : PrimeSpectrum R), height (PrimeSpectrum R) a) = ⨆ (a : PrimeSpectrum R)
+--       (_ : true), height (PrimeSpectrum R) a by simp only [iSup_pos]]
+--     exact iSup_le_iSup_of_subset $ fun _ _ ↦ rfl
 
 /-
 Here we aim to show that for any prime ideal `𝔭` of a commutative ring `R`, the
@@ -296,29 +303,30 @@ section aboutHeightAndLocalization
 
 variable {R : Type*} [CommRing R] (𝔭 : PrimeSpectrum R)
 
-/--
-The height of `𝔭` is equal to the Krull dimension of `localization.at_prime 𝔭.as_ideal`.
--/
-theorem primeIdealHeight_eq_ringKrullDim_of_Localization :
-    height (PrimeSpectrum R) 𝔭 = ringKrullDim (Localization.AtPrime 𝔭.asIdeal) :=
-  let e := (IsLocalization.orderIsoOfPrime (𝔭.asIdeal.primeCompl)
-      (Localization.AtPrime 𝔭.asIdeal))
-  krullDim_eq_of_orderIso
-  { toFun := fun I ↦ let J := e.symm ⟨I.1.1, I.1.2, by
-        rw [Set.disjoint_iff_inter_eq_empty, Set.eq_empty_iff_forall_not_mem]
-        rintro r ⟨h1, h2⟩
-        exact h1 $ I.2 h2⟩
-      ⟨J.1, J.2⟩
-    invFun := fun J ↦ let I := e ⟨J.1, J.2⟩
-      ⟨⟨I.1, I.2.1⟩, fun r (hr : r ∈ I.1) ↦ not_not.mp $ Set.disjoint_right.mp I.2.2 hr⟩
-    left_inv := fun I ↦ by simp only [Subtype.coe_eta, OrderIso.apply_symm_apply]
-    right_inv := fun J ↦ by simp only [Subtype.coe_eta, OrderIso.symm_apply_apply]
-    map_rel_iff' := fun {I₁ I₂} ↦ by
-      convert e.symm.map_rel_iff (a := ⟨I₁.1.1, I₁.1.2, ?_⟩) (b := ⟨I₂.1.1, I₂.1.2, ?_⟩) using 1 <;>
-      rw [Set.disjoint_iff_inter_eq_empty, Set.eq_empty_iff_forall_not_mem] <;>
-      rintro r ⟨h1, h2⟩
-      · exact h1 $ I₁.2 h2
-      · exact h1 $ I₂.2 h2 }
+-- in mathlib already
+-- /--
+-- The height of `𝔭` is equal to the Krull dimension of `localization.at_prime 𝔭.as_ideal`.
+-- -/
+-- theorem primeIdealHeight_eq_ringKrullDim_of_Localization :
+--     height (PrimeSpectrum R) 𝔭 = ringKrullDim (Localization.AtPrime 𝔭.asIdeal) :=
+--   let e := (IsLocalization.orderIsoOfPrime (𝔭.asIdeal.primeCompl)
+--       (Localization.AtPrime 𝔭.asIdeal))
+--   krullDim_eq_of_orderIso
+--   { toFun := fun I ↦ let J := e.symm ⟨I.1.1, I.1.2, by
+--         rw [Set.disjoint_iff_inter_eq_empty, Set.eq_empty_iff_forall_not_mem]
+--         rintro r ⟨h1, h2⟩
+--         exact h1 $ I.2 h2⟩
+--       ⟨J.1, J.2⟩
+--     invFun := fun J ↦ let I := e ⟨J.1, J.2⟩
+--       ⟨⟨I.1, I.2.1⟩, fun r (hr : r ∈ I.1) ↦ not_not.mp $ Set.disjoint_right.mp I.2.2 hr⟩
+--     left_inv := fun I ↦ by simp only [Subtype.coe_eta, OrderIso.apply_symm_apply]
+--     right_inv := fun J ↦ by simp only [Subtype.coe_eta, OrderIso.symm_apply_apply]
+--     map_rel_iff' := fun {I₁ I₂} ↦ by
+--       convert e.symm.map_rel_iff (a := ⟨I₁.1.1, I₁.1.2, ?_⟩) (b := ⟨I₂.1.1, I₂.1.2, ?_⟩) using 1 <;>
+--       rw [Set.disjoint_iff_inter_eq_empty, Set.eq_empty_iff_forall_not_mem] <;>
+--       rintro r ⟨h1, h2⟩
+--       · exact h1 $ I₁.2 h2
+--       · exact h1 $ I₂.2 h2 }
 
 end aboutHeightAndLocalization
 

@@ -5,7 +5,7 @@ Authors: Jujian Zhang
 -/
 
 import Mathlib.RingTheory.Ideal.Maps
-import Mathlib.RingTheory.Finiteness
+import Mathlib.RingTheory.Finiteness.Basic
 
 /-!
 # Some missing lemmas and constructions on ideals
@@ -144,14 +144,14 @@ lemma Pi_fg_of_unPi_fg (I : Ideal (Π i, f i)) (H : ∀ i, (unPi I i).FG) : I.FG
       trans ∑ i, if i = j then y i j else 0
       · simpa only [Finset.sum_ite_eq', Finset.mem_univ, ite_true] using (hy2 j).symm
       · simpa only [Finset.sum_apply, Pi.mul_apply] using Finset.sum_congr rfl fun i _ ↦ by aesop]
-    refine Ideal.sum_mem _ fun i _ ↦ Ideal.mem_iSup_of_mem i <| ?_
+    refine sum_mem fun i _ ↦ Ideal.mem_iSup_of_mem i <| ?_
     simp_rw [show ∀ i, Pi.single i 1 * y i = Pi.single i (y i i) by
       intro i; ext j; by_cases eq1 : i = j <;> aesop]
     specialize hs i
     have mem1 : (y i i) ∈ unPi I i := mem_unPi _ _ |>.mpr <| ⟨_, hy1 i, by simp⟩
     rw [← hs] at mem1
-    refine Submodule.span_induction mem1 (fun _ h ↦ Ideal.subset_span <| by simpa using h)
-      (by simp) (fun x y h₁ h₂ ↦ Pi.single_add i x y ▸ Submodule.add_mem _ h₁ h₂) fun _ _ h ↦ ?_
+    refine Submodule.span_induction (hx := mem1) (fun _ h ↦ Ideal.subset_span <| by simpa using h)
+      (by simp) (fun x y _ _ h₁ h₂ ↦ Pi.single_add i x y ▸ Submodule.add_mem _ h₁ h₂) fun _ _ _ h ↦ ?_
     rw [smul_eq_mul, Pi.single_mul]
     exact Ideal.mul_mem_left _ _ h
 

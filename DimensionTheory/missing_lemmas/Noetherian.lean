@@ -6,7 +6,7 @@ Authors: Jujian Zhang
 
 import DimensionTheory.missing_lemmas.Ideal
 
-import Mathlib.RingTheory.Noetherian
+import Mathlib.RingTheory.Noetherian.Basic
 import Mathlib.RingTheory.Localization.Ideal
 
 /-!

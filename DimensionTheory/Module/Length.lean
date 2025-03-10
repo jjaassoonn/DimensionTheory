@@ -9,11 +9,14 @@ import DimensionTheory.missing_lemmas.RelSeries
 import DimensionTheory.missing_lemmas.PUnit
 
 import Mathlib.Order.KrullDimension
-import Mathlib.RingTheory.Noetherian
-import Mathlib.RingTheory.Artinian
+import Mathlib.RingTheory.Noetherian.Basic
+import Mathlib.RingTheory.KrullDimension.Basic
+import Mathlib.RingTheory.Artinian.Ring
 import Mathlib.LinearAlgebra.Basis.VectorSpace
 import Mathlib.LinearAlgebra.FreeModule.Finite.Basic
 import Mathlib.Algebra.BigOperators.WithTop
+import Mathlib.Algebra.CharP.Defs
+import Mathlib.Algebra.Algebra.RestrictScalars
 
 /-!
 
@@ -135,7 +138,7 @@ lemma moduleLength_lt_of_proper_submodule [h : FiniteLengthModule R M]
 /-- finite length modules are preserved under linear isomorphisms -/
 def finiteLengthModule_congr {M' : Type _} [AddCommGroup M'] [Module R M']
     (e : M ≃ₗ[R] M') [h : FiniteLengthModule R M] : FiniteLengthModule R M' where
-  compositionSeries := h.compositionSeries.congr e
+  compositionSeries := h.compositionSeries.congr (e := e)
   head_eq := by
     rw [CompositionSeries.congr, RelSeries.head, RelSeries.map]
     simp only [Function.comp_apply]
@@ -276,8 +279,9 @@ lemma length_le_compositionSeries
 
 end LTSeries
 
+open Order in
 lemma moduleLength_eq_krullDim_Submodules_of_finiteLength [h : FiniteLengthModule R M] :
-    moduleLength R M = krullDim (Submodule R M) :=
+    (.some (moduleLength R M) : WithBot ℕ∞) = krullDim (Submodule R M) :=
 le_antisymm
   (le_iSup_iff.mpr fun m hm ↦ moduleLength_eq_coe (h := h) ▸ hm
     (h.compositionSeries.ofLE fun _ _ h ↦ h.1))
@@ -285,6 +289,7 @@ le_antisymm
     refine WithBot.coe_le_coe.mpr $ moduleLength_eq_coe (h := h) ▸ WithTop.coe_le_coe.mpr ?_
     exact i.length_le_compositionSeries _ h.head_eq h.last_eq)
 
+open Order in
 lemma krullDim_submodules_of_infinite_length (h : ¬ IsFiniteLengthModule R M) :
     krullDim (Submodule R M) = ⊤ := by
   contrapose! h
@@ -295,7 +300,7 @@ lemma krullDim_submodules_of_infinite_length (h : ¬ IsFiniteLengthModule R M) :
     have hx3 : ∃ (n : ℕ), x = n := by
       rcases x with _ | ⟨_ | ⟨x⟩⟩
       · specialize hx2 (RelSeries.singleton _ ⊥)
-        simp only [RelSeries.singleton_length, CharP.cast_eq_zero] at hx2
+        simp [RelSeries.singleton_length, CharP.cast_eq_zero] at hx2
         change 0 ≤ ⊥ at hx2
         refine (not_le_of_lt ?_ hx2).elim
         exact WithBot.bot_lt_coe 0
@@ -325,12 +330,14 @@ lemma krullDim_submodules_of_infinite_length (h : ¬ IsFiniteLengthModule R M) :
   refine ⟨⟨⟨?_, ?_, ?_⟩⟩⟩
   · refine ⟨x.length, x.toFun, fun i ↦ LTSeries.longestOf_covBy i⟩
   · by_contra! rid
-    simpa using LTSeries.longestOf_is_longest (RelSeries.cons x ⊥ (bot_lt_iff_ne_bot.mpr rid))
+    have := LTSeries.longestOf_is_longest (RelSeries.cons x ⊥ (bot_lt_iff_ne_bot.mpr rid))
+    simpa [x] using LTSeries.longestOf_is_longest (RelSeries.cons x ⊥ (bot_lt_iff_ne_bot.mpr rid))
   · by_contra! rid
-    simpa using LTSeries.longestOf_is_longest (RelSeries.snoc x ⊤ (lt_top_iff_ne_top.mpr rid))
+    simpa [x] using LTSeries.longestOf_is_longest (RelSeries.snoc x ⊤ (lt_top_iff_ne_top.mpr rid))
 
+open Order in
 lemma moduleLength_eq_krullDim_Submodules :
-    moduleLength R M = krullDim (Submodule R M) := by
+    .some (moduleLength R M) = krullDim (Submodule R M) := by
   by_cases h : IsFiniteLengthModule R M
   · replace h := Classical.choice h.finite
     rw [moduleLength_eq_krullDim_Submodules_of_finiteLength]
@@ -368,6 +375,7 @@ instance isArtinian_of_finiteLength [h : FiniteLengthModule R M] :
 variable {R M}
 variable [IsArtinian R M] (N : Submodule R M)
 
+set_option linter.deprecated false in
 /-- for an artinian `R`-module `M`, there is a well defined successor function on its submodules.
 `N ↦ N'` such that `N ⋖ N'`-/
 noncomputable def _root_.Submodule.next : Submodule R M :=
@@ -388,6 +396,8 @@ lemma _root_.Submodule.le_next : N ≤ N.next := by
   · exact le_of_lt (WellFounded.min_mem _ _ H)
   · rfl
 
+
+set_option linter.deprecated false in
 lemma _root_.Submodule.lt_next_of_ne_last (ne_last : N ≠ ⊤) : N < N.next :=
   WellFounded.lt_succ _ (N.exists_of_ne_last ne_last)
 
@@ -566,7 +576,7 @@ def CompositionSeries.liftSubmodule : CompositionSeries (Submodule R M) where
     have hp3 : p ≤ N := by
       intro x hx
       have := hp2.1 hx
-      simp only [Submodule.map_coe, Submodule.coeSubtype, Set.mem_image, SetLike.mem_coe,
+      simp only [Submodule.map_coe, Submodule.coe_subtype, Set.mem_image, SetLike.mem_coe,
         Subtype.exists, exists_and_right, exists_eq_right] at this
       obtain ⟨hx', -⟩ := this
       exact hx'
@@ -616,7 +626,7 @@ def FiniteLengthModule.of_quotient_of_submodule
     c2.smash c1  <| by
       rw [CompositionSeries.liftQuotient_head, CompositionSeries.liftSubmodule_last]
       ext m
-      simp only [Submodule.mem_map, Submodule.coeSubtype, Subtype.exists, exists_and_right,
+      simp only [Submodule.mem_map, Submodule.coe_subtype, Subtype.exists, exists_and_right,
         exists_eq_right, Submodule.comapMkQRelIso, RelIso.coe_fn_mk, Equiv.coe_fn_mk,
         Submodule.mem_comap, Submodule.mkQ_apply]
       set x : Submodule R N := compositionSeries.last
@@ -725,7 +735,7 @@ noncomputable def RelSeries.rangeCQFToSucc (i : Fin x.length) :
 /--
 The `0`-th cumulative quotient factor is trivial.
 -/
-noncomputable def RelSeries.cqfZeroEquiv : x.cqf 0 ≃ₗ[R] PUnit := by
+noncomputable def RelSeries.cqfZeroEquiv : x.cqf 0 ≃ₗ[R] PUnit.{1} := by
 
   refine PUnit.linearEquivOfUnique R (uniq := ?_)
   suffices H : Nonempty (Unique _) from Classical.choice H
@@ -752,7 +762,7 @@ noncomputable def RelSeries.cdfSuccEquiv (i : Fin x.length) :
     Submodule.map (Submodule.inclusion <| LESeries.monotone _ <|
       Fin.zero_le _ : x.head →ₗ[R] x i.succ) ⊤
 
-  let e := @Submodule.quotientQuotientEquivQuotient (R := R) (M := x i.succ)
+  let e := Submodule.quotientQuotientEquivQuotient (R := R) (M := x i.succ)
     (T := x_i) (S := x_0) (fun m hm ↦ by
       simp only [Submodule.map_top, LinearMap.mem_range, Subtype.exists, x_i, x_0] at hm ⊢
       rcases hm with ⟨n, h1, rfl⟩
@@ -760,7 +770,7 @@ noncomputable def RelSeries.cdfSuccEquiv (i : Fin x.length) :
   refine ?_ ≪≫ₗ e.symm ≪≫ₗ ?_
   · refine Submodule.Quotient.equiv _ _ (LinearEquiv.refl R _) ?_
     ext m
-    simp only [Submodule.mem_map, Submodule.mem_comap, Submodule.coeSubtype, LinearEquiv.refl_apply,
+    simp only [Submodule.mem_map, Submodule.mem_comap, Submodule.coe_subtype, LinearEquiv.refl_apply,
       exists_eq_right, Submodule.map_top, LinearMap.mem_range, Subtype.exists, x_i, x_0]
     fconstructor
     · intro h; exact ⟨m.1, h, rfl⟩
@@ -769,7 +779,7 @@ noncomputable def RelSeries.cdfSuccEquiv (i : Fin x.length) :
       (Submodule.Quotient.equiv _ _ (LinearEquiv.refl R _) ?_) ?_
     · ext m
       simp only [Submodule.map_top, Submodule.mem_map, LinearMap.mem_range, Subtype.exists,
-        LinearEquiv.refl_apply, exists_eq_right, Submodule.mem_comap, Submodule.coeSubtype,
+        LinearEquiv.refl_apply, exists_eq_right, Submodule.mem_comap, Submodule.coe_subtype,
         x_i, x_0]
       fconstructor
       · rintro ⟨n, hn, rfl⟩; exact hn
@@ -804,10 +814,12 @@ lemma RelSeries.cqf_length_eq_sum (i : Fin (x.length + 1)) :
     moduleLength R (x.cqf i) =
     ∑ j : Fin i.1, moduleLength R (x.qf ⟨j.1, by linarith [j.2, i.2]⟩) := by
   induction' i using Fin.induction with i ih
-  · simp only [Fin.val_zero, Finset.univ_eq_empty, Int.Nat.cast_ofNat_Int, Nat.rawCast,
-    Nat.cast_id, Int.ofNat_one, Int.rawCast, Int.cast_id, Int.ofNat_eq_coe, Int.ofNat_zero,
-    eq_mp_eq_cast, id_eq, Fin.succ_mk, Fin.castSucc_mk, Finset.sum_empty]
-    rw [moduleLength_congr x.cqfZeroEquiv, moduleLength_punit]
+  · simp only [Fin.val_zero, Finset.univ_eq_empty, Int.reduceNeg, Int.Nat.cast_ofNat_Int,
+    Int.reduceAdd, Nat.rawCast.eq_1, Nat.cast_id, Int.reducePow, Int.rawCast.eq_1, Int.cast_id,
+    Int.reduceMul, Int.ofNat_eq_coe, eq_mp_eq_cast, id_eq, Fin.succ_mk, Fin.castSucc_mk,
+    Finset.sum_empty]
+    rw [moduleLength_congr (e := RelSeries.cqfZeroEquiv x), moduleLength_punit]
+
   · erw [Fin.sum_univ_castSucc, ← ih, x.cqf_succ_length_eq]
     congr
 
@@ -869,9 +881,11 @@ lemma Module.finite_iff_artinian_over_divisionRing : IsArtinian K M ↔ Module.F
     have mem1 : b (enum (n + 1)) ∈ OrderDual.ofDual (g n) := by
       simp only [Basis.coe_ofVectorSpace, OrderDual.ofDual_toDual, g, b, enum']
       refine Submodule.subset_span ?_
-      simp only [Set.mem_image, Set.mem_diff, Set.mem_univ, Set.mem_setOf_eq, not_exists, not_and,
-        true_and, Subtype.exists, exists_and_right, exists_eq_right, Subtype.coe_eta,
-        EmbeddingLike.apply_eq_iff_eq, Subtype.coe_prop, exists_const]
+      simp only [Basis.coe_ofVectorSpace, Set.mem_image, Set.mem_diff, Set.mem_univ,
+        Set.mem_setOf_eq, not_exists, not_and, true_and, Subtype.exists, exists_and_right,
+        exists_eq_right, Subtype.coe_eta, EmbeddingLike.apply_eq_iff_eq, Subtype.coe_prop,
+        exists_const, s, g, b, enum', enum]
+
       rintro x hx rfl
       norm_num at hx
     suffices mem2 : b (enum (n + 1)) ∉ OrderDual.ofDual (g (n + 1)) by
@@ -898,7 +912,7 @@ lemma moduleLength_le_restrictScalars :
   suffices (moduleLength S M : WithBot (WithTop ℕ)) ≤
     (moduleLength R (RestrictScalars R S M) : WithBot (WithTop ℕ)) by simpa using this
   rw [moduleLength_eq_krullDim_Submodules, moduleLength_eq_krullDim_Submodules]
-  refine krullDim_le_of_strictMono (fun p ↦ { __ := p, smul_mem' := ?_ }) fun _ _ h ↦ h
+  refine Order.krullDim_le_of_strictMono (fun p ↦ { __ := p, smul_mem' := ?_ }) fun _ _ h ↦ h
   intro r m hm
   exact p.smul_mem (algebraMap R S r) hm
 
@@ -909,7 +923,7 @@ lemma moduleLength_eq_restrictScalars_of_surjective
     suffices (moduleLength R (RestrictScalars R S M) : WithBot (WithTop ℕ)) ≤
       (moduleLength S M : WithBot (WithTop ℕ)) by simpa using this
     rw [moduleLength_eq_krullDim_Submodules, moduleLength_eq_krullDim_Submodules]
-    refine krullDim_le_of_strictMono (fun p ↦ { __ := p, smul_mem' := ?_ }) fun _ _ h ↦ h
+    refine Order.krullDim_le_of_strictMono (fun p ↦ { __ := p, smul_mem' := ?_ }) fun _ _ h ↦ h
     intro s m hm
     obtain ⟨r, rfl⟩ := surj.1 s
     exact p.smul_mem r hm
