@@ -1,14 +1,17 @@
 import DimensionTheory.BinomialPolynomials
 import DimensionTheory.HilbertSerre.AdditiveFunction
 import DimensionTheory.HilbertSerre.FiniteInstances
+import DimensionTheory.HilbertSerre.HilbertPolynomialSerreApproach
 import DimensionTheory.HilbertSerre.Polynomial
 import DimensionTheory.HilbertSerre.Theorem
 import DimensionTheory.IntegerValuedPolynomial
 import DimensionTheory.Module.FGModuleCat.Abelian
 import DimensionTheory.Module.FGModuleCat.EpiMono
 import DimensionTheory.Module.FGModuleCat.Kernels
+import DimensionTheory.Module.FGModuleCat.Length
 import DimensionTheory.Module.Graded.Homogeneous
 import DimensionTheory.Module.Graded.Noetherian
+import DimensionTheory.Module.Graded.RingHom
 import DimensionTheory.Module.Graded.Subgrading
 import DimensionTheory.Module.JordanHolder
 import DimensionTheory.Module.Length

@@ -95,7 +95,7 @@ lemma IsIntegerValued.eval_of_mem_span
     if h : x < 0
     then
       rw [show x = -(-x).toNat by
-        induction x with
+        induction x using Int.recOn with
         | ofNat x => norm_cast at h
         | negSucc x => rw [Int.neg_negSucc]; rfl]
       simp only [Int.cast_neg, Int.cast_natCast, binomialPolynomial.eval_neg_nat, Int.reduceNeg,
@@ -322,26 +322,26 @@ lemma IsIntegerValued.tfae (p : F[X]) :
         ∃ (n : ℤ), (p.eval n : F) ∈ (algebraMap ℤ F).range
     ] := by
 
-  tfae_have 1 → 2
-  · apply IsIntegerValued.eval_of_mem_span
+  tfae_have 1 → 2 := by
+    apply IsIntegerValued.eval_of_mem_span
 
-  tfae_have 2 → 3
-  · intro h
+  tfae_have 2 → 3 := by
+    intro h
     simp only [isIntegerValued_def, eventually_iff, mem_atTop_sets, ge_iff_le, Set.mem_setOf_eq]
     refine ⟨0, fun n _ => h n⟩
 
-  tfae_have 3 → 1
-  · apply IsIntegerValued.mem_span
+  tfae_have 3 → 1 := by
+    apply IsIntegerValued.mem_span
 
-  tfae_have 1 → 4
-  · intro h
+  tfae_have 1 → 4 := by
+    intro h
     rw [IsIntegerValued.mem_span_iff_delta_mem_span_and_integer_point] at h
     refine ⟨?_, h.2⟩
     rw [isIntegerValued_def']
     exact ⟨0, fun n _ => IsIntegerValued.eval_of_mem_span _ h.1 _⟩
 
-  tfae_have 4 → 1
-  · intro h
+  tfae_have 4 → 1 := by
+    intro h
     rw [IsIntegerValued.mem_span_iff_delta_mem_span_and_integer_point]
     exact ⟨h.1.mem_span, h.2⟩
 
@@ -446,7 +446,7 @@ lemma coeffInt_spec {f : F[X]} [IsIntegerValued f] (i : ℕ) :
 
 lemma eq_sum_range (f : F[X]) [IsIntegerValued f]:
     f =
-    ∑ k in Finset.range (f.natDegree + 1), f.coeffInt k • binomialPolynomial F k := by
+    ∑ k ∈ Finset.range (f.natDegree + 1), f.coeffInt k • binomialPolynomial F k := by
   conv_lhs => rw [binomialPolynomial.eq_sum_range f]
   refine Finset.sum_congr rfl fun x _ => ?_
   rw [zsmul_eq_mul, ← coeffInt_spec, Algebra.smul_def]
@@ -472,7 +472,7 @@ lemma evalInt_spec (f : F[X]) [hf : IsIntegerValued f] (n : ℤ) :
 
 lemma evalInt_spec' (f : F[X]) [IsIntegerValued f] (n : ℤ) (hn : f.natDegree ≤ n) :
     f.evalInt n =
-    ∑ i in Finset.range (f.natDegree + 1), f.coeffInt i • (n.toNat.choose i : ℤ) := by
+    ∑ i ∈ Finset.range (f.natDegree + 1), f.coeffInt i • (n.toNat.choose i : ℤ) := by
   apply_fun ((↑) : ℤ → F) using Int.cast_injective
   rw [evalInt_spec]
   conv_lhs => rw [eq_sum_range f, eval_finset_sum]
@@ -486,7 +486,7 @@ lemma evalInt_spec' (f : F[X]) [IsIntegerValued f] (n : ℤ) (hn : f.natDegree �
 lemma evalInt_spec'' (f : F[X]) [IsIntegerValued f] (n : ℤ) (hn : f.natDegree ≤ n) :
     f.evalInt n =
     f.coeffInt f.natDegree • (n.toNat.choose f.natDegree : ℤ) +
-    ∑ i in Finset.range (f.natDegree), f.coeffInt i • (n.toNat.choose i : ℤ) := by
+    ∑ i ∈ Finset.range (f.natDegree), f.coeffInt i • (n.toNat.choose i : ℤ) := by
   rwa [evalInt_spec', Finset.sum_range_succ, add_comm]
 
 lemma evalInt_zero (n : ℤ) :
@@ -557,7 +557,7 @@ lemma isEquivalent_leading_monomial (f : F[X]) [hf : IsIntegerValued f] :
   have eq1 :
     (fun n : ℤ => (f.evalInt n : ℚ)) =ᶠ[atTop]
     fun n => f.coeffInt f.natDegree • (n.toNat.choose f.natDegree : ℤ) +
-      ∑ i in Finset.range (f.natDegree), f.coeffInt i • (n.toNat.choose i : ℤ) := by
+      ∑ i ∈ Finset.range (f.natDegree), f.coeffInt i • (n.toNat.choose i : ℤ) := by
     change ∀ᶠ _ in _, _
     simp only [Int.cast_natCast, zsmul_eq_mul, smul_eq_mul, Int.cast_sum, Int.cast_mul,
       eventually_atTop, ge_iff_le]
@@ -567,7 +567,7 @@ lemma isEquivalent_leading_monomial (f : F[X]) [hf : IsIntegerValued f] :
 
   have isequiv1 :
     (fun n : ℤ => (f.coeffInt f.natDegree • (n.toNat.choose f.natDegree : ℤ) +
-      ∑ i in Finset.range (f.natDegree), f.coeffInt i • (n.toNat.choose i : ℤ) : ℚ)) ~[atTop]
+      ∑ i ∈ Finset.range (f.natDegree), f.coeffInt i • (n.toNat.choose i : ℤ) : ℚ)) ~[atTop]
     fun n : ℤ =>
       (f.coeffInt f.natDegree • (binomialPolynomial F f.natDegree).evalInt n : ℚ) := by
 

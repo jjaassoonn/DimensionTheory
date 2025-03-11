@@ -8,6 +8,7 @@ import DimensionTheory.Module.FGModuleCat.Kernels
 
 import Mathlib.CategoryTheory.Abelian.Basic
 import Mathlib.CategoryTheory.Abelian.Exact
+import Mathlib.CategoryTheory.Limits.Preserves.Finite
 import Mathlib.Algebra.Exact
 import Mathlib.Algebra.Category.FGModuleCat.Limits
 import Mathlib.Algebra.Homology.ShortComplex.ModuleCat
@@ -32,50 +33,55 @@ variable {M N : FGModuleCat R} (f : M ⟶ N)
 A monomorphism between finitely generated modules is a normal monomorphism
 -/
 noncomputable def normalMono (hf : Mono f) : NormalMono f where
-  Z := of R (N ⧸ LinearMap.range f)
-  g := f.range.mkQ
-  w := LinearMap.range_mkQ_comp _
+  Z := of R (N ⧸ LinearMap.range f.hom)
+  g := FGModuleCat.ofHom <| f.hom.range.mkQ
+  w := by ext : 1; exact LinearMap.range_mkQ_comp _
   isLimit :=
     IsKernel.isoKernel _ _ (kernelIsLimit _)
       (LinearEquiv.toFGModuleCatIso
         ((Submodule.quotEquivOfEqBot _ (ker_eq_bot_of_mono _)).symm ≪≫ₗ
-          (LinearMap.quotKerEquivRange f ≪≫ₗ
+          (LinearMap.quotKerEquivRange f.hom ≪≫ₗ
           LinearEquiv.ofEq _ _ (Submodule.ker_mkQ _).symm))) <| by ext; rfl
 
 /--
 An epimorphism between finitely generated modules is a normal epimorphism
 -/
 noncomputable def normalEpi (hf : Epi f) : NormalEpi f where
-  W := of R (LinearMap.ker f)
-  g := (LinearMap.ker f).subtype
-  w := LinearMap.comp_ker_subtype _
+  W := of R (LinearMap.ker f.hom)
+  g := FGModuleCat.ofHom <| (LinearMap.ker f.hom).subtype
+  w := by ext : 1; exact LinearMap.comp_ker_subtype _
   isColimit :=
     letI : Module.Finite R N.obj := N.2
     IsCokernel.cokernelIso _ _ (cokernelIsColimit _)
       (LinearEquiv.toFGModuleCatIso
         (Submodule.quotEquivOfEq _ _ (Submodule.range_subtype _) ≪≫ₗ
-            LinearMap.quotKerEquivRange f ≪≫ₗ
+            LinearMap.quotKerEquivRange f.hom ≪≫ₗ
           LinearEquiv.ofTop _ (range_eq_top_of_epi _))) <| by ext; rfl
 
 noncomputable instance abelian_of_noetherian : Abelian (FGModuleCat R) where
-  normalMonoOfMono := normalMono
-  normalEpiOfEpi := normalEpi
+  normalMonoOfMono f _ := ⟨normalMono f inferInstance⟩
+  normalEpiOfEpi f _ := ⟨normalEpi f inferInstance⟩
   has_cokernels := hasCokernels_fgModuleCat
 
 instance : HasForget₂ (FGModuleCat R) Ab where
   forget₂ :=
   { obj := fun x => .of x
-    map := fun f => AddCommGrp.ofHom f }
+    map := fun f => AddCommGrp.ofHom f.hom.toAddMonoidHom }
 
 instance : (forget₂ (FGModuleCat R) Ab).Additive := {}
 
 noncomputable instance : PreservesFiniteLimits (forget₂ (FGModuleCat R) Ab) := by
   change PreservesFiniteLimits (forget₂ (FGModuleCat R) (ModuleCat R) ⋙ forget₂ (ModuleCat R) Ab)
-  apply compPreservesFiniteLimits
+
+  apply comp_preservesFiniteLimits
 
 noncomputable instance : PreservesFiniteLimits (forget (FGModuleCat R)) := by
   change PreservesFiniteLimits (forget₂ (FGModuleCat R) (ModuleCat R) ⋙ forget (ModuleCat R))
-  apply compPreservesFiniteLimits
+  apply comp_preservesFiniteLimits
+
+noncomputable instance : PreservesLimitsOfShape WalkingCospan (forget (FGModuleCat R)) := by
+  haveI : PreservesFiniteLimits (forget (FGModuleCat R)) := inferInstance
+  exact this.preservesFiniteLimits _
 
 section exact
 
@@ -84,39 +90,39 @@ section image
 @[simps]
 noncomputable def imageFactorisation {M N : FGModuleCat R} (f : M ⟶ N) : ImageFactorisation f where
   F :=
-  { I := .of R (LinearMap.range f)
-    m := Submodule.subtype (LinearMap.range f)
+  { I := .of R (LinearMap.range f.hom)
+    m := FGModuleCat.ofHom <| Submodule.subtype (LinearMap.range f.hom)
     m_mono := by
-      rw [ConcreteCategory.mono_iff_injective_of_preservesPullback]
+      rw [FGModuleCat.mono_iff_injective]
       exact Subtype.val_injective
-    e := LinearMap.rangeRestrict f
+    e := FGModuleCat.ofHom <| LinearMap.rangeRestrict f.hom
     fac := rfl }
   isImage :=
-  { lift := fun F ↦
+  { lift := fun F ↦ FGModuleCat.ofHom <|
     { toFun := fun x => F.e <| x.2.choose
       map_add' := fun x y => by
         have := F.m_mono
-        rw [ConcreteCategory.mono_iff_injective_of_preservesPullback] at this
+        rw [FGModuleCat.mono_iff_injective] at this
         simp only [obj_carrier, id_eq, eq_mpr_eq_cast]
         apply this
         rw [← map_add]
         change (F.e ≫ F.m) _ = (F.e ≫ F.m) _
         rw [F.fac]
         rw [map_add]
-        generalize_proofs _ _ _ h1 h2 h3
-        rw [h1.choose_spec, h2.choose_spec, h3.choose_spec]
+        generalize_proofs _ _ h1 h2 h3
+        erw [h1.choose_spec, h2.choose_spec, h3.choose_spec]
         rfl
       map_smul' := fun r x => by
         have := F.m_mono
-        rw [ConcreteCategory.mono_iff_injective_of_preservesPullback] at this
+        rw [FGModuleCat.mono_iff_injective] at this
         simp only [obj_carrier, id_eq, eq_mpr_eq_cast, RingHom.id_apply]
         rw [← map_smul]
         apply this
         change (F.e ≫ F.m) _ = (F.e ≫ F.m) _
         rw [F.fac]
         rw [map_smul]
-        generalize_proofs _ _ _ h1 h2
-        rw [h1.choose_spec, h2.choose_spec]
+        generalize_proofs _ _ h1 h2
+        erw [h1.choose_spec, h2.choose_spec]
         rfl }
     lift_fac := fun F => by
       ext ⟨x, hx⟩
@@ -125,20 +131,20 @@ noncomputable def imageFactorisation {M N : FGModuleCat R} (f : M ⟶ N) : Image
       change (F.e ≫ F.m) _ = x
       rw [F.fac]
       generalize_proofs _ _ h
-      rw [h.choose_spec] }
+      erw [h.choose_spec] }
 
 instance hasImages_fgModuleCat : HasImages (FGModuleCat R) where
   has_image f :=
   { exists_image := ⟨imageFactorisation f⟩ }
 
 noncomputable def imageIsoRange {G H : FGModuleCat R} (f : G ⟶ H) :
-    image f ≅ FGModuleCat.of R (LinearMap.range f) :=
+    image f ≅ FGModuleCat.of R (LinearMap.range f.hom) :=
   IsImage.isoExt (Image.isImage f) (imageFactorisation f).isImage
 
 @[simp]
 lemma imageIsoRange_hom_comp {G H : FGModuleCat R} (f : G ⟶ H) :
-    (imageIsoRange f).hom ≫ Submodule.subtype (LinearMap.range f) = image.ι _ := by
-  ext : 1
+    (imageIsoRange f).hom ≫ FGModuleCat.ofHom (LinearMap.range f.hom).subtype = image.ι _ := by
+  apply image.ext
   rw [← Category.assoc, imageIsoRange]
   simp only [IsImage.isoExt_hom, image.isImage_lift, image.fac_lift, imageFactorisation_F_e,
     obj_carrier, image.fac]
@@ -146,7 +152,7 @@ lemma imageIsoRange_hom_comp {G H : FGModuleCat R} (f : G ⟶ H) :
 
 @[simp]
 lemma imageIsoRange_inv_comp {G H : FGModuleCat R} (f : G ⟶ H) :
-    (imageIsoRange f).inv ≫ image.ι _ = Submodule.subtype (LinearMap.range f) := by
+    (imageIsoRange f).inv ≫ image.ι _ = FGModuleCat.ofHom (LinearMap.range f.hom).subtype := by
   simp only [imageIsoRange, IsImage.isoExt_inv, IsImage.lift_ι, imageFactorisation_F_m]
 
 end image
@@ -158,7 +164,7 @@ variable {A B C : FGModuleCat R} (f : A ⟶ B) (g : B ⟶ C)
 open LinearMap
 
 theorem exact_iff (S : ShortComplex (FGModuleCat R)) :
-    S.Exact ↔ LinearMap.range S.f = LinearMap.ker S.g := by
+    S.Exact ↔ LinearMap.range S.f.hom = LinearMap.ker S.g.hom := by
   rw [ShortComplex.exact_iff_image_eq_kernel]
   constructor
   · intro h
@@ -182,15 +188,15 @@ theorem exact_iff (S : ShortComplex (FGModuleCat R)) :
       use (F.hom <| b <| G.inv ⟨x, hx⟩).2.choose
       rw [(F.hom <| b <| G.inv ⟨x, hx⟩).2.choose_spec]
       change Submodule.subtype _ _ = x
-      change ((G.inv ≫ b ≫ F.hom) ≫ (range S.f).subtype <| _) = x
+      change ((G.inv ≫ b ≫ F.hom) ≫ FGModuleCat.ofHom ((range S.f.hom).subtype)<| _) = x
       simp only [Category.assoc]
       rw [imageIsoRange_hom_comp, hb, kernelIsoKer_inv_kernel_ι]
       rfl
   · intro eq
     apply Quotient.sound'
-    refine ⟨⟨(imageIsoRange S.f).hom ≫ Submodule.inclusion (eq ▸ by rfl) ≫
+    refine ⟨⟨(imageIsoRange S.f).hom ≫ FGModuleCat.ofHom (Submodule.inclusion (eq ▸ by rfl)) ≫
       (kernelIsoKer S.g).inv, 𝟙 _, ?_⟩, ⟨(kernelIsoKer S.g).hom ≫
-        Submodule.inclusion (eq ▸ by rfl) ≫ (imageIsoRange S.f).inv, 𝟙 _,  ?_⟩, ?_, ?_⟩
+        FGModuleCat.ofHom (Submodule.inclusion (eq ▸ by rfl)) ≫ (imageIsoRange S.f).inv, 𝟙 _,  ?_⟩, ?_, ?_⟩
     · simp only [Functor.id_obj, Functor.const_obj_obj, MonoOver.mk'_obj, Over.mk_left,
         equalizer_as_kernel, Functor.id_map, Over.mk_hom, Category.assoc, kernelIsoKer_inv_kernel_ι,
         ← imageIsoRange_hom_comp, Discrete.functor_map_id, Category.comp_id,
@@ -220,8 +226,8 @@ theorem exact_iff (S : ShortComplex (FGModuleCat R)) :
 
 theorem exact_iff' (S : ShortComplex (FGModuleCat R)) :
     S.Exact ↔ Function.Exact S.f S.g := by
-  rw [exact_iff, LinearMap.exact_iff]
-  aesop
+  rw [exact_iff, LinearMap.exact_iff, eq_comm]
+  rfl
 
 end exact
 

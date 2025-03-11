@@ -28,31 +28,54 @@ def asHom
     {M N : Type u} [AddCommGroup M] [AddCommGroup N]
     [Module R M] [Module R N] [Module.Finite R M] [Module.Finite R N]
     (l : M →ₗ[R] N) :
-  FGModuleCat.of R M ⟶ FGModuleCat.of R N := l
+  FGModuleCat.of R M ⟶ FGModuleCat.of R N :=
+  FGModuleCat.ofHom l
 
 section Equivalence
 
 variable {R S : Type u} [CommRing R] [CommRing S] (e : R ≃+* S)
 
+set_option linter.unusedVariables false in
+def _root_.RingEquiv.transferFGModule (e : R ≃+* S) (M : Type v) [AddCommGroup M] [Module R M] : Type v := M
+
+instance (M : Type v) [AddCommGroup M] [Module R M] : AddCommGroup (e.transferFGModule M) :=
+  inferInstanceAs <| AddCommGroup M
+
+instance (M : Type v) [AddCommGroup M] [Module R M] : Module R (e.transferFGModule M) :=
+  inferInstanceAs <| Module R M
+
+instance (M : Type v) [AddCommGroup M] [Module R M] : Module S (e.transferFGModule M) :=
+  Module.compHom M e.symm.toRingHom
+
+instance (M : Type v) [AddCommGroup M] [Module R M] [Module.Finite R M] :
+    Module.Finite R (e.transferFGModule M) :=
+  inferInstanceAs <| Module.Finite R M
+
+instance (M : Type v) [AddCommGroup M] [Module R M] [Module.Finite R M] : Module.Finite S (e.transferFGModule M) := by
+  let a : Algebra R S := e.toRingHom.toAlgebra
+  have s : IsScalarTower R S (e.transferFGModule M) := by
+    constructor
+    intros x y z
+    convert_to (e.symm (e x * y)) • z = x • (e.symm y • z)
+    rw [map_mul, mul_smul, e.symm_apply_apply]
+
+  refine Module.Finite.of_restrictScalars_finite R S _
+
+instance (M : FGModuleCat R) : Module.Finite R M.1 := M.2
+
+
 /--
 For any isomorphic rings `R` and `S`, the category of finitely generated modules over `R` and `S`
 are equivalent.
 -/
-@[simps]
+@[simps!]
 def _root_.RingEquiv.toFGModuleCatEquivalenceFunctor : FGModuleCat R ⥤ FGModuleCat S :=
-{ obj := fun M ↦ @of S _ M _ (Module.compHom M e.symm.toRingHom) (by
-      let m : Module S M := Module.compHom M e.symm.toRingHom
-      let a : Algebra R S := e.toRingHom.toAlgebra
-      have s : IsScalarTower R S M := by
-        constructor
-        intros x y z
-        convert_to (e.symm (e x * y)) • z = x • (e.symm y • z)
-        rw [map_mul, mul_smul, e.symm_apply_apply]
-      refine Module.Finite.of_restrictScalars_finite R S M)
+{ obj := fun M ↦ .of S (e.transferFGModule M)
   map := fun {X Y} l ↦
-    { toFun := fun x ↦ l x
-      map_add' := fun x y ↦ l.map_add x y
-      map_smul' := fun r (x : X) ↦ l.map_smul (e.symm r) x }
+    FGModuleCat.ofHom <|
+      { toFun := fun x ↦ l x
+        map_add' := fun x y ↦ l.hom.map_add x y
+        map_smul' := fun r (x : X) ↦ l.hom.map_smul (e.symm r) x }
   map_id := by intros; ext; rfl
   map_comp := by intros; ext; rfl }
 
@@ -60,21 +83,14 @@ def _root_.RingEquiv.toFGModuleCatEquivalenceFunctor : FGModuleCat R ⥤ FGModul
 For any isomorphic rings `R` and `S`, the category of finitely generated modules over `R` and `S`
 are equivalent.
 -/
-@[simps]
+@[simps!]
 def _root_.RingEquiv.toFGModuleCatEquivalenceInverse : FGModuleCat S ⥤ FGModuleCat R :=
-{ obj := fun M ↦ @of R _ M _ (Module.compHom M e.toRingHom) (by
-      let m : Module R M := Module.compHom M e.toRingHom
-      let a : Algebra S R := e.symm.toRingHom.toAlgebra
-      have s : IsScalarTower S R M := by
-        constructor
-        intros x y z
-        convert_to (e (e.symm x * y)) • z = x • (e y • z)
-        rw [map_mul, mul_smul, e.apply_symm_apply]
-      exact Module.Finite.of_restrictScalars_finite S R M)
+{ obj := fun M ↦ .of R (e.symm.transferFGModule M)
   map := fun {X Y} l ↦
+    FGModuleCat.ofHom <|
     { toFun := fun x ↦ l x
-      map_add' := fun x y ↦ l.map_add x y
-      map_smul' := fun r (x : X) ↦ l.map_smul (e r) x }
+      map_add' := fun x y ↦ l.hom.map_add x y
+      map_smul' := fun r (x : X) ↦ l.hom.map_smul (e r) x }
   map_id := by intros; ext; rfl
   map_comp := by intros; ext; rfl }
 
@@ -89,6 +105,7 @@ def _root_.RingEquiv.toFGModuleCatEquivalence : FGModuleCat R ≌ FGModuleCat S 
   unitIso :=
   { hom :=
     { app := fun X ↦
+      FGModuleCat.ofHom <|
       { toFun := fun x ↦ x
         map_add' := by intros; rfl
         map_smul' := by
@@ -96,7 +113,7 @@ def _root_.RingEquiv.toFGModuleCatEquivalence : FGModuleCat R ≌ FGModuleCat S 
           exact (congr_arg (· • x) <| e.symm_apply_apply r).symm }
       naturality := by intros; ext; rfl }
     inv :=
-    { app := fun X ↦
+    { app := fun X ↦ FGModuleCat.ofHom <|
       { toFun := fun x ↦ x
         map_add' := by intros; rfl
         map_smul' := by
@@ -113,7 +130,7 @@ def _root_.RingEquiv.toFGModuleCatEquivalence : FGModuleCat R ≌ FGModuleCat S 
     inv_hom_id := by ext; rfl }
   counitIso :=
   { hom :=
-    { app := fun X ↦
+    { app := fun X ↦ FGModuleCat.ofHom <|
       { toFun := fun x ↦ x
         map_add' := by intros; rfl
         map_smul' := by
@@ -127,7 +144,7 @@ def _root_.RingEquiv.toFGModuleCatEquivalence : FGModuleCat R ≌ FGModuleCat S 
           rfl }
       naturality := by intros; ext; rfl }
     inv :=
-    { app := fun X ↦
+    { app := fun X ↦ FGModuleCat.ofHom <|
       { toFun := fun x ↦ x
         map_add' := by intros; rfl
         map_smul' := by
@@ -138,21 +155,6 @@ def _root_.RingEquiv.toFGModuleCatEquivalence : FGModuleCat R ≌ FGModuleCat S 
     inv_hom_id := by ext; rfl }
   functor_unitIso_comp := by intros; ext; rfl
 
-
-attribute [simp high]
-  RingEquiv.toFGModuleCatEquivalenceFunctor_map_apply
-  RingEquiv.toFGModuleCatEquivalenceInverse_map_apply
-  RingEquiv.toFGModuleCatEquivalence_counitIso_hom_app_apply
-  RingEquiv.toFGModuleCatEquivalence_counitIso_inv_app_apply
-
-attribute [nolint simpNF]
-  RingEquiv.toFGModuleCatEquivalenceFunctor_map_apply
-  RingEquiv.toFGModuleCatEquivalenceInverse_map_apply
-  RingEquiv.toFGModuleCatEquivalence_counitIso_hom_app_apply
-  RingEquiv.toFGModuleCatEquivalence_counitIso_inv_app_apply
-  RingEquiv.toFGModuleCatEquivalence_unitIso_inv_app_apply
-  RingEquiv.toFGModuleCatEquivalence_unitIso_hom_app_apply
-
 end Equivalence
 
 section noetherian
@@ -162,10 +164,11 @@ variable {J : Type} [SmallCategory J] [FinCategory J]
 variable {R : Type v} [Ring R] [IsNoetherianRing R]
 
 instance {J : Type} [Finite J] (Z : J → ModuleCat R) [∀ j, Module.Finite R (Z j)] :
-    Module.Finite R (∏ᶜ fun j => Z j : ModuleCat R) :=
+    Module.Finite R (∏ᶜ fun j => Z j : ModuleCat R) := by
   haveI : Module.Finite R (ModuleCat.of R (∀ j, Z j)) := by unfold ModuleCat.of; infer_instance
-  Module.Finite.of_injective (ModuleCat.piIsoPi _).hom
-    ((ModuleCat.mono_iff_injective _).1 (by infer_instance))
+  apply Module.Finite.of_injective (ModuleCat.piIsoPi _).hom.hom
+    ((ModuleCat.mono_iff_injective _).1 _)
+  exact IsIso.mono_of_iso (ModuleCat.piIsoPi fun j ↦ Z j).hom
 
 instance (F : J ⥤ FGModuleCat R) :
     Module.Finite R (limit (F ⋙ forget₂ (FGModuleCat R) (ModuleCat.{v} R)) : ModuleCat.{v} R) :=
@@ -180,7 +183,7 @@ instance (F : J ⥤ FGModuleCat R) :
     isNoetherian_of_linearEquiv (ModuleCat.piIsoPi _).symm.toLinearEquiv
 
   Module.Finite.of_injective
-    (limitSubobjectProduct (F ⋙ forget₂ (FGModuleCat R) (ModuleCat.{v} R)))
+    (limitSubobjectProduct (F ⋙ forget₂ (FGModuleCat R) (ModuleCat.{v} R))).hom
     ((ModuleCat.mono_iff_injective _).1 inferInstance)
 
 /-- The forgetful functor from `FGModuleCat R` to `ModuleCat R` creates all finite limits when `R`

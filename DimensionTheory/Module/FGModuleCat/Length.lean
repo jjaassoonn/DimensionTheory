@@ -40,17 +40,17 @@ def lengthAdditiveFunction : FGModuleCat R ⟹+ ℤ where
     have eq2 := s.X₂.length_eq_moduleLength
     have eq3 := s.X₃.length_eq_moduleLength
     refine Eq.trans congr($eq1 + $eq3) <| Eq.symm <| eq2.trans <|
-      moduleLength.eq_length_submodule_add_length_quotient (LinearMap.ker s.g) |>.trans ?_
+      moduleLength.eq_length_submodule_add_length_quotient (LinearMap.ker s.g.hom) |>.trans ?_
     congr 1
     · apply moduleLength_congr
       rw [← FGModuleCat.exact_iff s |>.1 hs.1]
       have inj := hs.2
-      rw [ConcreteCategory.mono_iff_injective_of_preservesPullback] at inj
-      exact LinearEquiv.ofInjective s.f inj |>.symm
+      rw [FGModuleCat.mono_iff_injective] at inj
+      exact LinearEquiv.ofInjective s.f.hom inj |>.symm
 
     · apply moduleLength_congr
-      refine LinearMap.quotKerEquivRange s.g ≪≫ₗ ?_
-      have surj : Function.Surjective s.g := by
+      refine LinearMap.quotKerEquivRange s.g.hom ≪≫ₗ ?_
+      have surj : Function.Surjective s.g.hom := by
         rw [← FGModuleCat.epi_iff_surjective]
         exact hs.3
       rw [LinearMap.range_eq_top |>.2 surj]

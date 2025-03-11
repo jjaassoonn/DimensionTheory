@@ -68,7 +68,7 @@ abbrev aeval : GradedRingHom S.grading 𝒜 where
       LinearMap.toAddMonoidHom_coe, Finsupp.coe_lsum, LinearMap.coe_smulRight, LinearMap.id_coe,
       id_eq, smul_eq_mul, mul_one, Finsupp.sum] at this
     rw [← this]
-    rw [show ∑ j ∈ x.support, x j = 0 + ∑ j in x.support, x j by rw [zero_add]]
+    rw [show ∑ j ∈ x.support, x j = 0 + ∑ j ∈ x.support, x j by rw [zero_add]]
     apply SetLike.mul_mem_graded
     · exact SetLike.coe_mem _
     · rw [← Finset.prod_to_list, ← Finset.sum_to_list]
@@ -92,17 +92,17 @@ omit [IsArtinianRing (𝒜 0)] in
 lemma surjective_aeval : Function.Surjective (S.aeval S_deg) := fun a => by
   have : a ∈ (⊤ : Subalgebra (𝒜 0) A) := ⟨⟩
   rw [← S.span_eq] at this
-  refine Algebra.adjoin_induction this ?_ ?_ ?_ ?_
+  refine Algebra.adjoin_induction (hx := this) ?_ ?_ ?_ ?_
   · rintro s hs
     use MvPolynomial.X ⟨s, hs⟩
     simp only [aeval_apply, MvPolynomial.aeval_X]
   · intro r
     use MvPolynomial.C r
     simp only [aeval_apply, MvPolynomial.algHom_C]
-  · rintro _ _ ⟨x, rfl⟩ ⟨y, rfl⟩
+  · rintro _ _ _ _ ⟨x, rfl⟩ ⟨y, rfl⟩
     use (x + y)
     simp only [map_add, aeval_apply]
-  · rintro _ _ ⟨x, rfl⟩ ⟨y, rfl⟩
+  · rintro _ _ _ _ ⟨x, rfl⟩ ⟨y, rfl⟩
     use (x * y)
     simp only [map_mul, aeval_apply]
 

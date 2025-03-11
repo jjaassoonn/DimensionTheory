@@ -10,6 +10,8 @@ import Mathlib.CategoryTheory.ConcreteCategory.EpiMono
 import Mathlib.Algebra.Category.FGModuleCat.Basic
 import Mathlib.RingTheory.Noetherian.Basic
 
+import DimensionTheory.missing_lemmas.FGModuleCat
+
 /-!
 # Monomorphisms in finitely generated modules over a Noetherian ring
 

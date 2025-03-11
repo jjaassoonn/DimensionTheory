@@ -262,7 +262,7 @@ lemma IsNoetherianRing.pow_le_of_le_radical [noeth : IsNoetherianRing R] (I J : 
       let e := (Finset.univ \ s).equivFin
 
       rw [← Finset.prod_attach,
-        show ∏ a in (Finset.univ \ s).attach, b a =
+        show ∏ a ∈ (Finset.univ \ s).attach, b a =
           ∏ a : Fin ((Finset.univ \ s).card), b (e.symm a) by
         rw [Finset.prod_equiv e] <;> aesop]
 

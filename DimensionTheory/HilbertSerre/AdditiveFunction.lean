@@ -40,7 +40,7 @@ open ZeroObject
 A function `λ : 𝒞 → ℤ` is additive precisely when `λ B = λ A + λ C` for every short exact sequence
 `s := 0 --> A --> B --> C --> 0`.
 -/
-structure AdditiveFunction :=
+structure AdditiveFunction where
 /--
 A function `λ : 𝒞 → ℤ` is additive precisely when `λ B = λ A + λ C` for every short exact sequence
 `s := 0 --> A --> B --> C --> 0`.
@@ -101,7 +101,6 @@ lemma eq_of_iso {x y : 𝒞} (e : x ≅ y) : μ x = μ y := by
     zero := by aesop_cat }
   have hs : s.Exact := by
     rw [ShortComplex.exact_iff_epi]
-    simp only
     · infer_instance
     · rfl
   replace hs : s.ShortExact := ⟨hs⟩
@@ -216,8 +215,8 @@ local notation "im_" m => image (S.map' m (m + 1))
 private noncomputable def im_eq_ker_succ (n : ℕ) (hn : n + 2 ≤ N := by omega) :
     (image (S.map' n (n + 1))) ≅ kernel (S.map' (n + 1) (n + 2)) :=
   (imageSubobjectIso (S.map' n (n + 1))).symm ≪≫
-    @asIso (f := imageToKernel (S.map' n (n + 1)) (S.map' (n + 1) (n + 2)) <|
-        hS.toIsComplex.zero n) _ (by
+    @asIso _ _ _ _ (imageToKernel (S.map' n (n + 1)) (S.map' (n + 1) (n + 2)) <|
+        hS.toIsComplex.zero n) (by
         let S' : ShortComplex 𝒞 := S.sc hS.toIsComplex n
         change IsIso (imageToKernel S'.f S'.g S'.zero)
         rw [← ShortComplex.exact_iff_isIso_imageToKernel]
@@ -266,7 +265,7 @@ lemma apply_eq_apply_image_add_apply_image
       ComposableArrows.map', homOfLE_leOfHom] at e1 ⊢
     convert e1 using 1
     · exact imageSubobject_mono _
-    · generalize_proofs _ _ h
+    · generalize_proofs _ _ _ h
       simp_rw [← image.fac (S.map <| homOfLE h)]
       rw [kernelSubobject_comp_mono]
 
@@ -287,8 +286,8 @@ lemma apply_eq_apply_kernel_add_apply_kernel
 
   have sc_exact : sc.Exact := by
     apply ShortComplex.exact_of_f_is_kernel
-    simp only [ComposableArrows.obj', Int.reduceNeg, id_eq, Nat.cast_ofNat, Int.Nat.cast_ofNat_Int,
-      ComposableArrows.map', homOfLE_leOfHom]
+    simp only [id_eq, Int.reduceNeg, Int.Nat.cast_ofNat_Int, Nat.cast_ofNat, ComposableArrows.map',
+      homOfLE_leOfHom, ComposableArrows.obj', sc]
     fapply KernelFork.IsLimit.ofι
     · intro x g h
       exact kernel.lift _ g <| by simpa using h =≫ kernel.ι _
@@ -361,7 +360,7 @@ lemma alternating_sum_apply_eq_zero_of_zero_zero_of_length6
     - (μ_ 1) + (μ_ 2) - (μ_ 3) + (μ_ 4) = 0 := by
   refine Eq.trans ?_ <|
     μ.alternating_sum_apply_eq_zero_of_zero_zero_of_length6_aux (hS := hS)
-      left_zero right_zero
+      S left_zero right_zero
   rw [show (μ_ 0) = 0 from (μ.eq_of_iso <| IsZero.iso left_zero <| isZero_zero _).trans μ.map_zero]
   rw [show (μ_ 5) = 0 from (μ.eq_of_iso <| IsZero.iso right_zero <| isZero_zero _).trans μ.map_zero]
   rw [zero_sub, sub_zero]
@@ -371,7 +370,7 @@ lemma alternating_sum_apply_eq_zero_of_zero_zero_of_length6'
     (left_zero : IsZero S.left) (right_zero : IsZero S.right) :
     (μ_ 1) - (μ_ 2) + (μ_ 3) - (μ_ 4) = 0 := by
   have eq0 := congr_arg (-·) <|
-    μ.alternating_sum_apply_eq_zero_of_zero_zero_of_length6 (hS := hS) left_zero right_zero
+    μ.alternating_sum_apply_eq_zero_of_zero_zero_of_length6 (hS := hS) S left_zero right_zero
   dsimp only [id_eq, Int.reduceNeg, Int.Nat.cast_ofNat_Int, Nat.cast_ofNat, Int.reduceAdd,
     Int.reduceSub, ComposableArrows.obj', Nat.reduceAdd, Fin.mk_one, Fin.reduceFinMk] at eq0
   rw [neg_zero] at eq0

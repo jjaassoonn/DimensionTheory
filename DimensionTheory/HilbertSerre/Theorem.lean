@@ -12,6 +12,7 @@ import DimensionTheory.HilbertSerre.FiniteInstances
 
 import Mathlib.RingTheory.PowerSeries.Inverse
 import Mathlib.RingTheory.PowerSeries.Trunc
+import Mathlib.Algebra.Module.Torsion
 
 /-!
 # Hilbert Serre Theorem
@@ -55,10 +56,13 @@ lemma coeff_poincareSeries (n : ℕ) :
 
 lemma map_subsingleton (x : FGModuleCat (𝒜 0)) [subsingleton : Subsingleton x] : μ x = 0 :=
   μ.eq_of_iso (IsZero.iso
-    { unique_to := fun y ↦ ⟨⟨⟨0⟩, fun l ↦ LinearMap.ext fun a : x ↦ by
-        simp only [show a = 0 from Subsingleton.elim _ _, _root_.map_zero]⟩⟩
-      unique_from := fun y ↦ ⟨⟨⟨0⟩, fun l ↦ LinearMap.ext fun a : y ↦
-        Subsingleton.elim (α := x) _ _⟩⟩ } <| isZero_zero _)
+    { unique_to := fun y ↦ ⟨⟨⟨0⟩, fun l ↦ by
+        ext a
+        simp only [show a = 0 from subsingleton.elim _ _, _root_.map_zero]⟩⟩
+      unique_from := fun y ↦ ⟨⟨⟨0⟩, fun l ↦ by
+        ext a
+
+        exact subsingleton.elim _ _⟩⟩ } <| isZero_zero _)
   |>.trans μ.map_zero
 
 end AdditiveFunction
@@ -66,7 +70,7 @@ end AdditiveFunction
 /--
 A finite collection of homogeneous elements that generates `A` over `A₀`.
 -/
-structure generatingSetOverBaseRing :=
+structure generatingSetOverBaseRing where
 /--
 A finite collection of homogeneous elements that generates `A` over `A₀`.
 -/
@@ -104,8 +108,8 @@ Suppose `a₀, ..., aₙ` with degree `d₀, ..., dₙ`, we can consider the pow
 this power series is invertible, because its constant coefficient is one.
 -/
 @[simps] noncomputable def poles : ℤ⟦X⟧ˣ where
-  val := ∏ i in S.toFinset.attach, (1 - PowerSeries.X ^ S.deg i.2)
-  inv := PowerSeries.invOfUnit (∏ i in S.toFinset.attach, (1 - PowerSeries.X ^ S.deg i.2)) 1
+  val := ∏ i ∈ S.toFinset.attach, (1 - PowerSeries.X ^ S.deg i.2)
+  inv := PowerSeries.invOfUnit (∏ i ∈ S.toFinset.attach, (1 - PowerSeries.X ^ S.deg i.2)) 1
   val_inv := PowerSeries.mul_invOfUnit _ _ <| by
     simp only [map_prod, map_sub, map_one, map_pow, constantCoeff_X, Units.val_one]
     refine Finset.prod_eq_one fun i _ ↦ ?_
@@ -122,7 +126,7 @@ this power series is invertible, because its constant coefficient is one.
 omit noetherian_ring in
 lemma poles_val :
     S.poles.val =
-    algebraMap (Polynomial ℤ) ℤ⟦X⟧ (∏ i in S.toFinset.attach, (1 - Polynomial.X ^ S.deg i.2)) := by
+    algebraMap (Polynomial ℤ) ℤ⟦X⟧ (∏ i ∈ S.toFinset.attach, (1 - Polynomial.X ^ S.deg i.2)) := by
   simp only [val_poles, HomogeneousIdeal.toIdeal_irrelevant, map_prod, map_sub, map_one, map_pow]
   refine Finset.prod_congr rfl fun i _ ↦ ?_
   congr
@@ -131,7 +135,7 @@ lemma poles_val :
 omit noetherian_ring in
 lemma poles_inv_eq' :
     (↑S.poles⁻¹ : ℤ⟦X⟧) =
-    ∏ i in S.toFinset.attach, PowerSeries.invOfUnit (1 - PowerSeries.X ^ S.deg i.2) 1 := by
+    ∏ i ∈ S.toFinset.attach, PowerSeries.invOfUnit (1 - PowerSeries.X ^ S.deg i.2) 1 := by
   rw [← Units.mul_eq_one_iff_inv_eq, val_poles, ← Finset.prod_mul_distrib]
   apply Finset.prod_eq_one
   rintro ⟨i, hi⟩ -
@@ -249,7 +253,7 @@ lemma eventually_eq_zero_of_empty_generatorSet :
         simp only [exists_prop, exists_eq_right', Set.mem_setOf_eq]
   have mem1 : x ∈ (⊤ : Submodule (𝒜 0) (ℳ n)) := ⟨⟩
   rw [eq0, mem_span_set] at mem1
-  obtain ⟨f, support_le, (eq1 : ∑ i in f.support, f i • i = x)⟩ := mem1
+  obtain ⟨f, support_le, (eq1 : ∑ i ∈ f.support, f i • i = x)⟩ := mem1
   rw [Subtype.ext_iff, AddSubgroup.val_finset_sum] at eq1
   ext1
   rw [show (x : M) = GradedModule.proj ℳ n x from
@@ -315,6 +319,9 @@ def KER : HomogeneousSubmodule A ℳ where
 
 omit finite_module noetherian_ring in
 lemma mem_KER_iff (a : M) : a ∈ KER ℳ x deg_x ↔ x • a = 0 := Iff.rfl
+
+instance [(i : ℕ) → (x : ↥(ℳ i)) → Decidable (x ≠ 0)] [(a : M) → Decidable (a ∈ KER ℳ x deg_x)] : DirectSum.Decomposition (KER ℳ x deg_x).grading :=
+  (KER ℳ x deg_x).decomposition
 
 open Pointwise
 
@@ -472,6 +479,16 @@ open CategoryTheory CategoryTheory.Limits ZeroObject
 
 variable [(i : ℕ) → (x : (ℳ i)) → Decidable (x ≠ 0)] [(a : M) → Decidable (a ∈ KER ℳ x deg_x)]
 
+instance : Module.Finite A (KER ℳ x deg_x) := by
+  change Module.Finite A (KER ℳ x deg_x).toSubmodule
+  rw [Module.Finite.iff_fg]
+  apply IsNoetherian.noetherian
+
+instance (n : ℕ) : Module.Finite (𝒜 0) ((KER ℳ x deg_x).grading n) :=
+  GradedModule.finite_module_over_degree_zero_subring _ _ _
+
+
+
 set_option maxHeartbeats 500000 in
 /--
 The exact sequence
@@ -483,7 +500,7 @@ more accurately
 noncomputable def anExactSeq (i : ℕ) (ineq : d ≤ i) : ComposableArrows (FGModuleCat (𝒜 0)) 5 :=
   .mk₅
     (0 : 0 ⟶ FGModuleCat.of _ <| (KER ℳ x deg_x).grading (i - d))
-    (FGModuleCat.asHom (KER.componentEmb ℳ x deg_x (i - d)) :
+    (FGModuleCat.ofHom (KER.componentEmb ℳ x deg_x (i - d)) :
       FGModuleCat.of _ ((KER ℳ x deg_x).grading (i - d)) ⟶ FGModuleCat.of _ (ℳ (i - d)))
     (FGModuleCat.asHom (smulBy ℳ x deg_x (i - d)) ≫ (reindex ℳ i ineq).toFGModuleCatIso.hom :
       FGModuleCat.of _ (ℳ (i - d)) ⟶ FGModuleCat.of _ (ℳ i))
@@ -506,25 +523,22 @@ lemma anExactSeq_complex (i : ℕ) (ineq : d ≤ i) : (anExactSeq ℳ x deg_x i 
       ComposableArrows.Precomp.map_succ_succ, ComposableArrows.precomp_map,
       ComposableArrows.Precomp.map_zero_one, zero_comp]
   · ext m
-    simp only [Int.ofNat_eq_coe, Int.Nat.cast_ofNat_Int, id_eq, Nat.cast_ofNat, anExactSeq_obj,
-      ComposableArrows.Precomp.obj_succ, ComposableArrows.precomp_obj, Fin.mk_one,
-      ComposableArrows.Precomp.obj_one, Fin.zero_eta, ComposableArrows.Precomp.obj_zero,
-      ComposableArrows.map', anExactSeq_map, ComposableArrows.Precomp.map_one_succ,
-      ComposableArrows.precomp_map, ComposableArrows.Precomp.map_zero_one,
-      ComposableArrows.Precomp.map_succ_succ, comp_apply]
+    simp only [Nat.reduceAdd, id_eq, Int.reduceNeg, Nat.cast_ofNat, Int.reduceSub,
+      Int.Nat.cast_ofNat_Int, Int.reduceAdd, Fin.reduceFinMk, anExactSeq_obj, Fin.isValue,
+      FGModuleCat.obj_carrier, Fin.mk_one, ComposableArrows.Precomp.obj_one,
+      ComposableArrows.precomp_obj, Fin.zero_eta, ComposableArrows.Precomp.obj_zero,
+      ComposableArrows.map', homOfLE_leOfHom, anExactSeq_map, FGModuleCat.hom_comp,
+      LinearMap.coe_comp, Function.comp_apply, ModuleCat.hom_zero]
     refine Subtype.ext ?_
-    erw [reindex_apply_coe]
     change (smulBy ℳ x deg_x _ (KER.componentEmb ℳ x deg_x _ m) : M) = 0
     simp only [smulBy_apply_coe, KER.componentEmb_apply_coe, Submodule.smul_coe_torsionBy]
-    assumption
   · ext m
     simp only [Int.ofNat_eq_coe, Int.Nat.cast_ofNat_Int, id_eq, Nat.cast_ofNat, anExactSeq_obj,
       ComposableArrows.Precomp.obj_succ, ComposableArrows.precomp_obj, Fin.mk_one,
       ComposableArrows.Precomp.obj_one, ComposableArrows.mk₁_obj, Fin.zero_eta,
       ComposableArrows.Mk₁.obj, ComposableArrows.Precomp.obj_zero, ComposableArrows.map',
       anExactSeq_map, ComposableArrows.Precomp.map_succ_succ, ComposableArrows.precomp_map,
-      ComposableArrows.Precomp.map_one_succ, ComposableArrows.Precomp.map_zero_one, Category.assoc,
-      comp_apply]
+      ComposableArrows.Precomp.map_one_succ, ComposableArrows.Precomp.map_zero_one, Category.assoc]
     change COKER.descComponent ℳ x deg_x i (reindex ℳ i ineq (smulBy ℳ x deg_x _ m)) = 0
     ext
     erw [QuotientAddGroup.eq_zero_iff]
@@ -544,12 +558,13 @@ set_option synthInstance.maxHeartbeats 40000 in
 lemma anExactSeq_exact₀ (i : ℕ) (ineq : d ≤ i) :
     (anExactSeq ℳ x deg_x i ineq).sc (anExactSeq_complex ℳ x deg_x i ineq) 0 |>.Exact := by
   rw [FGModuleCat.exact_iff]
-  simp only [Nat.reduceAdd, id_eq, Int.reduceNeg, Nat.cast_ofNat, Int.Nat.cast_ofNat_Int,
-  Int.reduceAdd, Int.reduceSub, Fin.mk_one, Fin.isValue, anExactSeq_obj,
-  ComposableArrows.Precomp.obj_one, ComposableArrows.precomp_obj, Fin.zero_eta,
-  ComposableArrows.Precomp.obj_zero, ComposableArrows.map', homOfLE_leOfHom, anExactSeq_map,
-  ComposableArrows.Precomp.map_zero_one, Fin.reduceFinMk]
-  rw [LinearMap.range_zero, eq_comm, LinearMap.ker_eq_bot]
+  simp only [Nat.reduceAdd, id_eq, Int.reduceNeg, Nat.cast_ofNat, Int.reduceAdd, Int.reduceSub,
+    Fin.mk_one, Fin.isValue, anExactSeq_obj, ComposableArrows.Precomp.obj_one,
+    Int.Nat.cast_ofNat_Int, ComposableArrows.precomp_obj, Fin.zero_eta,
+    ComposableArrows.Precomp.obj_zero, FGModuleCat.obj_carrier, ComposableArrows.map',
+    homOfLE_leOfHom, anExactSeq_map, ComposableArrows.Precomp.map_zero_one, ModuleCat.hom_zero,
+    LinearMap.range_zero, Fin.reduceFinMk]
+  rw [eq_comm, LinearMap.ker_eq_bot]
   exact KER.componentEmb_injective ℳ x deg_x _
 
 set_option synthInstance.maxHeartbeats 40000 in
@@ -557,22 +572,22 @@ set_option maxHeartbeats 400000 in
 lemma anExactSeq_exact₁ (i : ℕ) (ineq : d ≤ i) :
     (anExactSeq ℳ x deg_x i ineq).sc (anExactSeq_complex ℳ x deg_x i ineq) 1 |>.Exact := by
   rw [FGModuleCat.exact_iff']
-  change Function.Exact (FGModuleCat.asHom (KER.componentEmb ℳ x deg_x (i - d)))
-    ((reindex ℳ i ineq).toFGModuleCatIso.hom ∘ₗ FGModuleCat.asHom (smulBy ℳ x deg_x (i - d)))
+  change Function.Exact (FGModuleCat.ofHom (KER.componentEmb ℳ x deg_x (i - d))).hom
+    ((reindex ℳ i ineq).toFGModuleCatIso.hom.hom ∘ₗ (smulBy ℳ x deg_x (i - d)))
   erw [Function.Injective.comp_exact_iff_exact]
   · rw [LinearMap.exact_iff]
     exact exact_KERComponentEmb_smulBy ℳ x deg_x _ |>.symm
-  · erw [← ConcreteCategory.mono_iff_injective_of_preservesPullback]
+  · rw [← FGModuleCat.mono_iff_injective]
     infer_instance
 
 set_option synthInstance.maxHeartbeats 40000 in
-set_option maxHeartbeats 400000 in
+set_option maxHeartbeats 800000 in
 lemma anExactSeq_exact₂ (i : ℕ) (ineq : d ≤ i) :
     (anExactSeq ℳ x deg_x i ineq).sc (anExactSeq_complex ℳ x deg_x i ineq) 2 |>.Exact := by
   rw [FGModuleCat.exact_iff']
   change Function.Exact
-    ((reindex ℳ i ineq).toFGModuleCatIso.hom ∘ₗ FGModuleCat.asHom (smulBy ℳ x deg_x (i - d)))
-    (FGModuleCat.asHom (COKER.descComponent ℳ x deg_x i))
+    ((reindex ℳ i ineq).toFGModuleCatIso.hom.hom ∘ₗ (smulBy ℳ x deg_x (i - d)))
+    ((COKER.descComponent ℳ x deg_x i))
   erw [LinearMap.exact_iff]
   exact exact_smulBy_COKERDescComponent' ℳ x deg_x i ineq |>.symm
 
@@ -581,13 +596,13 @@ set_option maxHeartbeats 800000 in
 lemma anExactSeq_exact₃ (i : ℕ) (ineq : d ≤ i) :
     (anExactSeq ℳ x deg_x i ineq).sc (anExactSeq_complex ℳ x deg_x i ineq) 3 |>.Exact := by
   rw [FGModuleCat.exact_iff]
-  simp only [anExactSeq, ComposableArrows.mk₅, LinearEquiv.toFGModuleCatIso_hom,
+  simp only [anExactSeq, LinearEquiv.toFGModuleCatIso_hom, ComposableArrows.mk₅,
     ComposableArrows.mk₄, ComposableArrows.mk₃, ComposableArrows.mk₂, Nat.reduceAdd, id_eq,
     Int.reduceNeg, Nat.cast_ofNat, Int.reduceAdd, Int.reduceSub, Fin.reduceFinMk,
-    ComposableArrows.precomp_obj, Fin.isValue, ComposableArrows.map', homOfLE_leOfHom,
-    ComposableArrows.precomp_map, ComposableArrows.Precomp.map, Fin.mk_one, Fin.zero_eta,
-    ComposableArrows.mk₁_map, ComposableArrows.Mk₁.map]
-  rw [LinearMap.ker_zero, LinearMap.range_eq_top]
+    ComposableArrows.precomp_obj, Fin.isValue, FGModuleCat.obj_carrier, ComposableArrows.map',
+    homOfLE_leOfHom, ComposableArrows.precomp_map, ComposableArrows.Precomp.map, Fin.mk_one,
+    Fin.zero_eta, ComposableArrows.mk₁_map, ComposableArrows.Mk₁.map, ModuleCat.hom_zero,
+    LinearMap.ker_zero, LinearMap.range_eq_top]
   apply COKER.descComponent_surjective'
 
 set_option maxHeartbeats 1000000 in
@@ -605,9 +620,6 @@ lemma anExactSeq_exact (i : ℕ) (ineq : d ≤ i) : (anExactSeq ℳ x deg_x i in
 
 example : true := rfl
 
--- variable [(a : A) → Decidable (a ∈ KER 𝒜 x deg_x)]
-
--- omit [(i : ℕ) → (x : (𝒜 i)) → Decidable (x ≠ 0)] in
 lemma key_lemma :
     ∃ (p : Polynomial ℤ),
       (1 - PowerSeries.X ^ d) * μ.poincareSeries 𝒜 ℳ =
@@ -631,11 +643,11 @@ lemma key_lemma :
   rw [eq0, eq0]
 
   have eq1 :
-    ∑ x in Finset.antidiagonal i, (if x.1 = d then μ (.of (𝒜 0) (ℳ x.2)) else 0)=
+    ∑ x ∈ Finset.antidiagonal i, (if x.1 = d then μ (.of (𝒜 0) (ℳ x.2)) else 0)=
     if d ≤ i then μ (.of _ (ℳ (i - d))) else 0 := by
     rw [Finset.sum_ite, Finset.sum_const_zero, add_zero]
     split_ifs with ineq
-    · trans ∑ x in {(d, i - d)}, μ (.of (𝒜 0) (ℳ x.2))
+    · trans ∑ x ∈ {(d, i - d)}, μ (.of (𝒜 0) (ℳ x.2))
       · refine Finset.sum_congr ?_ fun _ _ ↦ rfl
         ext ⟨j, k⟩
         simp only [Finset.mem_filter, Finset.mem_antidiagonal, Finset.mem_singleton, Prod.mk.injEq]
@@ -649,12 +661,12 @@ lemma key_lemma :
       simp only [le_add_iff_nonneg_right, zero_le, not_true_eq_false] at ineq
   rw [eq1]
 
-  have eq2 : ∑ jk in Finset.antidiagonal i,
+  have eq2 : ∑ jk ∈ Finset.antidiagonal i,
         (if jk.1 = d then μ (.of _ ((KER ℳ x deg_x).grading jk.2)) else 0) =
       if d ≤ i then μ (.of _ ((KER ℳ x deg_x).grading (i - d))) else 0 := by
     rw [Finset.sum_ite, Finset.sum_const_zero, add_zero]
     split_ifs with ineq
-    · trans ∑ jk in {(d, i - d)}, μ (.of _ ((KER ℳ x deg_x).grading jk.2))
+    · trans ∑ jk ∈ {(d, i - d)}, μ (.of _ ((KER ℳ x deg_x).grading jk.2))
       · refine Finset.sum_congr ?_ fun _ _ ↦ rfl
         ext ⟨j, k⟩
         simp only [Finset.mem_filter, Finset.mem_antidiagonal, Finset.mem_singleton, Prod.mk.injEq]
@@ -685,7 +697,7 @@ lemma key_lemma :
 /--
 Add homogeneous elements to a ring gives a homogeneous ring.
 -/
-def adjoinHomogeneous (S : Finset A) (hS : ∀ a ∈ S, SetLike.Homogeneous 𝒜 a) :
+def adjoinHomogeneous (S : Finset A) (hS : ∀ a ∈ S, SetLike.IsHomogeneousElem 𝒜 a) :
     HomogeneousSubring 𝒜 where
   __ :=  (Algebra.adjoin (𝒜 0) S : Subalgebra (𝒜 0) A).toSubring
   is_homogeneous' := by
@@ -846,7 +858,7 @@ def generatingSet' : generatingSetOverBaseRing (𝒜' S x S' hS') where
     intros R hR
     specialize ha (R.map (A' S x S' hS').toSubring.subtype) (by
       simp only [Finset.coe_image, Set.union_subset_iff, Set.image_subset_iff, Subring.coe_map,
-        Subring.coeSubtype] at hR ⊢
+        Subring.coe_subtype] at hR ⊢
       constructor
       · rintro _ ⟨a, rfl⟩
         let a' : 𝒜' S x S' hS' 0 := ⟨⟨(a : A), by
@@ -859,23 +871,36 @@ def generatingSet' : generatingSetOverBaseRing (𝒜' S x S' hS') where
         have hR2 := hR.2 (Finset.mem_attach S' ⟨x, hx⟩)
         simp only [Set.mem_preimage, SetLike.mem_coe] at hR2
         exact ⟨⟨x, _⟩, hR2, rfl⟩)
-    simp only [Subring.mem_map, Subring.coeSubtype, Subtype.exists, exists_and_right,
+    simp only [Subring.mem_map, Subring.coe_subtype, Subtype.exists, exists_and_right,
       exists_eq_right] at ha
     obtain ⟨_, ha⟩ := ha
     exact ha
 
 open Classical in
-lemma eqKER :
+instance : Module.Finite (A' S x S' hS') (KER ℳ x deg_x) := by
+  change Module.Finite (Algebra.adjoin _ _) _
+  fapply Algebra.adjoin_module_finite_of_annihilating
+  · exact x
+
+  · rw [← S.span_eq, ← hS']
+    congr 1
+    simp only [Finset.coe_insert]
+  · simp only [Subtype.forall, SetLike.mk_smul_mk]
+    intro x hx
+    ext : 1
+    exact hx
+
+lemma eqKER [(a : M) → Decidable (a ∈ KER ℳ x deg_x)] :
     (μ' μ S x S' hS').poincareSeries (𝒜' S x S' hS') (KER ℳ x deg_x).grading =
     μ.poincareSeries 𝒜 (KER ℳ x deg_x).grading := by
   ext n
   rw [AdditiveFunction.coeff_poincareSeries, AdditiveFunction.coeff_poincareSeries]
   exact μ.eq_of_iso
-    { hom :=
+    { hom := FGModuleCat.ofHom <|
       { toFun := fun x ↦ x
         map_add' := by intros; rfl
         map_smul' := by rintro r (y : (KER ℳ x deg_x).grading n); rfl }
-      inv :=
+      inv := FGModuleCat.ofHom <|
       { toFun := fun x ↦ x
         map_add' := by intros; rfl
         map_smul' := by rintro r (y : (KER ℳ x deg_x).grading n); rfl }
@@ -889,11 +914,12 @@ lemma eqCOKER :
   ext n
   rw [AdditiveFunction.coeff_poincareSeries, AdditiveFunction.coeff_poincareSeries]
   exact μ.eq_of_iso
-    { hom :=
+    { hom := FGModuleCat.ofHom <|
       { toFun := fun x ↦ x
         map_add' := by intros; rfl
         map_smul' := by rintro r (y : (COKER.den ℳ x deg_x).quotientGrading n); rfl }
-      inv :=
+      inv := FGModuleCat.ofHom <|
+
       { toFun := fun x ↦ x
         map_add' := by intros; rfl
         map_smul' := by rintro r (y : (COKER.den ℳ x deg_x).quotientGrading n); rfl }
@@ -927,7 +953,9 @@ lemma induction : statement'.{u} (N + 1) := by
   let 𝒜' : ℕ → AddSubgroup A' := 𝒜' S s S' hS1'
 
   let μ' := μ' μ S s S' hS1'
-
+  letI : DirectSum.Decomposition (KER ℳ s deg_s).grading := (KER ℳ s deg_s).decomposition
+  letI : SetLike.GradedSMul 𝒜' (HomogeneousSubmodule.grading (KER ℳ s deg_s)) := by
+    apply gradedModule_KER
   obtain ⟨pKER, hpKER⟩ := ih A' (KER ℳ s deg_s).toSubmodule 𝒜' (KER ℳ s deg_s).grading μ'
     (generatingSet' S s S' hS1') (by
       rw [generatingSet'_toFinset, Finset.card_image_of_injective, Finset.card_attach, hS2']
@@ -942,7 +970,7 @@ lemma induction : statement'.{u} (N + 1) := by
       ext
       simp only [Subtype.mk.injEq] at h
       exact h)
-  rw [eqKER] at hpKER
+  erw [eqKER] at hpKER
   rw [eqCOKER] at hpCOKER
 
   obtain ⟨pIH, hpIH⟩ := key_lemma ℳ μ s deg_s
@@ -957,8 +985,8 @@ lemma induction : statement'.{u} (N + 1) := by
   have eq_poles :
     S.poles.val = (generatingSet' S s S' hS1').poles.val * (1 - X^d : ℤ⟦X⟧) := by
     rw [generatingSetOverBaseRing.val_poles, generatingSetOverBaseRing.val_poles]
-    have eq0 := calc ∏ i in S.toFinset.attach, (1 - X ^ S.deg i.2 : ℤ⟦X⟧)
-        _ = ∏ i in (insert s S').attach,
+    have eq0 := calc ∏ i ∈ S.toFinset.attach, (1 - X ^ S.deg i.2 : ℤ⟦X⟧)
+        _ = ∏ i ∈ (insert s S').attach,
               (1 - X ^ S.deg (hS1' ▸ i.2 : i.1 ∈ S.toFinset) : ℤ⟦X⟧) := by
             apply Finset.prod_bij (i := fun i _ ↦ ⟨i, hS1'.symm ▸ i.2⟩)
             · rintro i -; exact Finset.mem_attach _ _
@@ -974,8 +1002,8 @@ lemma induction : statement'.{u} (N + 1) := by
     congr 1
     · conv_lhs => rw [← Finset.prod_attach]
       simp_rw [generatingSet'_toFinset]
-      set a1 := _; change ∏ i in a1, _ = _
-      set a2 := _; change _ = ∏ i in a2, _
+      set a1 := _; change ∏ i ∈ a1, _ = _
+      set a2 := _; change _ = ∏ i ∈ a2, _
       apply Finset.prod_bij
       pick_goal 5
       · refine fun i _ ↦ ⟨⟨(i : A), ?_⟩, ?_⟩

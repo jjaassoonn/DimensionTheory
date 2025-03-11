@@ -70,7 +70,7 @@ polynomial `p` guaranteed by `hilbert_serre`.
 noncomputable def numeratorPolynomial : Polynomial ℤ := (hilbert_serre 𝒜 ℳ μ S).choose
 
 theorem numeratorPolynomial_mul_inv_poles_eq_poincareSeries :
-    (numeratorPolynomial 𝒜 ℳ μ S).ToPowerSeries * S.poles⁻¹ = μ.poincareSeries 𝒜 ℳ :=
+    (numeratorPolynomial 𝒜 ℳ μ S).toPowerSeries * S.poles⁻¹ = μ.poincareSeries 𝒜 ℳ :=
   (hilbert_serre 𝒜 ℳ μ S).choose_spec.symm
 
 /--

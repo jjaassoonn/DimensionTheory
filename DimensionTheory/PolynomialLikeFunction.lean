@@ -203,16 +203,16 @@ lemma Function.PolynomialLike.tfae (f : ℤ → ℤ) : TFAE
       (Δᶠ f).PolynomialLike,
       ∃ (r : ℕ), ∀ᶠ (n : ℤ) in atTop, (Δᶠ^[r] f) n = 0
     ] := by
-  tfae_have 1 → 2
-  · intro _; infer_instance
+  tfae_have 1 → 2 := by
+    intro _; infer_instance
 
-  tfae_have 1 → 3
-  · intro hf; apply stdDiff_eventually_eq_zero
+  tfae_have 1 → 3 := by
+    intro hf; apply stdDiff_eventually_eq_zero
 
-  tfae_have 2 → 1
-  · intro _; infer_instance
+  tfae_have 2 → 1 := by
+    intro _; infer_instance
 
-  tfae_have 3 → 1
-  · apply of_stdDiffFunc_pow_eventually_zero
+  tfae_have 3 → 1 := by
+    apply of_stdDiffFunc_pow_eventually_zero
 
   tfae_finish

@@ -280,20 +280,26 @@ lemma PID_eq_one_of_not_isField (R : Type _) [CommRing R] [IsPrincipalIdealRing 
 
 end PID
 
--- in mathlib already
--- /--
--- https://stacks.math.columbia.edu/tag/00KG
--- -/
--- lemma eq_iSup_height_maximal_ideals (R : Type _) [CommRing R] : ringKrullDim R =
---     ⨆ (p : PrimeSpectrum R) (_ : p.asIdeal.IsMaximal), height p := by
---   refine' krullDim_eq_iSup_height.trans $ le_antisymm ?_ ?_
---   · exact iSup_le $ fun p ↦ by
---       rcases (p.asIdeal.exists_le_maximal p.isPrime.1) with ⟨q, ⟨h1, h2⟩⟩
---       refine' le_trans ?_ (le_sSup ⟨⟨q, Ideal.IsMaximal.isPrime h1⟩, iSup_pos h1⟩)
---       exact height_mono h2
---   · rw [show (⨆ (a : PrimeSpectrum R), height (PrimeSpectrum R) a) = ⨆ (a : PrimeSpectrum R)
---       (_ : true), height (PrimeSpectrum R) a by simp only [iSup_pos]]
---     exact iSup_le_iSup_of_subset $ fun _ _ ↦ rfl
+/--
+https://stacks.math.columbia.edu/tag/00KG
+-/
+lemma eq_iSup_height_maximal_ideals (R : Type _) [CommRing R] [Nontrivial R] : ringKrullDim R =
+    ⨆ (p : PrimeSpectrum R) (_ : p.asIdeal.IsMaximal), height p := by
+  refine' krullDim_eq_iSup_height.trans $ le_antisymm ?_ ?_
+  · exact iSup_le $ fun p ↦ by
+      rcases (p.asIdeal.exists_le_maximal p.isPrime.1) with ⟨q, ⟨h1, h2⟩⟩
+      rw [WithBot.coe_le_coe]
+      let q' : PrimeSpectrum R := ⟨q, Ideal.IsMaximal.isPrime h1⟩
+      refine le_trans (height_mono (show p ≤ q' from h2)) ?_ -- (le_sSup ⟨⟨q, Ideal.IsMaximal.isPrime h1⟩, iSup_pos h1⟩)
+      exact le_sSup ⟨⟨q, Ideal.IsMaximal.isPrime h1⟩, by simp [q']⟩
+  · rw [WithBot.coe_le_iff]
+    refine ⟨(⨆ p : PrimeSpectrum R, height p), ?_, ?_⟩
+    · symm
+      apply WithBot.coe_iSup
+      exact OrderTop.bddAbove (Set.range height)
+    rw [show (⨆ (a : PrimeSpectrum R), height a) = ⨆ (a : PrimeSpectrum R)
+      (_ : true), height a by simp]
+    exact iSup_le_iSup_of_subset $ fun _ _ ↦ rfl
 
 /-
 Here we aim to show that for any prime ideal `𝔭` of a commutative ring `R`, the
@@ -303,30 +309,31 @@ section aboutHeightAndLocalization
 
 variable {R : Type*} [CommRing R] (𝔭 : PrimeSpectrum R)
 
--- in mathlib already
--- /--
--- The height of `𝔭` is equal to the Krull dimension of `localization.at_prime 𝔭.as_ideal`.
--- -/
--- theorem primeIdealHeight_eq_ringKrullDim_of_Localization :
---     height (PrimeSpectrum R) 𝔭 = ringKrullDim (Localization.AtPrime 𝔭.asIdeal) :=
---   let e := (IsLocalization.orderIsoOfPrime (𝔭.asIdeal.primeCompl)
---       (Localization.AtPrime 𝔭.asIdeal))
---   krullDim_eq_of_orderIso
---   { toFun := fun I ↦ let J := e.symm ⟨I.1.1, I.1.2, by
---         rw [Set.disjoint_iff_inter_eq_empty, Set.eq_empty_iff_forall_not_mem]
---         rintro r ⟨h1, h2⟩
---         exact h1 $ I.2 h2⟩
---       ⟨J.1, J.2⟩
---     invFun := fun J ↦ let I := e ⟨J.1, J.2⟩
---       ⟨⟨I.1, I.2.1⟩, fun r (hr : r ∈ I.1) ↦ not_not.mp $ Set.disjoint_right.mp I.2.2 hr⟩
---     left_inv := fun I ↦ by simp only [Subtype.coe_eta, OrderIso.apply_symm_apply]
---     right_inv := fun J ↦ by simp only [Subtype.coe_eta, OrderIso.symm_apply_apply]
---     map_rel_iff' := fun {I₁ I₂} ↦ by
---       convert e.symm.map_rel_iff (a := ⟨I₁.1.1, I₁.1.2, ?_⟩) (b := ⟨I₂.1.1, I₂.1.2, ?_⟩) using 1 <;>
---       rw [Set.disjoint_iff_inter_eq_empty, Set.eq_empty_iff_forall_not_mem] <;>
---       rintro r ⟨h1, h2⟩
---       · exact h1 $ I₁.2 h2
---       · exact h1 $ I₂.2 h2 }
+open Order
+/--
+The height of `𝔭` is equal to the Krull dimension of `localization.at_prime 𝔭.as_ideal`.
+-/
+theorem primeIdealHeight_eq_ringKrullDim_of_Localization :
+    height 𝔭 = ringKrullDim (Localization.AtPrime 𝔭.asIdeal) := by
+  let e := (IsLocalization.orderIsoOfPrime (𝔭.asIdeal.primeCompl)
+      (Localization.AtPrime 𝔭.asIdeal))
+  rw [height_eq_krullDim_Iic]
+  refine krullDim_eq_of_orderIso
+    { toFun := fun I ↦ let J := e.symm ⟨I.1.1, I.1.2, by
+          rw [Set.disjoint_iff_inter_eq_empty, Set.eq_empty_iff_forall_not_mem]
+          rintro r ⟨h1, h2⟩
+          exact h1 $ I.2 h2⟩
+        ⟨J.1, J.2⟩
+      invFun := fun J ↦ let I := e ⟨J.1, J.2⟩
+        ⟨⟨I.1, I.2.1⟩, fun r (hr : r ∈ I.1) ↦ not_not.mp $ Set.disjoint_right.mp I.2.2 hr⟩
+      left_inv := fun I ↦ by simp only [Subtype.coe_eta, OrderIso.apply_symm_apply]
+      right_inv := fun J ↦ by simp only [Subtype.coe_eta, OrderIso.symm_apply_apply]
+      map_rel_iff' := fun {I₁ I₂} ↦ by
+        convert e.symm.map_rel_iff (a := ⟨I₁.1.1, I₁.1.2, ?_⟩) (b := ⟨I₂.1.1, I₂.1.2, ?_⟩) using 1 <;>
+        rw [Set.disjoint_iff_inter_eq_empty, Set.eq_empty_iff_forall_not_mem] <;>
+        rintro r ⟨h1, h2⟩
+        · exact h1 $ I₁.2 h2
+        · exact h1 $ I₂.2 h2 }
 
 end aboutHeightAndLocalization
 

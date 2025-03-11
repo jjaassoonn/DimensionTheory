@@ -250,7 +250,7 @@ In a field `F` of characteristic zero, let `p` be a polynomial in `F[X]`.
 Then `p(n) = ∑ k ∈ {0, ..., p.natDegree}, (Δᵏp)(0) * (n choose k)`.
 -/
 lemma eval_eq_sum (p : F[X]) (n : ℕ) :
-    ∑ k in Finset.range (p.natDegree + 1), (Δᵖ^[k] p).eval 0 * (n.choose k : F)  =
+    ∑ k ∈ Finset.range (p.natDegree + 1), (Δᵖ^[k] p).eval 0 * (n.choose k : F)  =
     p.eval (n : F) := by
   induction n generalizing p with
   | zero =>
@@ -474,7 +474,7 @@ lemma coeff'_smul (p : F[X]) (r : F) (k : ℕ) :
     rw [ih]
 
 lemma eq_sum_range (p : F[X]) : p =
-    ∑ k in Finset.range (p.natDegree + 1), (Δᵖ^[k] p).eval 0 • binomialPolynomial F k := by
+    ∑ k ∈ Finset.range (p.natDegree + 1), (Δᵖ^[k] p).eval 0 • binomialPolynomial F k := by
   apply eq_of_infinite_eval_eq
   apply Set.infinite_of_injective_forall_mem (α := Set.Ici (p.natDegree + 2))
     (f := (fun (n : ℕ) ↦ (n : F)) ∘ Subtype.val)
@@ -525,7 +525,7 @@ lemma antideriv_eq_succ (k : ℕ) :
 
 lemma antideriv_eq (p : F[X]) :
     antideriv p =
-    ∑ k in Finset.range (p.natDegree + 1), (Δᵖ^[k] p).eval 0 • binomialPolynomial F (k + 1) := by
+    ∑ k ∈ Finset.range (p.natDegree + 1), (Δᵖ^[k] p).eval 0 • binomialPolynomial F (k + 1) := by
   conv_lhs => rw [eq_sum_range p, map_sum]
   refine Finset.sum_congr rfl fun k _ => ?_
   simp only [LinearMapClass.map_smul, antideriv_eq_succ]

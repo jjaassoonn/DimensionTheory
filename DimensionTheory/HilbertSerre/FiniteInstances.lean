@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 
-import Mathlib.RingTheory.Noetherian.Basic
+import Mathlib.RingTheory.Ideal.Quotient.Noetherian
 import Mathlib.RingTheory.Polynomial.Basic
 import Mathlib.RingTheory.Ideal.Quotient.Operations
 
@@ -99,7 +99,7 @@ if `f` maps `aᵢ` to `nᵢ`
 then `f` represents the monomial `∏ᵢ aᵢ ^ nᵢ`
 -/
 def evalMonomial (f : A →₀ ℕ) : A :=
-  ∏ a in f.support, a ^ (f a)
+  ∏ a ∈ f.support, a ^ (f a)
 
 omit [DecidableEq A] in
 @[simp] lemma evalMonomial_zero : evalMonomial (A := A) 0 = 1 := by
@@ -116,7 +116,7 @@ lemma top_eq_span_monomial :
   rintro x -
   have hx : x ∈ (⊤ : Subalgebra R A) := ⟨⟩
   rw [← hS] at hx
-  refine Algebra.adjoin_induction hx ?_ ?_ ?_ ?_
+  refine Algebra.adjoin_induction (hx := hx) ?_ ?_ ?_ ?_
   · intro x hx
     refine Submodule.subset_span ⟨Finsupp.single x 1,
       Finsupp.support_single_subset.trans (by simpa), ?_⟩
@@ -128,11 +128,11 @@ lemma top_eq_span_monomial :
     change (algebraMap R A r : A) ∈ Submodule.span R _
     rw [show (algebraMap R A r : A) = (r : R) • (1 : A) by rw [Algebra.smul_def, mul_one]]
     exact Submodule.smul_mem _ _ <| Submodule.subset_span ⟨0, by simp, by simp [evalMonomial]⟩
-  · intro a b ha hb
+  · intro a b _ _ ha hb
     exact Submodule.add_mem _ ha hb
-  · intro a b ha hb
-    apply Submodule.span_induction₂ ha hb
-    · rintro _ ⟨f, hf, rfl⟩ _ ⟨g, hg, rfl⟩
+  · intro a b _ _ ha hb
+    apply Submodule.span_induction₂ (ha := ha) (hb := hb)
+    · rintro _ _ ⟨f, hf, rfl⟩ ⟨g, hg, rfl⟩
       refine Submodule.subset_span ⟨(f + g : A →₀ ℕ), ?_, ?_⟩
       · exact Finsupp.support_add (g₁ := f) (g₂ := g) |>.trans <|
           sup_le (α := Finset A) hf hg
@@ -155,22 +155,22 @@ lemma top_eq_span_monomial :
 
         simp_rw [pow_add]
         rw [Finset.prod_mul_distrib]
-    · intro y
+    · intro y _
       rw [zero_mul]
       exact Submodule.zero_mem _
-    · intro x
+    · intro x _
       rw [mul_zero]
       exact Submodule.zero_mem _
-    · intro x₁ x₂ y hx₁ hx₂
+    · intro x₁ x₂ y _ _ _ hx₁ hx₂
       rw [add_mul]
       exact Submodule.add_mem _ hx₁ hx₂
-    · intro x y₁ y₂ hy₁ hy₂
+    · intro x y₁ y₂ _ _ _ hy₁ hy₂
       rw [mul_add]
       exact Submodule.add_mem _ hy₁ hy₂
-    · intro r x y h
+    · intro r x y _ _ h
       rw [Algebra.smul_mul_assoc]
       exact Submodule.smul_mem _ _ h
-    · intro r x y h
+    · intro r x y _ _ h
       rw [Algebra.mul_smul_comm]
       exact Submodule.smul_mem _ _ h
 
@@ -187,11 +187,11 @@ lemma Algebra.adjoin_module_finite_of_annihilating [Module.Finite A M]
   rintro x -
   have mem : x ∈ (⊤ : Submodule A M) := ⟨⟩
   rw [← hS', mem_span_set] at mem
-  obtain ⟨c, hc, (rfl : ∑ i in c.support, _ • _ = x)⟩ := mem
+  obtain ⟨c, hc, (rfl : ∑ i ∈ c.support, _ • _ = x)⟩ := mem
   refine Submodule.sum_mem _ fun i hi ↦ ?_
   have mem1 : c i ∈ (⊤ : Submodule R A) := ⟨⟩
   rw [top_eq_span_monomial R A S s hS, mem_span_set] at mem1
-  obtain ⟨r, hr1, (hr2 : ∑ j in r.support, _ • _ = _)⟩ := mem1
+  obtain ⟨r, hr1, (hr2 : ∑ j ∈ r.support, _ • _ = _)⟩ := mem1
   rw [← hr2, Finset.sum_smul]
   refine Submodule.sum_mem _ fun j hj ↦ ?_
 

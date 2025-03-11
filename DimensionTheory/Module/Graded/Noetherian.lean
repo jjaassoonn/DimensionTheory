@@ -189,19 +189,19 @@ lemma irrelevant.adjoin_eq_top :
         DirectSum.decompose_of_mem_ne (hx := hx)]
       norm_num
     erw [← S.span_eq, mem_span_set] at m
-    obtain ⟨f, hf, (eq0 : ∑ i in f.support, f i * i = x)⟩ := m
+    obtain ⟨f, hf, (eq0 : ∑ i ∈ f.support, f i * i = x)⟩ := m
     replace eq0 :=
       calc x
         = (DirectSum.decompose 𝒜 x (n + 1) : A) :=
           by simp only [DirectSum.of_eq_same, DirectSum.decompose_of_mem 𝒜 hx]
-      _ = DirectSum.decompose 𝒜 (∑ a in f.support, f a * a) (n + 1) := by rw [eq0]
-      _ = ∑ a in f.support, (DirectSum.decompose 𝒜 (f a * a) (n + 1) : A) :=
-          by change GradedRing.proj 𝒜 (n + 1) (∑ a in f.support, f a * a : A) = _
+      _ = DirectSum.decompose 𝒜 (∑ a ∈ f.support, f a * a) (n + 1) := by rw [eq0]
+      _ = ∑ a ∈ f.support, (DirectSum.decompose 𝒜 (f a * a) (n + 1) : A) :=
+          by change GradedRing.proj 𝒜 (n + 1) (∑ a ∈ f.support, f a * a : A) = _
              rw [map_sum]
              rfl
-      _ = ∑ a in f.support.attach, (DirectSum.decompose 𝒜 (f a * a) (n + 1) : A) :=
+      _ = ∑ a ∈ f.support.attach, (DirectSum.decompose 𝒜 (f a * a) (n + 1) : A) :=
           Finset.sum_attach _ _ |>.symm
-      _ = ∑ a in f.support.attach,
+      _ = ∑ a ∈ f.support.attach,
             if deg _ (hf a.2) ≤ n + 1
             then (DirectSum.decompose 𝒜 (f a) ((n + 1) - deg _ (hf a.2)) * a : A)
             else 0 := Finset.sum_congr rfl fun a _ ↦
@@ -240,7 +240,7 @@ if `f` maps `aᵢ` to `nᵢ`
 then `f` represents the monomial `∏ᵢ aᵢ ^ nᵢ`
 -/
 def evalMonomial (f : A →₀ ℕ) : A :=
-  ∏ a in f.support, a ^ (f a)
+  ∏ a ∈ f.support, a ^ (f a)
 
 omit noetherian_ring in
 @[simp] lemma evalMonomial_zero : evalMonomial (A := A) 0 = 1 := by
@@ -253,7 +253,7 @@ has degree `∑ᵢ nᵢ * dᵢ`
 def degreeMonomial
     (f : A →₀ ℕ)
     (deg : ⦃a : A⦄ → (ha : a ∈ f.support) → ℕ) : ℕ :=
-  ∑ i in f.support.attach, deg i.2 * f i
+  ∑ i ∈ f.support.attach, deg i.2 * f i
 
 omit [CommRing A] noetherian_ring in
 lemma degreeMonomial_zero : degreeMonomial (A := A) 0 (fun a h ↦ by simp at h) = 0 := by
@@ -265,7 +265,7 @@ lemma evalMonomial_mem_aux {ι : Type*} (s : Finset ι)
     (pow : s → ℕ)
     (f : s → A)
     (h_deg : ∀ i, f i ∈ 𝒜 (deg i)):
-    ∏ i in s.attach, f i ^ (pow i) ∈ 𝒜 (∑ i in s.attach, deg i * pow i) := by
+    ∏ i ∈ s.attach, f i ^ (pow i) ∈ 𝒜 (∑ i ∈ s.attach, deg i * pow i) := by
   classical
   induction' s using Finset.induction_on with a s h ih
   · simp only [Finset.attach_empty, Finset.prod_empty, Finset.sum_empty]
@@ -377,7 +377,7 @@ lemma top_eq_span_monomial :
       exact Submodule.smul_mem _ _ h
 
 lemma Finset.single_le_sum' {ι : Type*}
-    {s : Finset ι} {f : s → ℕ} (a : s) : f a ≤ ∑ x in s.attach, f x := by
+    {s : Finset ι} {f : s → ℕ} (a : s) : f a ≤ ∑ x ∈ s.attach, f x := by
   classical
   induction' s using Finset.induction_on with i s h ih
   · cases' a with a ha
@@ -566,31 +566,31 @@ lemma kth_degree_eq_span (k : ℕ) :
   have mem1 : x ∈ (⊤ : Submodule A M) := ⟨⟩
   rw [← TM.span_eq, mem_span_set] at mem1
 
-  obtain ⟨f, f_support_le, (eq0 : ∑ i in f.support, (f i) • i = x)⟩ := mem1
+  obtain ⟨f, f_support_le, (eq0 : ∑ i ∈ f.support, (f i) • i = x)⟩ := mem1
 
   have mem1 (a : A) : a ∈ (⊤ : Submodule (𝒜 0) A) := ⟨⟩
   simp_rw [top_eq_span_monomial 𝒜 T, mem_span_set] at mem1
   choose r hr1 hr2 using mem1
-  change ∀ a, ∑ j in (r a).support, (r a) j • j = a at hr2
+  change ∀ a, ∑ j ∈ (r a).support, (r a) j • j = a at hr2
   replace hr1 (a : A) :
     ∀ j ∈ (r a).support, ∃ f, f.support ⊆ T.toFinset ∧ j = evalMonomial f := by exact hr1 a
   choose p hp1 hp2 using hr1
   replace eq0 := calc
-      x = ∑ i in f.support, (f i) • i := eq0.symm
-      _ = ∑ i in f.support, (∑ j in (r (f i)).support, r (f i) j • j) • i :=
+      x = ∑ i ∈ f.support, (f i) • i := eq0.symm
+      _ = ∑ i ∈ f.support, (∑ j ∈ (r (f i)).support, r (f i) j • j) • i :=
           Finset.sum_congr rfl fun x _ ↦ by
             congr 1
             rw [hr2 (f x)]
-      _ = ∑ i in f.support, ∑ j in (r (f i)).support, (r (f i) j • j) • i :=
+      _ = ∑ i ∈ f.support, ∑ j ∈ (r (f i)).support, (r (f i) j • j) • i :=
           Finset.sum_congr rfl fun x _ ↦ Finset.sum_smul
-      _ = ∑ i in f.support, ∑ j in (r (f i)).support, (r (f i) j : A) • (j : A) • (i : M) :=
+      _ = ∑ i ∈ f.support, ∑ j ∈ (r (f i)).support, (r (f i) j : A) • (j : A) • (i : M) :=
           Finset.sum_congr rfl fun x _ ↦ Finset.sum_congr rfl fun y _ ↦ by
             change ((r (f x) y : A) * y) • _ = _
             rw [mul_smul]
-      _ = ∑ i in f.support, ∑ j in (r (f i)).support.attach,
+      _ = ∑ i ∈ f.support, ∑ j ∈ (r (f i)).support.attach,
             (r (f i) j : A) • (j : A) • (i : M) :=
           Finset.sum_congr rfl fun _ _ ↦ Finset.sum_attach _ _ |>.symm
-      _ = ∑ i in f.support, ∑ j in (r (f i)).support.attach,
+      _ = ∑ i ∈ f.support, ∑ j ∈ (r (f i)).support.attach,
             (r (f i) j : A) • (evalMonomial (p _ _ j.2) : A) • (i : M) :=
           Finset.sum_congr rfl fun i _ ↦ Finset.sum_congr rfl fun j _ ↦ by
             congr 2
@@ -600,15 +600,15 @@ lemma kth_degree_eq_span (k : ℕ) :
   simp_rw [map_sum] at eq0
 
   replace eq0 := calc
-    x = ∑ i in f.support, ∑ j in (r (f i)).support.attach,
+    x = ∑ i ∈ f.support, ∑ j ∈ (r (f i)).support.attach,
           GradedModule.proj ℳ k ((r (f i) j : A) • (evalMonomial (p _ _ j.2) : A) • (i : M)) := eq0
-    _ = ∑ i in f.support, ∑ j in (r (f i)).support.attach,
+    _ = ∑ i ∈ f.support, ∑ j ∈ (r (f i)).support.attach,
           GradedModule.proj ℳ k (((r (f i) j : A) * (evalMonomial (p _ _ j.2) : A)) • (i : M)) :=
         Finset.sum_congr rfl fun i _ ↦ Finset.sum_congr rfl fun j _ ↦ by rw [mul_smul]
-    _ = ∑ i in f.support.attach, ∑ j in (r (f i)).support.attach,
+    _ = ∑ i ∈ f.support.attach, ∑ j ∈ (r (f i)).support.attach,
           GradedModule.proj ℳ k (((r (f i) j : A) * (evalMonomial (p _ _ j.2) : A)) • (i : M)) :=
         Finset.sum_attach _ _ |>.symm
-    _ = ∑ i in f.support.attach, ∑ j in (r (f i)).support.attach,
+    _ = ∑ i ∈ f.support.attach, ∑ j ∈ (r (f i)).support.attach,
           if TM.deg (f_support_le i.2) ≤ k
           then
             GradedRing.proj 𝒜 (k - TM.deg (f_support_le i.2))
@@ -617,9 +617,9 @@ lemma kth_degree_eq_span (k : ℕ) :
         Finset.sum_congr rfl fun i _ ↦ Finset.sum_congr rfl fun j _ ↦ by
           rw [GradedModule.proj_smul_mem_right 𝒜 ℳ _ _
             (TM.mem_deg (f_support_le i.2))]
-    _ = ∑ i in f.support.attach.filter fun i : f.support ↦
+    _ = ∑ i ∈ f.support.attach.filter fun i : f.support ↦
           TM.deg (f_support_le i.2) ≤ k,
-        ∑ j in (r (f i)).support.attach,
+        ∑ j ∈ (r (f i)).support.attach,
           GradedRing.proj 𝒜 (k - TM.deg (f_support_le i.2))
             ((r (f i) j : A) * (evalMonomial (p _ _ j.2) : A)) • (i : M) := by
         rw [Finset.sum_filter]
@@ -628,14 +628,14 @@ lemma kth_degree_eq_span (k : ℕ) :
         split_ifs with ineq1
         · rfl
         · rw [Finset.sum_const, smul_zero]
-    _ = ∑ i in f.support.attach.filter fun i : f.support ↦
+    _ = ∑ i ∈ f.support.attach.filter fun i : f.support ↦
           TM.deg (f_support_le i.2) ≤ k,
-        (∑ j in (r (f i)).support.attach,
+        (∑ j ∈ (r (f i)).support.attach,
           GradedRing.proj 𝒜 (k - TM.deg (f_support_le i.2))
             ((r (f i) j : A) * (evalMonomial (p _ _ j.2) : A))) • (i : M) :=
         Finset.sum_congr rfl fun _ _ ↦ by rw [Finset.sum_smul]
-    _ = ∑ i in f.support.attach.filter fun i : f.support ↦ TM.deg (f_support_le i.2) ≤ k,
-        (∑ j in (r (f i)).support.attach,
+    _ = ∑ i ∈ f.support.attach.filter fun i : f.support ↦ TM.deg (f_support_le i.2) ≤ k,
+        (∑ j ∈ (r (f i)).support.attach,
           if degreeMonomial (p _ _ j.2)
             (fun _ h ↦ T.deg (hp1 _ _ j.2 h)) ≤ k - TM.deg (f_support_le i.2)
           then
@@ -656,8 +656,8 @@ lemma kth_degree_eq_span (k : ℕ) :
           rintro a ha
           apply T.mem_deg (hp1 _ _ hj ha)
         rfl
-    _ = ∑ i in f.support.attach.filter fun i : f.support ↦ TM.deg (f_support_le i.2) ≤ k,
-        (∑ j in (r (f i)).support.attach.filter fun j : (r (f i)).support ↦
+    _ = ∑ i ∈ f.support.attach.filter fun i : f.support ↦ TM.deg (f_support_le i.2) ≤ k,
+        (∑ j ∈ (r (f i)).support.attach.filter fun j : (r (f i)).support ↦
             degreeMonomial (p _ _ j.2) (fun a ha ↦ T.deg (hp1 _ _ j.2 ha)) ≤
             k - TM.deg (f_support_le i.2),
           GradedRing.proj 𝒜
@@ -665,8 +665,8 @@ lemma kth_degree_eq_span (k : ℕ) :
                 degreeMonomial (p _ _ j.2) fun a ha ↦ T.deg (hp1 _ _ j.2 ha))
               (r (f i) j : A) * (evalMonomial (p _ _ j.2) : A)) • (i : M) :=
         Finset.sum_congr rfl fun _ _ ↦ by rw [Finset.sum_filter]
-    _ = ∑ i in f.support.attach.filter fun i : f.support ↦ TM.deg (f_support_le i.2) ≤ k,
-        ∑ j in (r (f i)).support.attach.filter
+    _ = ∑ i ∈ f.support.attach.filter fun i : f.support ↦ TM.deg (f_support_le i.2) ≤ k,
+        ∑ j ∈ (r (f i)).support.attach.filter
           fun j : (r (f i)).support ↦
             degreeMonomial (p _ _ j.2) (fun _ h ↦ T.deg (hp1 _ _ j.2 h)) ≤
             k - TM.deg (f_support_le i.2),
@@ -675,8 +675,8 @@ lemma kth_degree_eq_span (k : ℕ) :
                 degreeMonomial (p _ _ j.2) fun _ h ↦ T.deg (hp1 _ _ j.2 h))
               (r (f i) j : A) * (evalMonomial (p _ _ j.2) : A)) • (i : M) :=
         Finset.sum_congr rfl fun _ _ ↦ by rw [Finset.sum_smul]
-    _ = ∑ i in f.support.attach.filter fun i : f.support ↦ TM.deg (f_support_le i.2) ≤ k,
-        ∑ j in (r (f i)).support.attach.filter fun j : (r (f i)).support ↦
+    _ = ∑ i ∈ f.support.attach.filter fun i : f.support ↦ TM.deg (f_support_le i.2) ≤ k,
+        ∑ j ∈ (r (f i)).support.attach.filter fun j : (r (f i)).support ↦
             degreeMonomial (p _ _ j.2) (fun _ h ↦ T.deg (hp1 _ _ j.2 h)) ≤
             k - TM.deg (f_support_le i.2),
           (GradedRing.proj 𝒜
@@ -684,8 +684,8 @@ lemma kth_degree_eq_span (k : ℕ) :
                 degreeMonomial (p _ _ j.2) fun _ h ↦ T.deg (hp1 _ _ j.2 h))
               (r (f i) j : A)) • (evalMonomial (p _ _ j.2) : A) • (i : M) :=
         Finset.sum_congr rfl fun _ _ ↦ Finset.sum_congr rfl fun _ _ ↦ by rw [mul_smul]
-    _ = ∑ i in f.support.attach.filter fun i : f.support ↦ TM.deg (f_support_le i.2) ≤ k,
-        ∑ j in (r (f i)).support.attach.filter fun j : (r (f i)).support ↦
+    _ = ∑ i ∈ f.support.attach.filter fun i : f.support ↦ TM.deg (f_support_le i.2) ≤ k,
+        ∑ j ∈ (r (f i)).support.attach.filter fun j : (r (f i)).support ↦
             degreeMonomial (p _ _ j.2) (fun a ha ↦ T.deg (hp1 _ _ j.2 ha)) ≤
             k - TM.deg (f_support_le i.2),
           (if degreeMonomial (p _ _ j.2) (fun a ha ↦ T.deg (hp1 _ _ j.2 ha)) =
@@ -702,8 +702,8 @@ lemma kth_degree_eq_span (k : ℕ) :
             rw [eq_comm, Nat.sub_eq_zero_iff_le] at rid
             rw [Finset.mem_filter] at hj
             exact ineq1 <| le_antisymm hj.2 rid
-    _ = ∑ i in f.support.attach.filter fun i : f.support ↦ TM.deg (f_support_le i.2) ≤ k,
-        ∑ j in (r (f i)).support.attach.filter fun j : (r (f i)).support ↦
+    _ = ∑ i ∈ f.support.attach.filter fun i : f.support ↦ TM.deg (f_support_le i.2) ≤ k,
+        ∑ j ∈ (r (f i)).support.attach.filter fun j : (r (f i)).support ↦
             degreeMonomial (p _ _ j.2) (fun a ha ↦ T.deg (hp1 _ _ j.2 ha)) =
             k - TM.deg (f_support_le i.2),
           (r (f i) j : A) • (evalMonomial (p _ _ j.2) : A) • (i : M) := by
@@ -715,22 +715,22 @@ lemma kth_degree_eq_span (k : ℕ) :
         simp only [ite_smul, zero_smul, ite_eq_left_iff, not_le]
         intro rid
         rw [if_neg (Ne.symm (ne_of_lt rid))]
-    _ = ∑ i in (f.support.attach.filter fun i : f.support ↦ TM.deg (f_support_le i.2) ≤ k).attach,
-        ∑ j in (r (f i)).support.attach.filter fun j : (r (f i)).support ↦
+    _ = ∑ i ∈ (f.support.attach.filter fun i : f.support ↦ TM.deg (f_support_le i.2) ≤ k).attach,
+        ∑ j ∈ (r (f i)).support.attach.filter fun j : (r (f i)).support ↦
             degreeMonomial (p _ _ j.2) (fun a ha ↦ T.deg (hp1 _ _ j.2 ha)) =
             k - TM.deg (f_support_le i.1.2),
           (r (f i) j : A) • (evalMonomial (p _ _ j.2) : A) • (i : M) :=
         Finset.sum_attach _ _ |>.symm
-    _ = ∑ i in (f.support.attach.filter fun i : f.support ↦ TM.deg (f_support_le i.2) ≤ k).attach,
-        ∑ j in ((r (f i)).support.attach.filter fun j : (r (f i)).support ↦
+    _ = ∑ i ∈ (f.support.attach.filter fun i : f.support ↦ TM.deg (f_support_le i.2) ≤ k).attach,
+        ∑ j ∈ ((r (f i)).support.attach.filter fun j : (r (f i)).support ↦
             degreeMonomial (p _ _ j.2) (fun a ha ↦ T.deg (hp1 _ _ j.2 ha)) =
             k - TM.deg (f_support_le i.1.2)).attach,
           (r (f i) j : A) • (evalMonomial (p _ _ j.1.2) : A) • (i : M) :=
         Finset.sum_congr rfl fun _ _ ↦ Finset.sum_attach _ _ |>.symm
   replace eq0 :
     (⟨x, hx⟩ : ℳ k) =
-    ∑ i in (f.support.attach.filter fun i : f.support ↦ TM.deg (f_support_le i.2) ≤ k).attach,
-        ∑ j in ((r (f i)).support.attach.filter fun j : (r (f i)).support ↦
+    ∑ i ∈ (f.support.attach.filter fun i : f.support ↦ TM.deg (f_support_le i.2) ≤ k).attach,
+        ∑ j ∈ ((r (f i)).support.attach.filter fun j : (r (f i)).support ↦
             degreeMonomial (p _ _ j.2) (fun a ha ↦ T.deg (hp1 _ _ j.2 ha)) =
             k - TM.deg (f_support_le i.1.2)).attach,
           r (f i) j • (⟨(evalMonomial (p _ _ j.1.2) : A) • (i : M), by

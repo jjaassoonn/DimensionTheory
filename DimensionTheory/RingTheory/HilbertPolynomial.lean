@@ -127,7 +127,7 @@ that `PowerSeries.coeff ℤ n (p * invOneSubPow ℤ d)` is equal to
 noncomputable def hilbert (p : ℤ[X]) (d : ℕ) : ℚ[X] :=
   if h : p = 0 then 0
   else if d ≤ p.rootMultiplicity 1 then 0
-  else ∑ i in Finset.range ((greatestFactorOneSubNotDvd p h).natDegree + 1),
+  else ∑ i ∈ Finset.range ((greatestFactorOneSubNotDvd p h).natDegree + 1),
   ((greatestFactorOneSubNotDvd p h).coeff i) • preHilbert (d - p.rootMultiplicity 1 - 1) i
 
 /--
@@ -140,7 +140,7 @@ theorem coeff_mul_invOneSubPow_eq_hilbert_eval (p : ℤ[X]) (d n : ℕ) (hn : p.
   rw [hilbert]; by_cases h : p = 0
   · simp only [h, coe_zero, zero_mul, map_zero, Int.cast_zero, ↓reduceDIte, eval_zero]
   · simp only [h, reduceDIte, zsmul_eq_mul]
-    have coe_one_sub : (1 - X : ℤ[X]).ToPowerSeries = 1 - (PowerSeries.X : ℤ⟦X⟧) :=
+    have coe_one_sub : (1 - X : ℤ[X]).toPowerSeries = 1 - (PowerSeries.X : ℤ⟦X⟧) :=
       PowerSeries.ext_iff.2 fun i => by_cases (fun (hi : i = 0) => by
       simp only [hi, coeff_coe, coeff_sub, coeff_one_zero, coeff_X_zero, sub_zero,
       map_sub, PowerSeries.coeff_one, ↓reduceIte, coeff_zero_X]) (fun hi => by
@@ -159,14 +159,14 @@ theorem coeff_mul_invOneSubPow_eq_hilbert_eval (p : ℤ[X]) (d n : ℕ) (hn : p.
         (natDegree_pow_rootMultiplicity_sub_mul_greatestFactorOneSubNotDvd_le p h d h1) hn)
     · simp only [h1, reduceIte]
       rw [coe_inj.2 (pow_rootMultiplicity_mul_greatestFactorOneSubNotDvd_eq p h).symm, coe_mul,
-        mul_comm ((1 - X : ℤ[X]) ^ p.rootMultiplicity 1).ToPowerSeries, mul_assoc,
+        mul_comm ((1 - X : ℤ[X]) ^ p.rootMultiplicity 1).toPowerSeries, mul_assoc,
         show d = p.rootMultiplicity 1 + (d - p.rootMultiplicity 1) by rw [Nat.add_sub_of_le <|
         Nat.le_of_not_ge h1], invOneSubPow_add, Units.val_mul, ← mul_assoc ((1 - X : ℤ[X]) ^
-        rootMultiplicity 1 p).ToPowerSeries, coe_pow, coe_one_sub,
+        rootMultiplicity 1 p).toPowerSeries, coe_pow, coe_one_sub,
         ← invOneSubPow_inv_eq_one_sub_pow, Units.inv_eq_val_inv, Units.inv_mul, one_mul,
         add_tsub_cancel_left]
-      rw [show (gFOSND p h).ToPowerSeries = (Finset.sum (Finset.range ((gFOSND p h).natDegree + 1))
-        (fun (i : ℕ) => ((gFOSND p h).coeff i) • (X ^ i)) : ℤ[X]).ToPowerSeries by
+      rw [show (gFOSND p h).toPowerSeries = (Finset.sum (Finset.range ((gFOSND p h).natDegree + 1))
+        (fun (i : ℕ) => ((gFOSND p h).coeff i) • (X ^ i)) : ℤ[X]).toPowerSeries by
         simp only [zsmul_eq_mul, coe_inj]; exact as_sum_range_C_mul_X_pow (gFOSND p h)]
       simp only [zsmul_eq_mul, eval_finset_sum, eval_mul, eval_intCast]
       rw [(Finset.sum_eq_sum_iff_of_le (fun i hi => by
@@ -215,7 +215,7 @@ theorem exists_unique_hilbert (p : Polynomial ℤ) (d : ℕ) :
   exact (Rat.ext (congrArg Rat.num (hqN n h1)) (congrArg Rat.den (hqN n h1))).symm⟩
 
 lemma prod_sub_rootMultiplicity_coeff_eq_one (p : ℤ[X]) (d x : ℕ) :
-    coeff (∏ x1 in Finset.attach (Finset.range (d - p.rootMultiplicity 1 - 1)),
+    coeff (∏ x1 ∈ Finset.attach (Finset.range (d - p.rootMultiplicity 1 - 1)),
     (X - (x : ℚ[X]) + ↑↑x1 + 1)) (d - p.rootMultiplicity 1 - 1) = 1 := by
   let hcoeff := @coeff_prod_of_natDegree_le ℚ ({ x // x ∈ Finset.range
     (d - p.rootMultiplicity 1 - 1) }) (Finset.attach (Finset.range (d - p.rootMultiplicity 1 - 1)))
@@ -273,7 +273,7 @@ theorem natDegree_hilbert (p : ℤ[X]) (d : ℕ) (hh : hilbert p d ≠ 0) :
         simp_rw [prod_sub_rootMultiplicity_coeff_eq_one p]; rw [← Finset.sum_mul]
         simp only [mul_one, mul_eq_zero, _root_.inv_eq_zero, Nat.cast_eq_zero]; rw [not_or]
         constructor
-        · rw [show ∑ i in Finset.range ((gFOSND p h).natDegree + 1), @Int.cast ℚ _
+        · rw [show ∑ i ∈ Finset.range ((gFOSND p h).natDegree + 1), @Int.cast ℚ _
             ((gFOSND p h).coeff i) = (gFOSND p h).eval 1 by rw [eval_eq_sum_range]; simp only
             [one_pow, mul_one, Int.cast_sum]]
           intro h'; simp only [Int.cast_eq_zero] at h'; rw [greatestFactorOneSubNotDvd] at h'
