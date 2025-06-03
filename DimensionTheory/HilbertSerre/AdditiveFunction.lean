@@ -93,12 +93,7 @@ lemma map_zero : μ 0 = 0 := by
 
 lemma eq_of_iso {x y : 𝒞} (e : x ≅ y) : μ x = μ y := by
   let s : ShortComplex 𝒞 :=
-  { X₁ := x
-    X₂ := y
-    X₃ := 0
-    f := e.hom
-    g := 0
-    zero := by aesop_cat }
+  { X₁ := x, X₂ := y, X₃ := 0, f := e.hom, g := 0, zero := by aesop_cat }
   have hs : s.Exact := by
     rw [ShortComplex.exact_iff_epi]
     · infer_instance
@@ -213,7 +208,7 @@ local notation "im_" m => image (S.map' m (m + 1))
 
 @[simps!]
 private noncomputable def im_eq_ker_succ (n : ℕ) (hn : n + 2 ≤ N := by omega) :
-    (image (S.map' n (n + 1))) ≅ kernel (S.map' (n + 1) (n + 2)) :=
+    (im_ n) ≅ ker_ (n + 1) :=
   (imageSubobjectIso (S.map' n (n + 1))).symm ≪≫
     @asIso _ _ _ _ (imageToKernel (S.map' n (n + 1)) (S.map' (n + 1) (n + 2)) <|
         hS.toIsComplex.zero n) (by

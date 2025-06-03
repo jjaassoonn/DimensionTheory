@@ -96,14 +96,8 @@ lemma apply_decompose (f : GradedRingHom 𝒜 ℬ) (x : A) (i : ι) :
 
 def ker (f : GradedRingHom 𝒜 ℬ) : HomogeneousIdeal 𝒜 where
   __ := RingHom.ker f
-  is_homogeneous' := by
-    classical
-    intro i x hx
-    simp only [RingHom.mem_ker] at hx ⊢
-    rw [apply_decompose]
-    simp only [ZeroMemClass.coe_eq_zero]
-    rw [← decompose_apply, hx]
-    simp only [decompose_zero, zero_apply]
+  is_homogeneous' i x (hx : _ = 0) := show _ = 0 by
+    simp [apply_decompose, ← decompose_apply, hx, RingHom.mem_ker] at hx ⊢
 
 end GradedRingHom
 
@@ -118,5 +112,7 @@ variable (ℬ : ι → Submodule R B) [GradedAlgebra ℬ]
 
 
 structure GradedAlgHom extends A →ₐ[R] B, GradedRingHom 𝒜 ℬ
+
+scoped[Graded] notation:25 𝒜 " →ₐ[" R "] " ℬ => GradedAlgHom (R := R) 𝒜 ℬ
 
 end

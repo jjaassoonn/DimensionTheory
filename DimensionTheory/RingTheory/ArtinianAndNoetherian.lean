@@ -300,30 +300,30 @@ namespace local_ring_with_nilpotent_maximal_ideal
 variable [IsLocalRing R] [Nontrivial R]
 variable [maximalIdeal_nilpotent : Fact <| IsNilpotent <| IsLocalRing.maximalIdeal (R := R)]
 
-local notation "𝓂" => IsLocalRing.maximalIdeal (R := R)
+local notation "𝔪" => IsLocalRing.maximalIdeal (R := R)
 local notation "κ" => IsLocalRing.ResidueField (R := R)
 
 omit [Nontrivial R] in
 /--
 Maximal ideal of an artinian local ring is nilpotent.
 -/
-lemma exists_K : ∃ K : ℕ, 𝓂 ^ K = 0 := maximalIdeal_nilpotent.out
+lemma exists_K : ∃ K : ℕ, 𝔪 ^ K = 0 := maximalIdeal_nilpotent.out
 
 /--
-Let `K` be the smallest number such that `𝓂 ^ K = 0`
+Let `K` be the smallest number such that `𝔪 ^ K = 0`
 -/
 def K : ℕ := exists_K R |>.choose
 
 omit [Nontrivial R] in
-lemma K_spec : 𝓂 ^ K R = 0 := exists_K R |>.choose_spec
+lemma K_spec : 𝔪 ^ K R = 0 := exists_K R |>.choose_spec
 
 /--
-Construct a series by `0 ≤ 𝓂ᵏ⁻¹ ≤ 𝓂ᵏ⁻² ≤ ... ≤ 𝓂 ≤ R`
+Construct a series by `0 ≤ 𝔪ᵏ⁻¹ ≤ 𝔪ᵏ⁻² ≤ ... ≤ 𝔪 ≤ R`
 -/
 @[simps]
 def series : RelSeries ((· ≤ ·) : Ideal R → Ideal R → Prop) where
   length := K R
-  toFun i := 𝓂 ^ (K R - i.1)
+  toFun i := 𝔪 ^ (K R - i.1)
   step i := by
     simp only [Fin.coe_castSucc, Fin.val_succ]
     apply Ideal.pow_le_pow_right
@@ -331,15 +331,15 @@ def series : RelSeries ((· ≤ ·) : Ideal R → Ideal R → Prop) where
     norm_num
 
 omit [Nontrivial R] in
-@[simp] lemma series_head : (series R).head = 0 := show 𝓂 ^ (K R - 0) = 0 from by
+@[simp] lemma series_head : (series R).head = 0 := show 𝔪 ^ (K R - 0) = 0 from by
   simp [K_spec]
 
 omit [Nontrivial R] in
-@[simp] lemma series_last : (series R).last = ⊤ := show 𝓂 ^ (K R - K R) = ⊤ from by
+@[simp] lemma series_last : (series R).last = ⊤ := show 𝔪 ^ (K R - K R) = ⊤ from by
   simp
 
 /--
-Define the action of `R ⧸ 𝓂` on `𝓂ⁿ ⧸ 𝓂ⁿ⁺¹` by `[r] • [x] = [r • x]`
+Define the action of `R ⧸ 𝔪` on `𝔪ⁿ ⧸ 𝔪ⁿ⁺¹` by `[r] • [x] = [r • x]`
 -/
 def residualFieldActionOnQF (i : Fin (K R)) : κ →ₗ[R] Module.End R ((series R).qf i) :=
   Submodule.liftQ _ (LinearMap.lsmul _ _) fun r hr ↦ by
@@ -355,8 +355,8 @@ def residualFieldActionOnQF (i : Fin (K R)) : κ →ₗ[R] Module.End R ((series
       RingHom.id_apply, Submodule.coe_subtype, smul_eq_mul]
     have mem1 := m.2
     simp only [series_length, series_toFun, Fin.val_succ] at mem1
-    have eq1 : 𝓂 ^ (K R - i) = 𝓂 * 𝓂 ^ (K R - (i + 1)) := by
-      conv_rhs => lhs; rw [show 𝓂 = 𝓂 ^ 1 from pow_one _ |>.symm]
+    have eq1 : 𝔪 ^ (K R - i) = 𝔪 * 𝔪 ^ (K R - (i + 1)) := by
+      conv_rhs => lhs; rw [show 𝔪 = 𝔪 ^ 1 from pow_one _ |>.symm]
       rw [← pow_add, add_comm]
       congr
       rw [Nat.sub_add_eq, Nat.sub_add_cancel]
@@ -412,10 +412,10 @@ instance (i : Fin (K R)) : Module κ ((series R).qf i) where
     simp
 
 /--
-A semilinear map from `𝓂ⁿ ⧸ 𝓂ⁿ⁺¹` as `R`-module to `𝓂ⁿ ⧸ 𝓂ⁿ⁺¹` as `R ⧸ 𝓂` module
+A semilinear map from `𝔪ⁿ ⧸ 𝔪ⁿ⁺¹` as `R`-module to `𝔪ⁿ ⧸ 𝔪ⁿ⁺¹` as `R ⧸ 𝔪` module
 -/
 @[simps]
-def qfEquiv_κR (i : Fin (K R)) : (series R).qf i →ₛₗ[algebraMap R κ] (series R).qf i :=
+def id_κR (i : Fin (K R)) : (series R).qf i →ₛₗ[algebraMap R κ] (series R).qf i :=
 { toFun := id
   map_add' := fun _ _ ↦ rfl
   map_smul' := fun r m ↦ by
@@ -428,34 +428,20 @@ instance : RingHomSurjective (algebraMap R κ) where
   is_surjective := Submodule.mkQ_surjective _
 
 /--
-The `R ⧸ 𝓂`-submodules of `𝓂ⁿ ⧸ 𝓂ⁿ⁺¹` are exactly the same as the `R`-submodules of `𝓂ⁿ ⧸ 𝓂ⁿ⁺¹`.
+The `R ⧸ 𝔪`-submodules of `𝔪ⁿ ⧸ 𝔪ⁿ⁺¹` are exactly the same as the `R`-submodules of `𝔪ⁿ ⧸ 𝔪ⁿ⁺¹`.
 -/
 @[simps]
 def qfSubmoduleAgree (i : Fin (K R)) :
     Submodule κ ((series R).qf i) ≃o
     Submodule R ((series R).qf i) where
-  toFun p := Submodule.comap (qfEquiv_κR R i) p
-  invFun q := Submodule.map (qfEquiv_κR R i) q
-  left_inv p := by
-    simp only [series_length, series_toFun, Fin.val_succ, Fin.coe_castSucc]
-    rw [Submodule.map_comap_eq_of_surjective]
-    exact fun x ↦ ⟨x, rfl⟩
-  right_inv q := by
-    simp only [series_length, series_toFun, Fin.val_succ, Fin.coe_castSucc]
-    rw [Submodule.comap_map_eq_of_injective]
-    exact fun _ _ h ↦ h
-  map_rel_iff' {p q} := by
-    simp only [series_length, series_toFun, Fin.val_succ, Fin.coe_castSucc, Equiv.coe_fn_mk]
-    fconstructor
-    · intro h x hx
-      specialize h hx
-      simpa only [Submodule.mem_comap, qfEquiv_κR_apply, id_eq] using h
-    · intro h x hx
-      specialize h hx
-      simpa using h
+  toFun p := Submodule.comap (id_κR R i) p
+  invFun q := Submodule.map (id_κR R i) q
+  left_inv _ := Submodule.map_comap_eq_of_surjective (fun x ↦ ⟨x, rfl⟩) _
+  right_inv _ := Submodule.comap_map_eq_of_injective (fun _ _ h ↦ h) _
+  map_rel_iff' := ⟨id, id⟩
 
 /--
-The `R ⧸ 𝓂`-submodules of `𝓂ⁿ ⧸ 𝓂ⁿ⁺¹` are exactly the same as the `R`-submodules of `𝓂ⁿ ⧸ 𝓂ⁿ⁺¹`.
+The `R ⧸ 𝔪`-submodules of `𝔪ⁿ ⧸ 𝔪ⁿ⁺¹` are exactly the same as the `R`-submodules of `𝔪ⁿ ⧸ 𝔪ⁿ⁺¹`.
 (reverse the order)
 -/
 @[simps!]
@@ -541,8 +527,7 @@ instance qf_finiteLength_κ_of_artinian [IsArtinianRing R] (i : Fin (K R)) :
 instance qf_finiteLength_κ_of_noetherian [IsNoetherianRing R] (i : Fin (K R)) :
     FiniteLengthModule κ ((series R).qf i) := by
   suffices inst1 : IsFiniteLengthModule κ ((series R).qf i) from Classical.choice inst1.finite
-  rw [finiteLengthModule_over_field_iff_finite_dimensional,
-    ← Module.finite_iff_artinian_over_divisionRing]
+  rw [finiteLengthModule_over_field_iff_finite_dimensional]
   infer_instance
 
 instance qf_finiteLength_R_of_artinian [IsArtinianRing R] (i : Fin (K R)) :
@@ -607,7 +592,7 @@ instance isNoetherianRing_of_local [IsLocalRing R] : IsNoetherianRing R := by
   refine isFiniteLengthModule_congr (local_ring_with_nilpotent_maximal_ideal.cdf_last_eq R)
     (h := ?_)
   rw [RelSeries.cqf_finiteLength_iff_each_qf_finiteLength]
-  intros j
+  intro j
   infer_instance
 
 open Order
@@ -682,7 +667,7 @@ instance : IsArtinianRing R := by
 
       rw [dim0.out] at this
       refine le_antisymm this krullDim_nonneg
-
+    haveI : Fintype (PrimeSpectrum R) := by exact instFintypePrimeSpectrum_dimensionTheory R
     refine isArtinianRing_of_ringEquiv (e := equivProdLocalization.symm)
 
 end IsNoetherianRing

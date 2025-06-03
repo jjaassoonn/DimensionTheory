@@ -31,13 +31,12 @@ namespace CompositionSeries
 
 /-- if `x ≤ y` are headh `R`-submodule of `M`, we can mathematically form their quotient but type
 theoretically more complicated, so introduce a definition to use a notation. -/
-private def quot {M : Type _} [AddCommGroup M] [Module R M] (x y : Submodule R M) : Type _ :=
+private def quot {M : Type*} [AddCommGroup M] [Module R M] (x y : Submodule R M) :=
   x ⧸ (Submodule.comap x.subtype y)
 local infix:80 "⧸ₛ" => quot
 
 /-- quotient factor of a composition series -/
-def qf (i : Fin s.length) : Type _ :=
-s i.succ ⧸ₛ s i.castSucc
+def qf (i : Fin s.length) := s i.succ ⧸ₛ s i.castSucc
 
 instance (i : Fin s.length) : AddCommGroup (s.qf i) := by
   delta qf quot; infer_instance
@@ -99,7 +98,7 @@ lemma interList_get_le_get_succ (i : Fin s.length) :
 @[simps! apply]
 def interList_get_succ_to_qf (i : Fin s.length) :
     s.interList_get_succ N i →ₗ[R] s.qf i :=
-(Submodule.mkQ _).comp $ N.subtype.restrict $ λ _ h ↦ by
+(Submodule.mkQ _).comp <| N.subtype.restrict <| fun _ h ↦ by
   rw [interList_get_succ_eq] at h
   exact h.2
 
@@ -116,8 +115,7 @@ lemma interList_get_succ_to_qf_ker (i : Fin s.length) :
   exact x.2
 
 /-- quotient factor of intersection between a submodule and a composition series. -/
-def interList_qf (i : Fin s.length) : Type _ :=
-    s.interList_get_succ N i ⧸ₛ s.interList_get N i
+def interList_qf (i : Fin s.length) := s.interList_get_succ N i ⧸ₛ s.interList_get N i
 
 instance {M : Type _} [AddCommGroup M] [Module R M] (x y : Submodule R M) :
   AddCommGroup (x ⧸ₛ y) := by delta quot; exact Submodule.Quotient.addCommGroup _
@@ -334,7 +332,6 @@ lemma interList_not_nodup_of_lt_top (s0 : s.head = ⊥) (slast : s.last = ⊤)
   assumption
 
 /-- after removing duplication from `s ⊓ N`, it becomes a composition series. -/
-@[simps!]
 noncomputable def ofInterList
     [DecidableEq (Submodule R N)] [DecidableEq (Submodule R M)] :
   CompositionSeries (Submodule R N) :=

@@ -375,53 +375,53 @@ instance isArtinian_of_finiteLength [h : FiniteLengthModule R M] :
 variable {R M}
 variable [IsArtinian R M] (N : Submodule R M)
 
-set_option linter.deprecated false in
-/-- for an artinian `R`-module `M`, there is a well defined successor function on its submodules.
-`N ↦ N'` such that `N ⋖ N'`-/
-noncomputable def _root_.Submodule.next : Submodule R M :=
-let wf : WellFounded ((. < .) : Submodule R M → Submodule R M → Prop) :=
-  (inferInstance : IsArtinian R M).1
-wf.succ N
+lemma _root_.Submodule.exists_next (h : N ≠ ⊤) : ∃ (N' : Submodule R M), N ⋖ N' := by
+  classical
+  let S := { N' : Submodule R M | N < N' }
+  obtain ⟨N', (hN1 : N < N'), hN2⟩ := IsArtinian.set_has_minimal S ⟨⊤, lt_top_iff_ne_top.2 h⟩
+  use N'
+  rw [covBy_iff_lt_and_eq_or_eq]
+  refine ⟨hN1, fun N'' H H' => ?_⟩
+  rw [le_iff_eq_or_lt] at H
+  rcases H with (rfl|H)
+  · tauto
+  right
+  refine le_antisymm H' ?_
+  contrapose! hN2
+  use N'', H
+  apply lt_of_le_of_ne
+  · assumption
+  · aesop
 
-omit [IsArtinian R M] in
-lemma _root_.Submodule.exists_of_ne_last (ne_top : N ≠ ⊤) : ∃ (x : Submodule R M), N < x := by
-  obtain ⟨m, _, nm⟩ := SetLike.exists_of_lt (Ne.lt_top ne_top : N < ⊤)
-  refine ⟨N ⊔ R ∙ m, SetLike.lt_iff_le_and_exists.mpr ⟨le_sup_left, ⟨m, ?_, nm⟩⟩⟩
-  exact (le_sup_right : (R ∙ m) ≤ _) (Submodule.mem_span_singleton_self _)
+noncomputable def _root_.Submodule.next : Submodule R M :=
+if h : N ≠ ⊤ then
+  N.exists_next h |>.choose
+else ⊤
 
 lemma _root_.Submodule.le_next : N ≤ N.next := by
-  delta Submodule.next WellFounded.succ
+  delta Submodule.next
   dsimp
   split_ifs with H
-  · exact le_of_lt (WellFounded.min_mem _ _ H)
-  · rfl
+  · subst H; rfl
+  · generalize_proofs H
+    exact le_of_lt <| (covBy_iff_wcovBy_and_lt |>.1 H.choose_spec).2
 
+lemma _root_.Submodule.covBy_next (h : N ≠ ⊤) : N ⋖ N.next := by
+  delta Submodule.next
+  dsimp
+  split_ifs with H
+  · subst H; tauto
+  · generalize_proofs H
+    exact H.choose_spec
 
-set_option linter.deprecated false in
+-- set_option linter.deprecated false in
 lemma _root_.Submodule.lt_next_of_ne_last (ne_last : N ≠ ⊤) : N < N.next :=
-  WellFounded.lt_succ _ (N.exists_of_ne_last ne_last)
+  N.covBy_next ne_last |>.1
 
 lemma _root_.Submodule.eq_last_of_eq_next (eq_next : N = N.next) : N = ⊤ := by
   contrapose! eq_next
   exact ne_of_lt (N.lt_next_of_ne_last eq_next)
 
-lemma _root_.Submodule.covby_next_of_ne_last (ne_last : N ≠ ⊤) : N ⋖ N.next := by
-  classical
-  rw [covBy_iff_lt_and_eq_or_eq]
-  refine ⟨N.lt_next_of_ne_last ne_last, λ x hx1 hx2 ↦ ?_⟩
-  dsimp only [Submodule.next] at hx2 ⊢
-  -- generalize_proofs h at hx2
-  rw [le_iff_lt_or_eq] at hx2
-  rcases hx2 with (hx2|rfl)
-  · left
-    refine le_antisymm ?_ hx1
-    delta WellFounded.succ at hx2
-    rw [dif_pos (N.exists_of_ne_last ne_last)] at hx2
-    have : ¬ _ < _ := not_imp_not.mpr (WellFounded.not_lt_min _ _ _) (not_not.mpr hx2)
-    rw [SetLike.lt_iff_le_and_exists, not_and_or] at this
-    push_neg at this
-    exact this.resolve_left (not_not.mpr hx1)
-  · right; rfl
 
 variable (R M)
 
@@ -429,8 +429,8 @@ variable (R M)
   this is implemented as an order homomorphism -/
 @[simps]
 noncomputable def nthSubmodule : ℕ →o Submodule R M where
-  toFun := λ n ↦ Submodule.next^[n] ⊥
-  monotone' := λ m n h ↦ by
+  toFun n := Submodule.next^[n] ⊥
+  monotone' m n h := by
     apply Function.monotone_iterate_of_id_le
     · intro x; apply Submodule.le_next
     · assumption
@@ -487,7 +487,7 @@ noncomputable def _root_.CompositionSeries.ofIsArtinianOfIsNoetherian :
   toFun := nthSubmodule R M ∘ Fin.val
   step := λ i ↦ by
     simpa only [Function.comp_apply, Fin.coe_castSucc, nthSubmodule_coe, Fin.val_succ,
-      Function.iterate_succ'] using Submodule.covby_next_of_ne_last _
+      Function.iterate_succ'] using Submodule.covBy_next _
       (ne_last_of_lt_indexOfTopSubmodule R M _ i.2)
 
 lemma _root_.CompositionSeries.ofIsArtinianOfIsNoetherian_head_eq :
@@ -725,12 +725,13 @@ The range of embedding `i`-th cumulative quotient factor to `i+1`-st cumulative 
 -/
 noncomputable def RelSeries.rangeCQFToSucc (i : Fin x.length) :
     LinearMap.range (x.cqfToSucc i) ≃ₗ[R] x.cqf i.castSucc :=
-  LinearEquiv.symm <| LinearEquiv.ofInjective _ fun a b h ↦ by
-    induction' a using Quotient.inductionOn' with a
-    induction' b using Quotient.inductionOn' with b
-    erw [Submodule.mapQ_apply, Submodule.mapQ_apply, Submodule.Quotient.eq] at h
-    rw [Submodule.Quotient.mk''_eq_mk, Submodule.Quotient.mk''_eq_mk, Submodule.Quotient.eq]
-    simpa only using h
+  LinearEquiv.symm <| LinearEquiv.ofInjective _ <| by
+    rw [← LinearMap.ker_eq_bot, eq_bot_iff]
+    intro a ha
+    induction a using Quotient.inductionOn' with | h a =>
+    simp only [LinearMap.mem_ker, Submodule.mem_bot] at ha ⊢
+    erw [Submodule.Quotient.eq] at ha ⊢
+    simpa using ha
 
 /--
 The `0`-th cumulative quotient factor is trivial.

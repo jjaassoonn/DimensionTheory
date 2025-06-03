@@ -56,6 +56,7 @@ variable [DecidableEq ιA] [DecidableEq ιM]
 
 variable (𝒜 : ιA → σA) (ℳ : ιM → σM) (𝒜𝒜 : ιAA → σAA)
 
+
 section HomogeneousDef
 
 variable [AddCommMonoid M] [AddSubmonoidClass σM M] [Decomposition ℳ]

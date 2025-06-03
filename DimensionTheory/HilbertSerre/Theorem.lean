@@ -14,6 +14,8 @@ import Mathlib.RingTheory.PowerSeries.Inverse
 import Mathlib.RingTheory.PowerSeries.Trunc
 import Mathlib.Algebra.Module.Torsion
 
+import Mathlib.Algebra.DirectSum.Ring
+
 /-!
 # Hilbert Serre Theorem
 
@@ -330,15 +332,15 @@ open Pointwise
 x • M is also a homogeneous submodule, so we can take the quotient modue `M ⧸ x • M` with its
 quotient grading as a grade module over `A`.
 -/
-abbrev COKER.den : HomogeneousSubmodule A ℳ :=
-{ toSubmodule := x • (⊤ : Submodule A M)
+abbrev COKER.den : HomogeneousSubmodule A ℳ where
+  toSubmodule := x • (⊤ : Submodule A M)
   is_homogeneous' := by
     intro i m hm
     obtain ⟨m, -, rfl⟩ := hm
     refine ⟨if d ≤ i then GradedModule.proj ℳ (i - d) m else 0, trivial, ?_⟩
     show x • _ = GradedModule.proj ℳ i (x • m)
     rw [GradedModule.proj_smul_mem_left 𝒜 ℳ x m deg_x]
-    split_ifs <;> aesop }
+    split_ifs <;> aesop
 
 /--
 `M ⧸ x • M` has a quotient grading when `x` is homogeneous. Dentoe this module as `L`
@@ -1071,11 +1073,9 @@ lemma induction : statement'.{u} (N + 1) := by
 
 end induction_case
 
-lemma proof' : ∀ s, statement'.{u} s := by
-  intro s
-  induction' s with s ih
-  · apply proof.base_case
-  · exact induction s ih
+lemma proof' : ∀ s, statement'.{u} s
+| 0 => proof.base_case
+| (s + 1) => induction s <| proof' s
 
 theorem _root_.hilbert_serre : ∃ (p : Polynomial ℤ), μ.poincareSeries 𝒜 ℳ = p • S.poles⁻¹ :=
   statement'_imp_statement 𝒜 ℳ μ S proof'.{u}

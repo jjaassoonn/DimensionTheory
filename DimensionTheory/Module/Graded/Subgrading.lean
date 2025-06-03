@@ -117,8 +117,8 @@ instance : Decomposition A'.grading where
   right_inv := grading.decompose_rightInverse A'
 
 instance gradedRing : GradedRing A'.grading where
-  __ := inferInstanceAs <| SetLike.GradedMonoid A'.grading
-  __ := inferInstanceAs <| Decomposition A'.grading
+  -- __ := inferInstanceAs <| SetLike.GradedMonoid A'.grading
+  -- __ := inferInstanceAs <| Decomposition A'.grading
 
 lemma grading.decompose_def (x : A') :
     DirectSum.decompose A'.grading x = HomogeneousSubring.grading.decompose A' x := rfl
@@ -283,7 +283,7 @@ The addive group homomorphism from `Mᵢ ⧸ p ∩ Mᵢ` to `M ⧸ p`
 -/
 @[simps!]
 def quotientGradingEmb (i : ιM) :
-    ℳ i ⧸ (AddSubgroup.addSubgroupOf p.toAddSubgroup _) →+
+    ℳ i ⧸ (p.toAddSubgroup.addSubgroupOf _) →+
     M ⧸ p.toSubmodule :=
   QuotientAddGroup.map _ _ (ℳ i).subtype <| le_refl _
 
@@ -300,7 +300,7 @@ homogeneous.
 def quotientGrading.decomposeAux : M →+ ⨁ i, p.quotientGrading i :=
 AddMonoidHom.comp
   (DFinsupp.liftAddHom fun i ↦
-    { toFun := fun m ↦ .of _ i ⟨p.toSubmodule.mkQ m.1, ⟨Quotient.mk'' m, by
+    { toFun m := .of _ i ⟨p.toSubmodule.mkQ m.1, ⟨Quotient.mk'' m, by
         rw [quotientGradingEmb]
         erw [QuotientAddGroup.map_mk']⟩⟩
       map_zero' := DFinsupp.ext fun j ↦ by
@@ -321,7 +321,7 @@ AddMonoidHom.comp
           simp only [AddSubgroup.coe_add, Submodule.Quotient.mk_add, of_eq_same, add_apply,
             AddMemClass.mk_add_mk]
         · rw [of_eq_of_ne, DirectSum.add_apply, of_eq_of_ne, of_eq_of_ne, add_zero] <;> exact h
-         })
+        })
   (DirectSum.decomposeAddEquiv ℳ).toAddMonoidHom
 
 lemma quotientGrading.le_decomposeAux_ker :
